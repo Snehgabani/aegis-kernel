@@ -1,0 +1,33 @@
+# Standardize line endings across Windows, Linux, and macOS
+* text=auto eol=lf
+
+# Force specific file types to LF
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.py text eol=lf
+*.go text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.wasm binary
+*.pdf binary
+*.tar.gz binary
+*.tgz binary
+*.zip binary
+
+# GitHub Linguist language overrides & generated files
+site/* linguist-documentation
+docs/* linguist-documentation
+Formula/* linguist-vendored
+packages/*/dist/* linguist-generated=true
+services/*/dist/* linguist-generated=true
+package-lock.json linguist-generated=true
