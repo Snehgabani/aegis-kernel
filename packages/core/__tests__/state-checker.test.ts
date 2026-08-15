@@ -106,4 +106,31 @@ describe('StateChecker (System State Invariant Layer)', () => {
     expect(verdict.allowed).toBe(false);
     expect(verdict.violations.some((v) => v.ruleId === 'FIN-STATE-001')).toBe(true);
   });
+
+  it('should enforce multi-tenant isolation and block cross-tenant parameter spoofing', () => {
+    const maliciousToolCall: ToolCall = {
+      tool: 'export_tenant_data',
+      params: { tenantId: 'tenant_victim_corp' },
+    };
+
+    const authenticatedState = {
+      tenantId: 'tenant_attacker_llc',
+      userRole: 'admin',
+    };
+
+    const violations = checker.evaluate(
+      'STATE-TENANT-01',
+      'tenant-guard',
+      {
+        tenant_field: 'tenantId',
+        assertion: 'params.tenantId != null',
+      },
+      maliciousToolCall,
+      authenticatedState
+    );
+
+    expect(violations.length).toBe(1);
+    expect(violations[0].ruleId).toBe('STATE-TENANT-01');
+    expect(violations[0].message).toContain('Cross-tenant isolation violation');
+  });
 });

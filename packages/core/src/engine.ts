@@ -35,6 +35,7 @@ export class AegisEngine {
   private packs: RulePack[];
   private policyCommitmentHash: string;
   private defaultStateProvider?: StateProvider;
+  private onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
   private logger: AegisEventLogger;
   private ledger: LearningLedgerManager;
 
@@ -50,6 +51,7 @@ export class AegisEngine {
     this.mode = config?.mode ?? 'enforce';
     this.failPolicy = config?.failPolicy ?? 'fail-open';
     this.defaultStateProvider = config?.stateProvider;
+    this.onViolation = config?.onViolation;
 
     // Initialize 6 Checkers
     this.sqlChecker = new SqlChecker();
@@ -156,6 +158,14 @@ export class AegisEngine {
       });
 
       this.ledger.recordEvent(event);
+
+      if (!verdict.allowed) {
+        if (options?.onViolation) {
+          options.onViolation(verdict, toolCall);
+        } else if (this.onViolation) {
+          this.onViolation(verdict, toolCall);
+        }
+      }
 
       return verdict;
     } catch (err: any) {

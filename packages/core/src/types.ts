@@ -44,6 +44,7 @@ export interface AegisConfig {
     maxLatencyMs?: number;
     maxOverrideRatio?: number;
   };
+  onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
 }
 
 export interface ToolCall {
@@ -58,6 +59,7 @@ export interface EvaluateOptions {
   stateProvider?: StateProvider; // Dynamic state fetcher
   callerId?: string;
   trustedContext?: boolean; // If false, returns terse suggested fix to prevent information disclosure
+  onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
 }
 
 export interface AegisViolation {

@@ -123,11 +123,23 @@ export class LearningLedgerManager {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(
-        this.ledgerPath,
-        JSON.stringify(this.ledger, null, 2),
-        'utf8'
-      );
+
+      // Auto-compact uncovered tools dictionary if it exceeds 1,000 unique tools
+      const toolKeys = Object.keys(this.ledger.uncoveredTools);
+      if (toolKeys.length > 1000) {
+        // Keep top 500 most frequently called uncovered tools
+        const sorted = toolKeys.sort(
+          (a, b) => this.ledger.uncoveredTools[b] - this.ledger.uncoveredTools[a]
+        );
+        const compacted: Record<string, number> = {};
+        for (const key of sorted.slice(0, 500)) {
+          compacted[key] = this.ledger.uncoveredTools[key];
+        }
+        this.ledger.uncoveredTools = compacted;
+      }
+
+      const serialized = JSON.stringify(this.ledger, null, 2);
+      fs.writeFileSync(this.ledgerPath, serialized, 'utf8');
     } catch {
       // Fail-safe
     }

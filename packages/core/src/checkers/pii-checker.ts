@@ -71,9 +71,20 @@ export class PiiChecker {
     return violations;
   }
 
+  private normalizeString(text: string): string {
+    // Strip zero-width and invisible control characters used for regex evasion
+    const stripped = text.replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, '');
+    // Normalize unicode forms (NFKD)
+    return stripped.normalize('NFKD');
+  }
+
   private collectStringValues(obj: unknown, collected: string[] = []): string[] {
     if (typeof obj === 'string') {
       collected.push(obj);
+      const normalized = this.normalizeString(obj);
+      if (normalized !== obj) {
+        collected.push(normalized);
+      }
     } else if (Array.isArray(obj)) {
       for (const item of obj) {
         this.collectStringValues(item, collected);

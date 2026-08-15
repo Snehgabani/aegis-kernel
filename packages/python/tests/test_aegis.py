@@ -95,6 +95,27 @@ class TestAegisPythonKernel(unittest.TestCase):
         res = safe_transfer(amount=100, recipient="alice")
         self.assertEqual(res, "Transferred $100 to alice")
 
+    def test_async_python_decorator(self):
+        import asyncio
+
+        @aegis_guard(tool_name="async_database_runner")
+        async def async_execute_db(query: str):
+            await asyncio.sleep(0.001)
+            return f"Async Executed: {query}"
+
+        # Should raise AegisBlockedError on rogue async call
+        async def run_blocked():
+            with self.assertRaises(AegisBlockedError):
+                await async_execute_db(query="DELETE FROM transactions")
+
+        # Should succeed on safe async call
+        async def run_allowed():
+            result = await async_execute_db(query="SELECT * FROM transactions WHERE id = 100")
+            self.assertEqual(result, "Async Executed: SELECT * FROM transactions WHERE id = 100")
+
+        asyncio.run(run_blocked())
+        asyncio.run(run_allowed())
+
     def test_sub_millisecond_latency(self):
         call = ToolCall(tool="fast_eval", params={"query": "SELECT * FROM items WHERE id = 1"})
         v = self.engine.evaluate(call)

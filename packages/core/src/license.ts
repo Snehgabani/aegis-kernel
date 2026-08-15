@@ -18,6 +18,8 @@ export interface LicenseVerificationResult {
   valid: boolean;
   active: boolean;
   tier: AegisPlanTier;
+  inGracePeriod?: boolean;
+  graceDaysRemaining?: number;
   payload?: LicensePayload;
   error?: string;
 }
@@ -92,11 +94,29 @@ export class AegisLicenseManager {
 
       const now = new Date();
       const expiresAt = new Date(payload.expiresAt);
+      const GRACE_PERIOD_MS = 7 * 24 * 3600 * 1000; // 7-day grace period
+      const isExpired = now > expiresAt;
+      const isWithinGrace = isExpired && now.getTime() - expiresAt.getTime() < GRACE_PERIOD_MS;
 
-      if (now > expiresAt) {
+      if (isExpired) {
+        if (isWithinGrace) {
+          const graceDaysRemaining = Math.ceil(
+            (GRACE_PERIOD_MS - (now.getTime() - expiresAt.getTime())) / (24 * 3600 * 1000)
+          );
+          return {
+            valid: true,
+            active: true, // Remains active during grace period
+            inGracePeriod: true,
+            graceDaysRemaining,
+            tier: payload.plan,
+            payload,
+            error: `License expired on ${payload.expiresAt} (${graceDaysRemaining} days remaining in grace period)`,
+          };
+        }
         return {
           valid: true,
           active: false,
+          inGracePeriod: false,
           tier: payload.plan,
           payload,
           error: `License expired on ${payload.expiresAt}`,

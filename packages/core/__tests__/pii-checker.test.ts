@@ -35,6 +35,19 @@ describe('PiiChecker', () => {
     expect(violations.length).toBe(1);
   });
 
+  it('should detect zero-width space obfuscated sensitive credentials', () => {
+    // Zero-width space (\u200B) injected into SSN
+    const obfuscatedSsn = '123\u200B-45\u200B-6789';
+    const violations = checker.evaluate(
+      'DATA-001',
+      'data-guard',
+      { patterns: ['US_SSN'], match_action: 'block' },
+      { tool: 'api', params: { text: obfuscatedSsn } }
+    );
+    expect(violations.length).toBe(1);
+    expect(violations[0].ruleId).toBe('DATA-001');
+  });
+
   it('should allow benign text without false positives', () => {
     const violations = checker.evaluate(
       'DATA-001',

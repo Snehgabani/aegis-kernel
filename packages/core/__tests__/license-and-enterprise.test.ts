@@ -52,13 +52,14 @@ describe('Aegis Enterprise Monetization & Compliance Layer', () => {
       expect(verification.error).toContain('Cryptographic signature mismatch');
     });
 
-    it('should identify expired license tokens', () => {
+    it('should identify expired license tokens and apply 7-day grace period', () => {
+      // 1. Expired long ago (> 7 days)
       const expiredPayload = {
         customerId: 'cust_expired',
         customerEmail: 'billing@expired.com',
         plan: 'scale' as const,
         issuedAt: '2024-01-01T00:00:00.000Z',
-        expiresAt: '2025-01-01T00:00:00.000Z', // Expired
+        expiresAt: '2024-06-01T00:00:00.000Z', // Expired long ago
         features: ['hipaa_guard', 'soc2_guard'],
         maxMonthlyChecks: 1000000,
       };
@@ -67,7 +68,26 @@ describe('Aegis Enterprise Monetization & Compliance Layer', () => {
       const verification = licenseManager.verifyLicenseKey(expiredToken);
       expect(verification.valid).toBe(true);
       expect(verification.active).toBe(false);
+      expect(verification.inGracePeriod).toBe(false);
       expect(verification.error).toContain('License expired');
+
+      // 2. Expired 2 days ago (within 7-day grace period)
+      const recentExpiredPayload = {
+        customerId: 'cust_grace',
+        customerEmail: 'billing@grace.com',
+        plan: 'pro' as const,
+        issuedAt: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+        features: ['hipaa_guard'],
+        maxMonthlyChecks: 100000,
+      };
+
+      const graceToken = licenseManager.generateLicenseKey(recentExpiredPayload, secretKey);
+      const graceVerification = licenseManager.verifyLicenseKey(graceToken);
+      expect(graceVerification.valid).toBe(true);
+      expect(graceVerification.active).toBe(true); // Active during grace
+      expect(graceVerification.inGracePeriod).toBe(true);
+      expect(graceVerification.graceDaysRemaining).toBeGreaterThan(0);
     });
   });
 

@@ -3,6 +3,7 @@ import { CustomChecker } from './custom-checker.js';
 
 export interface StateInvariantConditionParams {
   target_field?: string; // Optional field on toolCall.params (e.g. 'amount')
+  tenant_field?: string; // Optional tenant/account isolation field (e.g. 'organizationId' or 'tenantId')
   require_state?: boolean; // If true, strictly fails when stateContext is omitted
   precondition?: string; // Must be true before action can proceed (e.g. "state.account_status == 'active'")
   assertion: string; // Invariant that must hold across transition (e.g. "state.spent_today + params.amount <= state.daily_budget")
@@ -32,6 +33,23 @@ export class StateChecker {
     // If this state rule targets a specific field (e.g. 'amount') and the tool call doesn't have it, skip
     if (params.target_field && !(params.target_field in toolCall.params)) {
       return violations;
+    }
+
+    // Tenant isolation verification: parameters must match the authenticated tenant in state
+    if (params.tenant_field && stateContext && params.tenant_field in toolCall.params) {
+      const toolTenant = toolCall.params[params.tenant_field];
+      const stateTenant = stateContext[params.tenant_field];
+      if (stateTenant !== undefined && toolTenant !== stateTenant) {
+        violations.push({
+          ruleId,
+          packId,
+          severity: 'critical',
+          message: `Cross-tenant isolation violation: Tool requested tenant '${toolTenant}' does not match authenticated session tenant '${stateTenant}'.`,
+          suggestedFix: `Restrict tool call parameters to the caller's active tenant '${stateTenant}'.`,
+          context: { toolTenant, stateTenant },
+        });
+        return violations;
+      }
     }
 
     // If stateContext is not provided

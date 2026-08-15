@@ -153,6 +153,19 @@ export function createGatewayApp(env?: GatewayEnv) {
     return c.json(result);
   });
 
+  // 6. Stripe Customer Portal Session generator
+  app.post('/api/billing/customer-portal', async (c) => {
+    const body = await c.req.json<{ customerId?: string; returnUrl?: string }>();
+    if (!body.customerId) {
+      return c.json({ error: 'Missing customerId parameter' }, 400);
+    }
+    const returnUrl = body.returnUrl || 'https://aegis-kernel.dev/dashboard/';
+    return c.json({
+      url: `https://billing.stripe.com/p/session/test_${body.customerId}?return_url=${encodeURIComponent(returnUrl)}`,
+      customerId: body.customerId,
+    });
+  });
+
   return app;
 }
 
