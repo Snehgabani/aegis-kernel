@@ -12,9 +12,45 @@ services:
     environment:
       - PORT=8787
       - NODE_ENV=production
+      - REDIS_URL=redis://aegis-redis:6379
       - AEGIS_LICENSE_SECRET=aegis_enterprise_lic_verification_secret_v1_deterministic
+    depends_on:
+      - aegis-redis
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8787/health"]
       interval: 15s
       timeout: 3s
       retries: 3
+
+  aegis-redis:
+    image: redis:7-alpine
+    container_name: aegis-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: aegis-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:10.3.3
+    container_name: aegis-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=aegis_admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+
+volumes:
+  redis-data:

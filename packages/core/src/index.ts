@@ -23,3 +23,5 @@ export * from './sanitizer.js';
 export * from './telemetry/siem.js';
 export * from './compliance/grc-exporter.js';
 export * from './explainability.js';
+export * from './deception/honeytoken-manager.js';
+export * from './quarantine/distributed-circuit-breaker.js';
