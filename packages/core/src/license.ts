@@ -24,6 +24,17 @@ export interface LicenseVerificationResult {
   error?: string;
 }
 
+/**
+ * @security THREAT MODEL
+ * This license manager uses symmetric HMAC-SHA256. By design, the verification
+ * secret is available to the local runtime. This means:
+ * - A local attacker with env var access CAN forge licenses.
+ * - This is acceptable for offline verification without network dependency.
+ * - For high-security deployments, use the remote verification endpoint
+ *   at /api/license/verify which validates against a server-held secret.
+ * - The gateway webhook (with Stripe signature verification) is the only
+ *   trusted license issuance path.
+ */
 export class AegisLicenseManager {
   private secretKey: string;
   private cachedLicense: LicenseVerificationResult | null = null;

@@ -16,7 +16,7 @@ export interface StreamVerdictAction {
 }
 
 export interface StreamInterceptorConfig {
-  windowSize?: number;        // Default: 32 tokens
+  maxPatternLength?: number;  // Default: 256 characters
   piiPatterns?: RegExp[];     // Additional PII patterns to scan
   secretPatterns?: RegExp[];  // Secret/API key patterns
   abortOnMatch?: boolean;     // Default: true (abort stream on match)
@@ -100,7 +100,7 @@ export class AegisStreamInterceptor {
   constructor(engine: AegisEngine, config: StreamInterceptorConfig = {}) {
     this.engine = engine;
     this.config = {
-      windowSize: config.windowSize ?? 32,
+      maxPatternLength: config.maxPatternLength ?? 256,
       piiPatterns: config.piiPatterns ?? [],
       secretPatterns: config.secretPatterns ?? [],
       abortOnMatch: config.abortOnMatch ?? true,
@@ -117,24 +117,19 @@ export class AegisStreamInterceptor {
   }
 
   async *intercept(stream: AsyncIterable<StreamChunk>): AsyncGenerator<StreamChunk> {
-    let window: string[] = [];
+    let buffer = '';
     
     for await (let chunk of stream) {
       if (!chunk) continue;
       
       const token = chunk.text || '';
-      window.push(token);
+      buffer += token;
       
-      if (window.length > this.config.windowSize) {
-        window.shift();
-      }
-
-      const windowText = window.join('');
       let matched = false;
       let matchReason = '';
       
       // Check Aho-Corasick
-      const acMatch = this.ac.search(windowText);
+      const acMatch = this.ac.search(buffer);
       if (acMatch) {
         matched = true;
         matchReason = `Matched pattern: ${acMatch.matchedPattern}`;
@@ -143,7 +138,7 @@ export class AegisStreamInterceptor {
       // Check regex patterns
       if (!matched) {
         for (const pattern of [...this.config.piiPatterns, ...this.config.secretPatterns]) {
-          if (pattern.test(windowText)) {
+          if (pattern.test(buffer)) {
             matched = true;
             matchReason = `Matched regex pattern: ${pattern.source}`;
             break;
@@ -158,6 +153,16 @@ export class AegisStreamInterceptor {
         } else if (this.config.redactOnMatch) {
           chunk = { ...chunk, text: '[REDACTED]', action: 'REDACT' };
         }
+      }
+
+      // Keep the last maxPatternLength characters in a sliding buffer
+      if (buffer.length > this.config.maxPatternLength) {
+        buffer = buffer.slice(-this.config.maxPatternLength);
+      }
+      
+      // Clear the buffer when a natural sentence/paragraph boundary is detected
+      if (/[.!?](?:\s|$)|(?:\n\n)/.test(token)) {
+        buffer = '';
       }
 
       yield chunk;

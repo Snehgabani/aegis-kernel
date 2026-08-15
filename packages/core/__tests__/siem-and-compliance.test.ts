@@ -73,7 +73,7 @@ describe('Enterprise SIEM & Threat Intelligence Formatter', () => {
     const stix = formatStixTaxiiIndicator(sampleBlockedEvent);
     expect(stix).not.toBeNull();
     expect(stix?.type).toBe('bundle');
-    expect(stix?.spec_version).toBe('2.1');
+    expect(stix?.objects[0].spec_version).toBe('2.1');
     expect(stix?.objects).toHaveLength(1);
     expect(stix?.objects[0].type).toBe('indicator');
     expect(stix?.objects[0].name).toContain('Adversarial AI Agent Tool Misuse: SQL-NO-DROP');

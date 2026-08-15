@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHmac } from 'node:crypto';
 import { DEFAULT_PII_PATTERNS } from '../checkers/pii-checker.js';
 
 export interface TokenizeResult {
@@ -24,13 +24,15 @@ export class PiiTokenVault {
   private valueToTokenMap: Map<string, string>; // Maps original value to token for reuse
   private tokenPrefix: string;
   private hashLength: number;
+  private sessionSalt: string;
 
   constructor(config?: PiiTokenVaultConfig) {
     this.patterns = config?.patterns ?? DEFAULT_PII_PATTERNS;
     this.vault = new Map();
     this.valueToTokenMap = new Map();
     this.tokenPrefix = config?.tokenPrefix ?? '';
-    this.hashLength = config?.hashLength ?? 8;
+    this.hashLength = config?.hashLength ?? 16;
+    this.sessionSalt = randomBytes(16).toString('hex');
   }
 
   public tokenize(text: string): TokenizeResult {
@@ -55,9 +57,12 @@ export class PiiTokenVault {
           return existingToken;
         }
 
-        const randomHex = randomBytes(Math.ceil(this.hashLength / 2)).toString('hex').slice(0, this.hashLength);
+        const tokenHash = createHmac('sha256', this.sessionSalt)
+          .update(match)
+          .digest('hex')
+          .slice(0, this.hashLength);
         const prefix = this.tokenPrefix ? `${this.tokenPrefix}_` : `${type}_`;
-        const token = `<${prefix}${randomHex}>`;
+        const token = `<${prefix}${tokenHash}>`;
 
         this.vault.set(token, match);
         this.valueToTokenMap.set(match, token);

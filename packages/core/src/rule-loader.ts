@@ -106,6 +106,7 @@ export const BUILTIN_PACKS: Record<string, RulePack> = {
           params: {
             field: 'amount',
             max: 10000,
+            min: 0,
           },
         },
       },
@@ -118,6 +119,7 @@ export const BUILTIN_PACKS: Record<string, RulePack> = {
           type: 'numeric',
           params: {
             field: 'amount',
+            min: 0,
             rate_limit: {
               max_per_minute: 10,
             },

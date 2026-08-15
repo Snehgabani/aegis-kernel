@@ -9,6 +9,9 @@ export interface CloudTelemetryConfig {
   enabled?: boolean;
 }
 
+/**
+ * @remarks This module performs network egress when explicitly enabled. The core engine never enables this by default.
+ */
 export class AegisCloudTelemetryClient {
   private apiKey: string;
   private endpoint: string;
@@ -27,11 +30,15 @@ export class AegisCloudTelemetryClient {
     this.batchSize = config.batchSize || 50;
     this.flushIntervalMs = config.flushIntervalMs || 2000;
     this.maxQueueSize = config.maxQueueSize || 5000;
-    this.enabled = config.enabled ?? Boolean(config.apiKey);
+    this.enabled = config.enabled ?? false;
 
     if (this.enabled && this.flushIntervalMs > 0) {
       this.startTimer();
     }
+  }
+
+  public static createWithEgress(config: CloudTelemetryConfig): AegisCloudTelemetryClient {
+    return new AegisCloudTelemetryClient({ ...config, enabled: true });
   }
 
   /**

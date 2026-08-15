@@ -1,20 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { ZkPolicyVerifier, ZkPolicyConstraint } from '../src/confidential/zk-policy-verifier.js';
+import { PolicyCommitmentVerifier, PolicyCommitmentConstraint, ZkPolicyVerifier, ZkPolicyConstraint } from '../src/confidential/policy-commitment-verifier.js';
 
-describe('Aegis Zero-Knowledge Policy Circuit & Attestation Suite', () => {
-  const constraint: ZkPolicyConstraint = {
+describe('Aegis Deterministic Policy Commitment & Attestation Suite', () => {
+  const constraint: PolicyCommitmentConstraint = {
     policyId: 'policy_max_wire_transfer_10k',
     minAllowed: 0,
     maxAllowed: 10000,
   };
 
-  it('should generate a verifiable ZK compliance proof for compliant parameter', () => {
+  it('should generate a verifiable policy commitment proof for compliant parameter', () => {
     const privateTransferAmount = 4500; // Compliant ($4,500 <= $10,000)
-    const res = ZkPolicyVerifier.generateComplianceProof(constraint, privateTransferAmount);
+    const res = PolicyCommitmentVerifier.generateComplianceProof(constraint, privateTransferAmount);
 
     expect(res.success).toBe(true);
     expect(res.proof).toBeDefined();
-    expect(res.proof?.proofType).toBe('Plonky3_Recursive_SNARK');
+    expect(res.proof?.proofType).toBe('SHA256_PolicyCommitment');
     expect(res.proof?.proofBytesHex).toHaveLength(64);
 
     const publicPolicyHash = ZkPolicyVerifier.computePolicyHash(constraint);

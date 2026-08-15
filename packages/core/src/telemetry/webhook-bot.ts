@@ -1,6 +1,8 @@
 /**
  * Aegis Security Alert Webhook Bot
  * Dispatches real-time incident notifications to Slack and Discord upon invariant violations.
+ * 
+ * @remarks This module performs network egress when explicitly enabled. The core engine never enables this by default.
  */
 
 import type { AegisEvent, AegisSeverity } from '../types.js';
@@ -17,7 +19,7 @@ export class AegisWebhookBot {
 
   constructor(config: WebhookBotConfig = {}) {
     this.config = {
-      enabled: config.enabled ?? true,
+      enabled: config.enabled ?? false,
       minSeverity: config.minSeverity ?? 'critical',
       slackWebhookUrl: config.slackWebhookUrl || process.env.AEGIS_SLACK_WEBHOOK_URL,
       discordWebhookUrl: config.discordWebhookUrl || process.env.AEGIS_DISCORD_WEBHOOK_URL

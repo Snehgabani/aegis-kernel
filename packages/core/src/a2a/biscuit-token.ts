@@ -190,6 +190,23 @@ export class AegisBiscuitToken {
       return { valid: false, authorized: false, reason: `Signature verification error: ${e.message}`, attenuationDepth: 0, evaluatedCaveats: 0 };
     }
 
+    // Verify intermediate blocks
+    for (let i = 1; i < tokenData.blocks.length; i++) {
+      const prevBlock = tokenData.blocks[i - 1];
+      const currentBlock = tokenData.blocks[i];
+
+      // Validate signature format (64+ hex chars)
+      if (!/^[a-fA-F0-9]{64,}$/.test(currentBlock.signature)) {
+        return { valid: false, authorized: false, reason: `Invalid signature format at block ${i}`, attenuationDepth: i, evaluatedCaveats: 0 };
+      }
+
+      for (const r of currentBlock.rights) {
+        if (!prevBlock.rights.includes(r) && !prevBlock.rights.includes('*')) {
+           return { valid: false, authorized: false, reason: `Monotonic Violation at block ${i}: Right '${r}' not in parent`, attenuationDepth: i, evaluatedCaveats: 0 };
+        }
+      }
+    }
+
     // 2. Verify Right Authorization across ALL blocks (monotonic attenuation check)
     const leafBlock = tokenData.blocks[tokenData.blocks.length - 1];
     const hasRight = leafBlock.rights.includes(requiredRight) || leafBlock.rights.includes('*');

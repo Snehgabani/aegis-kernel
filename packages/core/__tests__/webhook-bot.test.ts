@@ -3,8 +3,20 @@ import { AegisWebhookBot } from '../src/telemetry/webhook-bot.js';
 import type { AegisEvent } from '../src/types.js';
 
 describe('AegisWebhookBot Notification & Alerting', () => {
-  it('should filter alerts based on configured minimum severity', () => {
-    const bot = new AegisWebhookBot({ minSeverity: 'critical' });
+  it('should be disabled by default (zero-egress invariant)', () => {
+    const defaultBot = new AegisWebhookBot();
+    const event: AegisEvent = {
+      id: 'e1', timestamp: new Date().toISOString(), version: '1.0.0',
+      framework: 'mcp', toolName: 'test', toolCallFingerprint: 'fp',
+      mode: 'enforce', verdict: 'BLOCKED', rulesEvaluated: 1,
+      rulesFired: [{ ruleId: 'r1', packId: 'p1', severity: 'critical', message: 'test' }],
+      latencyMs: 0.1, proofHash: '0'.repeat(64), policyCommitmentHash: 'pol', userOverride: false,
+    };
+    expect(defaultBot.shouldAlert(event)).toBe(false);
+  });
+
+  it('should filter alerts based on configured minimum severity when enabled', () => {
+    const bot = new AegisWebhookBot({ minSeverity: 'critical', enabled: true });
 
     const lowEvent: AegisEvent = {
       id: 'event-1',
@@ -54,6 +66,7 @@ describe('AegisWebhookBot Notification & Alerting', () => {
 
   it('should format and dispatch mock alert payloads without throwing', async () => {
     const bot = new AegisWebhookBot({
+      enabled: true,
       minSeverity: 'warning',
       slackWebhookUrl: 'https://hooks.slack.com/services/TEST/MOCK/123',
       discordWebhookUrl: 'https://discord.com/api/webhooks/TEST/MOCK'

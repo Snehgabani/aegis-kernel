@@ -16,7 +16,7 @@ export interface SplunkHecEvent {
   event: Record<string, unknown>;
 }
 
-export interface StixCyberObservable {
+export interface StixDomainObject {
   type: string;
   spec_version: string;
   id: string;
@@ -35,8 +35,7 @@ export interface StixCyberObservable {
 export interface StixBundle {
   type: 'bundle';
   id: string;
-  spec_version: '2.1';
-  objects: StixCyberObservable[];
+  objects: StixDomainObject[];
 }
 
 /**
@@ -141,7 +140,7 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
   const bundleId = `bundle--${event.id}`;
   const nowIso = new Date().toISOString();
 
-  const indicators: StixCyberObservable[] = event.rulesFired.map((violation, idx) => {
+  const indicators: StixDomainObject[] = event.rulesFired.map((violation, idx) => {
     const indicatorId = `indicator--${event.id.slice(0, 30)}-${idx}`;
     return {
       type: 'indicator',
@@ -174,7 +173,6 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
   return {
     type: 'bundle',
     id: bundleId,
-    spec_version: '2.1',
     objects: indicators,
   };
 }

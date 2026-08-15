@@ -1,4 +1,5 @@
 import http from 'http';
+import * as crypto from 'crypto';
 import {
   computeEventChainMerkleRoot,
   generateComplianceDossier,
@@ -82,6 +83,48 @@ export class AegisControlPlaneServer {
     const method = req.method;
 
     res.setHeader('Content-Type', 'application/json');
+
+    if (pathname.startsWith('/v1/')) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: 'Missing or invalid auth token' }));
+        return;
+      }
+      const token = authHeader.substring(7);
+      const secret = process.env.CONTROL_PLANE_SECRET || 'aegis_cp_secret';
+      
+      const parts = token.split('.');
+      if (parts.length !== 2) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: 'Malformed token' }));
+        return;
+      }
+      
+      const [b64payload, signature] = parts;
+      const expectedSig = crypto.createHmac('sha256', secret).update(b64payload).digest('hex');
+      if (expectedSig !== signature) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: 'Invalid token signature' }));
+        return;
+      }
+      
+      let payload;
+      try {
+        payload = JSON.parse(Buffer.from(b64payload, 'base64').toString('utf-8'));
+      } catch (e) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: 'Invalid token payload' }));
+        return;
+      }
+      
+      const tenantIdQuery = url.searchParams.get('tenantId');
+      if (tenantIdQuery && payload.tenantId !== tenantIdQuery) {
+        res.writeHead(403);
+        res.end(JSON.stringify({ error: 'Tenant mismatch' }));
+        return;
+      }
+    }
 
     // 1. Health Check
     if (pathname === '/health' && method === 'GET') {

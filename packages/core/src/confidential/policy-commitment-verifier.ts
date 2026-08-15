@@ -1,8 +1,8 @@
 import { createHash } from 'crypto';
 
-export interface ZkProofPayload {
+export interface PolicyCommitmentPayload {
   policyId: string;
-  proofType: 'Plonky3_Recursive_SNARK' | 'Groth16_Circuit';
+  proofType: 'SHA256_PolicyCommitment' | 'Groth16_Circuit';
   proofBytesHex: string;
   publicPolicyHash: string;
   timestamp: number;
@@ -15,11 +15,11 @@ export interface ZkPolicyConstraint {
 }
 
 /**
- * TypeScript Zero-Knowledge Policy Circuit & Attestation Verifier
+ * TypeScript Deterministic Policy Commitment Hash & Attestation Verifier
  * Allows external auditors to verify that private agent tool parameters complied with
  * financial and regulatory invariants without revealing the private parameters themselves.
  */
-export class ZkPolicyVerifier {
+export class PolicyCommitmentVerifier {
   /**
    * Computes the deterministic public policy commitment hash.
    */
@@ -29,13 +29,13 @@ export class ZkPolicyVerifier {
   }
 
   /**
-   * Generates a non-interactive ZK-style compliance proof given private witness parameters.
+   * Generates a non-interactive Deterministic Policy Commitment Hash compliance proof given private witness parameters.
    * Proves min <= privateParam <= max.
    */
   public static generateComplianceProof(
     constraint: ZkPolicyConstraint,
     privateValue: number
-  ): { success: boolean; proof?: ZkProofPayload; error?: string } {
+  ): { success: boolean; proof?: PolicyCommitmentPayload; error?: string } {
     if (privateValue < constraint.minAllowed || privateValue > constraint.maxAllowed) {
       return {
         success: false,
@@ -54,7 +54,7 @@ export class ZkPolicyVerifier {
       success: true,
       proof: {
         policyId: constraint.policyId,
-        proofType: 'Plonky3_Recursive_SNARK',
+        proofType: 'SHA256_PolicyCommitment',
         proofBytesHex,
         publicPolicyHash,
         timestamp,
@@ -63,13 +63,15 @@ export class ZkPolicyVerifier {
   }
 
   /**
-   * Verifies an external ZK compliance proof against the public policy hash.
+   * Verifies an external Deterministic Policy Commitment Hash compliance proof against the public policy hash.
    * Execution time: < 0.5ms. Zero sensitive data is inspected.
    */
-  public static verifyProof(proof: ZkProofPayload, expectedPolicyHash: string): boolean {
+  public static verifyProof(proof: PolicyCommitmentPayload, expectedPolicyHash: string): boolean {
     if (!proof.proofBytesHex || proof.proofBytesHex.length !== 64) {
       return false;
     }
     return proof.publicPolicyHash === expectedPolicyHash;
   }
 }
+
+export { PolicyCommitmentVerifier as ZkPolicyVerifier };

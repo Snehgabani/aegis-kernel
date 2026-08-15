@@ -1,0 +1,47 @@
+name: Aegis Nightly Health & Continuous Invariant Audit
+
+on:
+  schedule:
+    # Run every night at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  nightly-health-audit:
+    name: Subsystem Health & E2E Diagnostic Matrix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build All Monorepo Packages
+        run: npm run build
+
+      - name: Run Full Vitest Test Suite (265+ tests)
+        run: npm run test
+
+      - name: Run Python SDK Unit Tests
+        run: python -m unittest discover packages/python/tests
+
+      - name: Run Post-Audit 32-Assertion Fix Verifier
+        run: node scripts/verify-audit-fixes.mjs
+
+      - name: Run Live 25-Subsystem E2E Operational Proof
+        run: node scripts/live-e2e-proof.mjs
+
+      - name: Execute In-Process System Health Diagnostic
+        run: node packages/cli/dist/index.js doctor

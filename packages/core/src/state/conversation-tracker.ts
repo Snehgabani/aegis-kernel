@@ -45,7 +45,7 @@ export class ConversationTracker {
     this.turns.push(turn);
     
     // Exponentially weighted cumulative risk
-    this.cumulativeRisk = (this.cumulativeRisk * this.config.riskDecayFactor) + turn.riskContribution;
+    this.cumulativeRisk = (this.cumulativeRisk * this.config.riskDecayFactor) + Math.max(0, turn.riskContribution);
     
     // Intent drift (mock implementation based on risk variance and length)
     // In a real system, this might compare embeddings of first turn vs current turn

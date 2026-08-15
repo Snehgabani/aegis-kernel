@@ -62,7 +62,7 @@ describe('Adversarial & Edge-Case Stress Testing Suite', () => {
           request: {
             headers: {
               auth: {
-                token: 'sk-proj-999988887777666655554444333322221111',
+                token: 'sk-proj-FAKE999988887777666655554444333322221111',
               },
             },
           },

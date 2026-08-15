@@ -458,8 +458,33 @@ export class SqlChecker {
     _params: SqlAstConditionParams,
     sql: string
   ): AegisViolation[] {
+    let processedSql = sql;
+
+    // 1. Hex-encoded keyword detection
+    processedSql = processedSql.replace(/0x([0-9a-fA-F]+)/g, (match, hex) => {
+      try {
+        return Buffer.from(hex, 'hex').toString('utf8');
+      } catch {
+        return match;
+      }
+    });
+
+    // 2. String concatenation detection
+    let prev;
+    do {
+      prev = processedSql;
+      processedSql = processedSql.replace(/'([^']*)'\s*\|\|\s*'([^']*)'/g, "'$1$2'");
+      processedSql = processedSql.replace(/CONCAT\(\s*'([^']*)'\s*,\s*'([^']*)'\s*\)/gi, "'$1$2'");
+    } while (processedSql !== prev);
+    
+    // Unquote fully concatenated SQL keywords so they can match tokens
+    processedSql = processedSql.replace(/'(DROP|DELETE|UPDATE|TRUNCATE|ALTER|TABLE|DATABASE|SCHEMA|VIEW)'/gi, '$1');
+
+    // 3. Inline comment splitting detection
+    processedSql = processedSql.replace(/\/\*.*?\*\//g, '');
+
     const violations: AegisViolation[] = [];
-    const rawTokens = sql.toUpperCase().split(/\s+/).filter(Boolean);
+    const rawTokens = processedSql.toUpperCase().split(/\s+/).filter(Boolean);
     const tokens = rawTokens.map((t) => (t.endsWith(';') ? t.slice(0, -1) : t));
 
     // 1. Comprehensive DDL Detection

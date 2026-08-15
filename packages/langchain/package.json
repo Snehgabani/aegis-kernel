@@ -1,6 +1,7 @@
 {
   "name": "@aegis-kernel/langchain",
   "version": "1.0.0",
+  "type": "module",
   "description": "LangChain and LangGraph deterministic invariant tool guard",
   "license": "MIT",
   "author": "Sneh Gabani <sneh@aegis-kernel.dev>",

@@ -12,6 +12,7 @@ import { runMatrix } from './matrix-cli.js';
 import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
 import { runScan } from './scan-cli.js';
 import { runReplay } from './replay-cli.js';
+import { runDoctor } from './doctor-cli.js';
 
 const program = new Command();
 
@@ -32,6 +33,13 @@ program
   .description('Deterministically replay historical audit log events against current policy rules')
   .action((logPath: string) => {
     runReplay(logPath);
+  });
+
+program
+  .command('doctor')
+  .description('Run comprehensive diagnostic health checks across all Aegis subsystems')
+  .action(async () => {
+    await runDoctor();
   });
 
 program

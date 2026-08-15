@@ -40,4 +40,4 @@ export * from './policy/policy-as-code.js';
 export * from './a2a/biscuit-token.js';
 export * from './a2a/agent-card-validator.js';
 export * from './a2a/delegation-router.js';
-export * from './confidential/zk-policy-verifier.js';
+export * from './confidential/policy-commitment-verifier.js';

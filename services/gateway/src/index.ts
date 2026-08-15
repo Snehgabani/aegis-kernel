@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { AegisLicenseManager, type AegisEvent, type LicensePayload } from '@aegis-kernel/core';
+import * as crypto from 'crypto';
+import { AegisEngine, AegisLicenseManager, type AegisEvent, type LicensePayload } from '@aegis-kernel/core';
 import { renderPrometheusMetrics } from './metrics.js';
 
 export interface GatewayEnv {
@@ -12,14 +13,27 @@ export function createGatewayApp(env?: GatewayEnv) {
   const app = new Hono();
   const secretKey = env?.AEGIS_LICENSE_SECRET || 'aegis_enterprise_lic_verification_secret_v1_deterministic';
   const licenseManager = new AegisLicenseManager(secretKey);
+  const probeEngine = new AegisEngine();
 
   // In-memory audit event store (backed by Cloudflare D1 / PostgreSQL in production)
   const auditEvents: AegisEvent[] = [];
 
   app.use('*', cors());
 
-  // Health check
+  // Shallow health check (liveness)
   app.get('/health', (c) => c.json({ status: 'ok', service: 'aegis-gateway', timestamp: new Date().toISOString() }));
+
+  // Deep health check (readiness with engine probe)
+  app.get('/health/deep', (c) => {
+    const probe = probeEngine.runSelfTest();
+    return c.json({
+      status: probe.healthy ? 'healthy' : 'degraded',
+      service: 'aegis-gateway',
+      timestamp: new Date().toISOString(),
+      probe,
+      eventsStored: auditEvents.length,
+    }, probe.healthy ? 200 : 503);
+  });
 
   // Prometheus Golden Signals metrics exporter
   app.get('/metrics', (c) => {
@@ -102,7 +116,37 @@ export function createGatewayApp(env?: GatewayEnv) {
 
   // 4. Stripe Subscription Fulfillment Webhook
   app.post('/api/billing/stripe-webhook', async (c) => {
-    const payload = await c.req.json();
+    const rawBody = await c.req.text();
+    const sigHeader = c.req.header('stripe-signature');
+    const secret = env?.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!sigHeader || !secret) {
+      return c.json({ error: 'Missing signature or secret' }, 401);
+    }
+
+    const sigParts = sigHeader.split(',').reduce((acc, part) => {
+      const [key, value] = part.split('=');
+      if (key && value) acc[key.trim()] = value.trim();
+      return acc;
+    }, {} as Record<string, string>);
+
+    if (!sigParts.t || !sigParts.v1) {
+      return c.json({ error: 'Invalid signature format' }, 401);
+    }
+
+    const expectedSig = crypto.createHmac('sha256', secret).update(`${sigParts.t}.${rawBody}`).digest('hex');
+
+    if (expectedSig !== sigParts.v1) {
+      return c.json({ error: 'Invalid signature' }, 401);
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (e) {
+      return c.json({ error: 'Invalid JSON' }, 400);
+    }
+
     const eventType = payload?.type;
 
     if (eventType === 'checkout.session.completed' || eventType === 'invoice.payment_succeeded') {

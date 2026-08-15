@@ -36,14 +36,23 @@ export class NumericChecker {
 
     const val = extraction.value;
 
-    if (params.min !== undefined && val < params.min) {
+    let effectiveMin = params.min;
+    if (effectiveMin === undefined) {
+      const lowerField = params.field.toLowerCase();
+      if (lowerField.includes('amount') || lowerField.includes('price') || lowerField.includes('cost') ||
+          lowerField.includes('payment') || lowerField.includes('payout') || lowerField.includes('transfer')) {
+        effectiveMin = 0;
+      }
+    }
+
+    if (effectiveMin !== undefined && val < effectiveMin) {
       violations.push({
         ruleId,
         packId,
         severity: 'critical',
-        message: `Numeric parameter '${params.field}' (${val}) is below minimum allowed value of ${params.min}.`,
-        suggestedFix: `Increase value of '${params.field}' to at least ${params.min}.`,
-        context: { field: params.field, actual: val, minimum: params.min },
+        message: `Numeric parameter '${params.field}' (${val}) is below minimum allowed value of ${effectiveMin}.`,
+        suggestedFix: `Increase value of '${params.field}' to at least ${effectiveMin}.`,
+        context: { field: params.field, actual: val, minimum: effectiveMin },
       });
     }
 

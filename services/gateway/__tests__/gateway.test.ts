@@ -8,6 +8,7 @@ describe('Aegis Cloud Gateway Service', () => {
   beforeEach(() => {
     app = createGatewayApp({
       AEGIS_LICENSE_SECRET: 'test_gateway_secret_key_123',
+      STRIPE_WEBHOOK_SECRET: 'whsec_test_secret_456',
     });
   });
 
@@ -17,6 +18,16 @@ describe('Aegis Cloud Gateway Service', () => {
     const data = await res.json();
     expect(data.status).toBe('ok');
     expect(data.service).toBe('aegis-gateway');
+  });
+
+  it('GET /health/deep should return 200 with engine diagnostic probe', async () => {
+    const res = await app.request('/health/deep');
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.status).toBe('healthy');
+    expect(data.probe).toBeDefined();
+    expect(data.probe.healthy).toBe(true);
+    expect(data.probe.checkersTested).toBeGreaterThanOrEqual(5);
   });
 
   it('GET /metrics should expose Prometheus formatted golden signals', async () => {
@@ -97,10 +108,29 @@ describe('Aegis Cloud Gateway Service', () => {
       },
     };
 
-    const res = await app.request('/api/billing/stripe-webhook', {
+    const rawBody = JSON.stringify(webhookPayload);
+    const timestamp = Math.floor(Date.now() / 1000);
+    const crypto = await import('node:crypto');
+    const signature = crypto.createHmac('sha256', 'whsec_test_secret_456')
+      .update(`${timestamp}.${rawBody}`)
+      .digest('hex');
+
+    // Test rejection without signature
+    const unsignedRes = await app.request('/api/billing/stripe-webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(webhookPayload),
+      body: rawBody,
+    });
+    expect(unsignedRes.status).toBe(401);
+
+    // Test success with valid signature
+    const res = await app.request('/api/billing/stripe-webhook', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': `t=${timestamp},v1=${signature}`,
+      },
+      body: rawBody,
     });
 
     expect(res.status).toBe(200);

@@ -1,9 +1,7 @@
 node_modules/
 dist/
 .turbo/
-.aegis/events.jsonl
-.aegis/*.log
-.aegis/license.json
+.aegis/
 .DS_Store
 coverage/
 *.tsbuildinfo

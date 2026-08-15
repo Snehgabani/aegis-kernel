@@ -1,6 +1,7 @@
 {
   "name": "@aegis-kernel/evals",
   "version": "1.0.0",
+  "type": "module",
   "description": "Phase 2 External Benchmark Evaluation Harness for InjecAgent, AgentDojo, and MCPTox",
   "license": "MIT",
   "author": "Sneh Gabani <sneh@aegis-kernel.dev>",

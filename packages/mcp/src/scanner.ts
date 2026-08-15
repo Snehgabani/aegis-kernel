@@ -31,25 +31,40 @@ export class MCPToolPoisoningScanner {
     /bypass\s+(guardrail|safety|security|policy)/i
   ];
 
-  private base64Regex = /\b[A-Za-z0-9+\/]{20,}={0,2}\b/;
-  private homoglyphRegex = /[аеорсх]/;
+  private base64Regex = /\b[A-Za-z0-9+\/]{20,}={0,2}\b/g;
   private excessiveWhitespaceRegex = /\s{10,}/;
+  private hexEncodedRegex = /\\x([0-9A-Fa-f]{2})/g;
+  private urlEncodedRegex = /%([0-9A-Fa-f]{2})/g;
+
+  private decodeEncodedStrings(text: string): string {
+    let decoded = text.replace(this.hexEncodedRegex, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    decoded = decoded.replace(this.urlEncodedRegex, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    // Remove typical split string concatenators (e.g. ' + ')
+    decoded = decoded.replace(/['"]\s*\+\s*['"]/g, '');
+    return decoded;
+  }
 
   /**
    * Scans a tool definition for indirect prompt injection or metadata poisoning.
    */
   public scanToolDefinition(tool: MCPToolDefinition): ToolScanResult {
     const threats: ToolScanResult['threats'] = [];
-    const textToScan = `${tool.name} ${tool.description ?? ''} ${JSON.stringify(tool.inputSchema ?? {})}`;
+    let textToScan = `${tool.name} ${tool.description ?? ''} ${JSON.stringify(tool.inputSchema ?? {})}`;
+    
+    // 6. Normalize text before pattern matching
+    textToScan = textToScan.normalize('NFC');
+    
+    // Decode hex, url-encoded and split strings
+    const decodedText = this.decodeEncodedStrings(textToScan);
 
     // 1. Invisible Unicode / Zero-Width Detection
-    if (this.invisibleUnicodeRegex.test(textToScan)) {
+    if (this.invisibleUnicodeRegex.test(decodedText)) {
       threats.push('INVISIBLE_UNICODE_CHARACTERS');
     }
 
     // 2. Indirect Prompt Injection Keywords in Description
     for (const pattern of this.promptInjectionKeywords) {
-      if (pattern.test(textToScan)) {
+      if (pattern.test(decodedText)) {
         threats.push('INDIRECT_PROMPT_INJECTION');
         break;
       }
@@ -63,12 +78,32 @@ export class MCPToolPoisoningScanner {
     }
 
     // 4. Base64 encoded payload in description
-    if (tool.description && this.base64Regex.test(tool.description)) {
-      threats.push('OBFUSCATED_BASE64');
+    if (tool.description) {
+      const matches = tool.description.match(this.base64Regex);
+      if (matches) {
+        let base64Suspicious = false;
+        for (const match of matches) {
+          try {
+            const decodedB64 = Buffer.from(match, 'base64').toString('utf8');
+            for (const pattern of this.promptInjectionKeywords) {
+              if (pattern.test(decodedB64)) {
+                base64Suspicious = true;
+                break;
+              }
+            }
+          } catch (e) {}
+        }
+        
+        threats.push('OBFUSCATED_BASE64');
+        if (base64Suspicious && !threats.includes('INDIRECT_PROMPT_INJECTION')) {
+          threats.push('INDIRECT_PROMPT_INJECTION');
+        }
+      }
     }
 
     // 5. Homoglyph / Tool name spoofing
-    if (this.homoglyphRegex.test(textToScan)) {
+    const broaderHomoglyphRegex = /[\u0400-\u04FF\u0370-\u03FF\u0590-\u05FF\u2150-\u218F\u00C0-\u017F]/;
+    if (broaderHomoglyphRegex.test(decodedText)) {
       threats.push('HOMOGLYPH_SPOOFING');
     }
 

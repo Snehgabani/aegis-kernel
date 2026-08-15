@@ -36,6 +36,13 @@ jobs:
       - name: Run Monorepo Test Matrix & 100-Vector Benchmark
         run: npm run test
 
+      - name: Run E2E Proof (Subsystem Verification)
+        run: node scripts/live-e2e-proof.mjs
+
+      - name: Security Audit (npm audit)
+        run: npm audit --audit-level=high || true
+        continue-on-error: true
+
   python-matrix:
     name: Python Matrix (3.9 - 3.12)
     runs-on: ubuntu-latest

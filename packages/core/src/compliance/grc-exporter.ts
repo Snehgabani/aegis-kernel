@@ -26,6 +26,7 @@ export interface ComplianceDossier {
   blockedViolationsCount: number;
   allowedEvaluationsCount: number;
   merkleRootHash: string;
+  previousRootHash: string;
   policyCommitmentHashes: string[];
   frameworkMappings: FrameworkMapping[];
   tamperProofSummary: {
@@ -37,16 +38,23 @@ export interface ComplianceDossier {
 /**
  * Computes a Merkle root hash across an array of ordered events for WORM tamper-evidence.
  */
-export function computeEventChainMerkleRoot(events: AegisEvent[]): string {
+export function computeEventChainMerkleRoot(events: AegisEvent[], previousRootHash: string = '0'.repeat(64)): string {
   if (events.length === 0) {
-    return createHash('sha256').update('EMPTY_EVENT_CHAIN').digest('hex');
+    return createHash('sha256').update(`EMPTY_EVENT_CHAIN:${previousRootHash}`).digest('hex');
   }
 
-  let leaves = events.map((e) =>
-    createHash('sha256')
-      .update(`${e.id}:${e.timestamp}:${e.toolName}:${e.verdict}:${e.proofHash}`)
-      .digest('hex')
-  );
+  let leaves: string[] = [];
+  let prevEventHash = previousRootHash;
+  for (const e of events) {
+    const eventHash = createHash('sha256')
+      .update(`${e.id}:${e.timestamp}:${e.toolName}:${e.verdict}:${e.proofHash}:${prevEventHash}`)
+      .digest('hex');
+    leaves.push(eventHash);
+    prevEventHash = eventHash;
+  }
+
+  // Include previous root hash in the initial leaf level mixing
+  leaves.push(previousRootHash);
 
   while (leaves.length > 1) {
     const nextLevel: string[] = [];
@@ -65,11 +73,31 @@ export function computeEventChainMerkleRoot(events: AegisEvent[]): string {
 }
 
 /**
+ * Walks the event chain to cryptographically verify all links and the final Merkle root.
+ */
+export function verifyChainIntegrity(events: AegisEvent[], expectedRoot: string, previousRootHash: string = '0'.repeat(64)): boolean {
+  if (events.length === 0) {
+    return expectedRoot === createHash('sha256').update(`EMPTY_EVENT_CHAIN:${previousRootHash}`).digest('hex');
+  }
+  
+  let prevEventHash = previousRootHash;
+  for (const e of events) {
+    const expectedEventHash = createHash('sha256')
+      .update(`${e.id}:${e.timestamp}:${e.toolName}:${e.verdict}:${e.proofHash}:${prevEventHash}`)
+      .digest('hex');
+    prevEventHash = expectedEventHash;
+  }
+  
+  return expectedRoot === computeEventChainMerkleRoot(events, previousRootHash);
+}
+
+/**
  * Generates an audit-ready compliance dossier from in-flight or historical Aegis events.
  */
 export function generateComplianceDossier(
   events: AegisEvent[],
-  activePacks: RulePack[] = []
+  activePacks: RulePack[] = [],
+  previousRootHash: string = '0'.repeat(64)
 ): ComplianceDossier {
   const dossierId = `grc-dossier-${Date.now()}-${createHash('sha256').update(String(Math.random())).digest('hex').slice(0, 8)}`;
   const timestamps = events.map((e) => new Date(e.timestamp).getTime()).filter((t) => !isNaN(t));
@@ -83,7 +111,7 @@ export function generateComplianceDossier(
   const packHashes = activePacks.map((p) => `${p.id}@${p.version}`);
   const eventPolicyHashes = events.map((e) => e.policyCommitmentHash).filter(Boolean);
   const policyHashes = Array.from(new Set([...packHashes, ...eventPolicyHashes]));
-  const merkleRoot = computeEventChainMerkleRoot(events);
+  const merkleRoot = computeEventChainMerkleRoot(events, previousRootHash);
 
   const mappings: FrameworkMapping[] = [
     // SOC 2 Type II Controls
@@ -165,6 +193,7 @@ export function generateComplianceDossier(
     blockedViolationsCount: blockedCount,
     allowedEvaluationsCount: allowedCount,
     merkleRootHash: merkleRoot,
+    previousRootHash,
     policyCommitmentHashes: policyHashes,
     frameworkMappings: mappings,
     tamperProofSummary: {
@@ -182,6 +211,7 @@ export function renderComplianceMarkdown(dossier: ComplianceDossier): string {
 **Dossier ID:** \`${dossier.dossierId}\`  
 **Generated At:** ${dossier.generatedAt}  
 **Audit Period:** ${dossier.periodStart} → ${dossier.periodEnd}  
+**Previous Root Hash:** \`${dossier.previousRootHash}\`
 **Merkle Root Integrity Hash:** \`${dossier.merkleRootHash}\`  
 
 ---
