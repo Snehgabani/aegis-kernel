@@ -36,7 +36,8 @@ describe('Aegis Elite 2026 Capabilities Suite', () => {
       const resolution = hitl.resolveTicket(ticket.ticketId, {
         decision: 'APPROVED',
         approver: 'ciso@enterprise.com',
-        reason: 'Verified transaction against Invoice #INV-9821'
+        reason: 'Verified transaction against Invoice #INV-9821',
+        signature: ticket.signature
       });
 
       expect(resolution.success).toBe(true);
@@ -54,11 +55,49 @@ describe('Aegis Elite 2026 Capabilities Suite', () => {
 
       const badResolution = hitl.resolveTicket('non-existent-ticket-id', {
         decision: 'APPROVED',
-        approver: 'hacker@adversary.com'
+        approver: 'hacker@adversary.com',
+        signature: 'fake-signature'
       });
 
       expect(badResolution.success).toBe(false);
       expect(badResolution.error).toBe('Ticket not found');
+    });
+
+    it('should reject resolution with wrong signature', () => {
+      const ticket = hitl.createTicket({
+        agentId: 'agent-finance-01',
+        toolName: 'execute_wire_transfer',
+        params: { recipient: 'ACME Corp', amount: 50000 },
+        reason: 'Testing wrong signature'
+      });
+
+      const resolution = hitl.resolveTicket(ticket.ticketId, {
+        decision: 'APPROVED',
+        approver: 'ciso@enterprise.com',
+        signature: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+      });
+
+      expect(resolution.success).toBe(false);
+      expect(resolution.error).toBe('Invalid ticket signature');
+    });
+
+    it('should reject resolution of expired ticket', () => {
+      const shortHitl = new HITLEscalationManager({ ticketTtlSeconds: -1, signingSecret: 'test' });
+      const ticket = shortHitl.createTicket({
+        agentId: 'agent-finance-01',
+        toolName: 'execute_wire_transfer',
+        params: { amount: 50000 },
+        reason: 'Testing expiry'
+      });
+
+      const resolution = shortHitl.resolveTicket(ticket.ticketId, {
+        decision: 'APPROVED',
+        approver: 'ciso@enterprise.com',
+        signature: ticket.signature
+      });
+
+      expect(resolution.success).toBe(false);
+      expect(resolution.error).toContain('current status is EXPIRED');
     });
   });
 

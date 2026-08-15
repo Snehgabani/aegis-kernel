@@ -29,6 +29,7 @@ import {
   SqlChecker,
   StateChecker,
 } from './checkers/index.js';
+import type { AgentIdentityManager, CapabilityCheck } from './identity/agent-identity.js';
 
 export class AegisEngine {
   private mode: AegisMode;
@@ -39,6 +40,7 @@ export class AegisEngine {
   private onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
   private logger: AegisEventLogger;
   private ledger: LearningLedgerManager;
+  private identityManager?: AgentIdentityManager;
 
   // 6 Invariant Checkers
   private sqlChecker: SqlChecker;
@@ -53,6 +55,7 @@ export class AegisEngine {
     this.failPolicy = config?.failPolicy ?? 'fail-open';
     this.defaultStateProvider = config?.stateProvider;
     this.onViolation = config?.onViolation;
+    this.identityManager = config?.identityManager;
 
     // Initialize 6 Checkers
     this.sqlChecker = new SqlChecker();
@@ -127,15 +130,41 @@ export class AegisEngine {
         }
       }
 
-      for (const pack of this.packs) {
-        for (const rule of pack.rules) {
-          rulesEvaluated++;
-          const ruleViolations = this.evaluateRule(rule, pack.id, safeToolCall, {
-            ...options,
-            state: stateContext,
+      // Agent Identity RBAC Check
+      let rbacBlocked = false;
+      if (options?.callerId && this.identityManager) {
+        const checkParams: CapabilityCheck = {
+          toolName: safeToolCall.tool,
+        };
+        
+        if ('amount' in safeToolCall.params && typeof safeToolCall.params.amount === 'number') {
+          checkParams.amount = safeToolCall.params.amount;
+        }
+
+        const rbacResult = this.identityManager.validateCapability(options.callerId, checkParams);
+        if (!rbacResult.allowed) {
+          violations.push({
+            ruleId: 'RBAC-001',
+            packId: '@aegis/core',
+            severity: 'critical',
+            message: rbacResult.reason || `Agent '${options.callerId}' is unauthorized.`,
+            suggestedFix: 'Review agent identity profile for allowed tools and limits.',
           });
-          if (ruleViolations.length > 0) {
-            violations.push(...ruleViolations);
+          rbacBlocked = true;
+        }
+      }
+
+      if (!rbacBlocked) {
+        for (const pack of this.packs) {
+          for (const rule of pack.rules) {
+            rulesEvaluated++;
+            const ruleViolations = this.evaluateRule(rule, pack.id, safeToolCall, {
+              ...options,
+              state: stateContext,
+            });
+            if (ruleViolations.length > 0) {
+              violations.push(...ruleViolations);
+            }
           }
         }
       }

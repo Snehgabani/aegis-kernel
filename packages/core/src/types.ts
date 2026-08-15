@@ -4,6 +4,7 @@
  */
 
 import type { StateInvariantCondition } from './checkers/state-checker.js';
+import type { AgentIdentityManager } from './identity/agent-identity.js';
 
 export type AegisMode = 'enforce' | 'shadow';
 export type AegisSeverity = 'critical' | 'warning' | 'info';
@@ -45,6 +46,7 @@ export interface AegisConfig {
     maxOverrideRatio?: number;
   };
   onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
+  identityManager?: AgentIdentityManager;
 }
 
 export interface ToolCall {

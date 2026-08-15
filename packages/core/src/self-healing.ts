@@ -32,11 +32,23 @@ export class SelfHealingProposalSynthesizer {
    * Analyzes an invalid SQL tool proposal and synthesizes a safe, canonical mutation.
    */
   public synthesizeSqlFix(request: SqlFixRequest): SqlFixProposal {
-    const trimmed = request.rawQuery.trim();
+    // 1. Strip comments
+    let normalized = request.rawQuery.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    
+    // 2. Whitespace normalization
+    normalized = normalized.replace(/\s+/g, ' ').trim();
+    
+    // 3. Reject complex UPDATE with JOIN
+    if (/^UPDATE\s/i.test(normalized) && /\sJOIN\s/i.test(normalized)) {
+      return this.synthesizeGenericFix(request);
+    }
+    
+    const tableRegex = /((?:(?:[a-zA-Z0-9_]+|["`][a-zA-Z0-9_]+["`])\.)?(?:[a-zA-Z0-9_]+|["`][a-zA-Z0-9_]+["`]))/;
 
     // Fix 1: Missing WHERE on DELETE
-    if (/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)$/i.test(trimmed)) {
-      const match = trimmed.match(/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)$/i);
+    const deleteRegex = new RegExp(`^DELETE\\s+FROM\\s+${tableRegex.source}$`, 'i');
+    if (deleteRegex.test(normalized)) {
+      const match = normalized.match(deleteRegex);
       const tableName = match ? match[1] : 'table';
       const tenantClause = request.tenantId ? ` WHERE tenant_id = '${request.tenantId}' AND id = :target_id` : ` WHERE id = :target_id`;
       return {
@@ -47,8 +59,9 @@ export class SelfHealingProposalSynthesizer {
     }
 
     // Fix 2: Missing WHERE on UPDATE
-    if (/^UPDATE\s+([a-zA-Z0-9_]+)\s+SET\s+(.+)$/i.test(trimmed) && !/WHERE/i.test(trimmed)) {
-      const match = trimmed.match(/^UPDATE\s+([a-zA-Z0-9_]+)\s+SET\s+(.+)$/i);
+    const updateRegex = new RegExp(`^UPDATE\\s+${tableRegex.source}\\s+SET\\s+(.+)$`, 'i');
+    if (updateRegex.test(normalized) && !/WHERE/i.test(normalized)) {
+      const match = normalized.match(updateRegex);
       const tableName = match ? match[1] : 'table';
       const setClause = match ? match[2] : '';
       const tenantClause = request.tenantId ? ` WHERE tenant_id = '${request.tenantId}' AND id = :target_id` : ` WHERE id = :target_id`;
@@ -59,9 +72,13 @@ export class SelfHealingProposalSynthesizer {
       };
     }
 
+    return this.synthesizeGenericFix(request);
+  }
+
+  public synthesizeGenericFix(request: SqlFixRequest): SqlFixProposal {
     return {
       canSelfHeal: false,
-      explanation: `Query violation requires human or policy redesign: ${request.blockedReason}`
+      explanation: `Query violation requires human or policy redesign: ${request.blockedReason}. Complex queries such as those with JOINs or unsupported patterns cannot be safely auto-healed.`
     };
   }
 

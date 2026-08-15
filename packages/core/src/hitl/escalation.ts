@@ -3,7 +3,7 @@
  * @description Human-in-the-Loop (HITL) Interactive Escalation & Ticket Clearance Engine.
  */
 
-import { createHash, createHmac, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 export interface HITLEscalationConfig {
   ticketTtlSeconds?: number;
@@ -38,6 +38,7 @@ export interface TicketResolution {
   decision: 'APPROVED' | 'REJECTED';
   approver: string;
   reason?: string;
+  signature: string;
 }
 
 export class HITLEscalationManager {
@@ -110,6 +111,20 @@ export class HITLEscalationManager {
 
     if (ticket.status !== 'PENDING') {
       return { success: false, error: `Ticket cannot be resolved; current status is ${ticket.status}` };
+    }
+
+    const expectedSignaturePayload = `${ticket.ticketId}:${ticket.agentId}:${ticket.toolName}:${ticket.paramsHash}:${ticket.expiresAt}`;
+    const expectedSignature = createHmac('sha256', this.secret).update(expectedSignaturePayload).digest('hex');
+
+    try {
+      const providedSigBuffer = Buffer.from(resolution.signature || '', 'hex');
+      const expectedSigBuffer = Buffer.from(expectedSignature, 'hex');
+
+      if (providedSigBuffer.length !== expectedSigBuffer.length || !timingSafeEqual(providedSigBuffer, expectedSigBuffer)) {
+        return { success: false, error: 'Invalid ticket signature' };
+      }
+    } catch (e) {
+      return { success: false, error: 'Invalid ticket signature format' };
     }
 
     ticket.status = resolution.decision;

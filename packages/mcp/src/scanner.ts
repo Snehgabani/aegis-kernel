@@ -15,7 +15,7 @@ export interface MCPToolDefinition {
 export interface ToolScanResult {
   toolName: string;
   isPoisoned: boolean;
-  threats: ('INVISIBLE_UNICODE_CHARACTERS' | 'INDIRECT_PROMPT_INJECTION' | 'OBFUSCATED_BASE64' | 'UNBOUNDED_PROPERTIES')[];
+  threats: ('INVISIBLE_UNICODE_CHARACTERS' | 'INDIRECT_PROMPT_INJECTION' | 'OBFUSCATED_BASE64' | 'UNBOUNDED_PROPERTIES' | 'HOMOGLYPH_SPOOFING')[];
   sanitizedDescription?: string;
 }
 
@@ -30,6 +30,10 @@ export class MCPToolPoisoningScanner {
     /exfiltrate\s+(database|keys|passwords|tokens|pii)/i,
     /bypass\s+(guardrail|safety|security|policy)/i
   ];
+
+  private base64Regex = /\b[A-Za-z0-9+\/]{20,}={0,2}\b/;
+  private homoglyphRegex = /[аеорсх]/;
+  private excessiveWhitespaceRegex = /\s{10,}/;
 
   /**
    * Scans a tool definition for indirect prompt injection or metadata poisoning.
@@ -51,11 +55,28 @@ export class MCPToolPoisoningScanner {
       }
     }
 
+    // 3. Excessive whitespace in description
+    if (tool.description && this.excessiveWhitespaceRegex.test(tool.description)) {
+      if (!threats.includes('INDIRECT_PROMPT_INJECTION')) {
+        threats.push('INDIRECT_PROMPT_INJECTION');
+      }
+    }
+
+    // 4. Base64 encoded payload in description
+    if (tool.description && this.base64Regex.test(tool.description)) {
+      threats.push('OBFUSCATED_BASE64');
+    }
+
+    // 5. Homoglyph / Tool name spoofing
+    if (this.homoglyphRegex.test(textToScan)) {
+      threats.push('HOMOGLYPH_SPOOFING');
+    }
+
     return {
       toolName: tool.name,
       isPoisoned: threats.length > 0,
       threats,
-      sanitizedDescription: tool.description?.replace(this.invisibleUnicodeRegex, '').trim()
+      sanitizedDescription: tool.description?.replace(this.invisibleUnicodeRegex, '').replace(this.excessiveWhitespaceRegex, ' ').trim()
     };
   }
 }

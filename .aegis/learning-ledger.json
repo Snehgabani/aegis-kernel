@@ -1,26 +1,26 @@
 {
-  "totalEventsProcessed": 43,
-  "totalBlocked": 9,
-  "totalAllowed": 34,
+  "totalEventsProcessed": 49,
+  "totalBlocked": 10,
+  "totalAllowed": 39,
   "totalOverrides": 0,
   "rulePerformance": {
     "SQL-001": {
       "timesEvaluated": 0,
-      "timesFired": 2,
+      "timesFired": 3,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 5.5445,
+      "averageLatencyMs": 8.62225,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T19:08:00.557Z"
+      "lastFired": "2026-08-15T20:02:34.090Z"
     },
     "SQL-003": {
       "timesEvaluated": 0,
-      "timesFired": 2,
+      "timesFired": 3,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 5.5445,
+      "averageLatencyMs": 8.62225,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T19:08:00.557Z"
+      "lastFired": "2026-08-15T20:02:34.090Z"
     },
     "SQL-002": {
       "timesEvaluated": 0,
@@ -60,5 +60,5 @@
     }
   },
   "uncoveredTools": {},
-  "lastUpdated": "2026-08-15T20:02:14.783Z"
+  "lastUpdated": "2026-08-15T20:12:18.785Z"
 }
