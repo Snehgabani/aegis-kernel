@@ -1,0 +1,13 @@
+name = "aegis-gateway"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+# D1 Database binding for cloud telemetry & audit trail persistence ($0 Free tier: 5M reads/day, 100k writes/day)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "aegis_audit_db"
+# database_id = "your-d1-database-id"

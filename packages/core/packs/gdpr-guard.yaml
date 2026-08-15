@@ -1,0 +1,25 @@
+id: gdpr-guard
+name: GDPR & EU Data Protection Invariant Guard
+version: 1.0.0
+description: Enforces Article 5 & 9 GDPR compliance on biometric data, racial/ethnic origin, and international cross-border data transfers
+
+rules:
+  - id: GDPR-001
+    severity: critical
+    description: Prohibit processing of Special Category Data (biometric, genetic, religious, political affiliations) without explicit consent token
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '(?i)\b(?:BIOMETRIC_TEMPLATE|DNA_PROFILE|FACIAL_VECTOR|POLITICAL_AFFILIATION|UNION_MEMBERSHIP)\b'
+        match_action: block
+
+  - id: GDPR-002
+    severity: critical
+    description: Restrict non-EEA / unapproved cross-border third-country data transfers
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '(?i)https?://(?:[a-z0-9-]+\.)*(?:ru|cn|kp|ir)/'
+        match_action: block

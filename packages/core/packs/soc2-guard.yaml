@@ -1,0 +1,37 @@
+id: soc2-guard
+name: SOC 2 Trust Services Criteria & System Invariant Guard
+version: 1.0.0
+description: Enforces access control and system integrity invariants for SOC 2 Type II compliance (CC6.1, CC6.6)
+
+rules:
+  - id: SOC2-001
+    severity: critical
+    description: Block system file path traversal and credential access (/etc/shadow, ~/.ssh, .env)
+    condition:
+      type: regex
+      params:
+        patterns:
+          - SENSITIVE_FILE_PATH
+        match_action: block
+
+  - id: SOC2-002
+    severity: critical
+    description: Prohibit destructive schema DDL alterations in production agent workflows
+    condition:
+      type: sql_ast
+      params:
+        block_statements:
+          - DROP
+          - TRUNCATE
+          - ALTER
+
+  - id: SOC2-003
+    severity: critical
+    description: Block production database mass mutations lacking row-level WHERE constraints
+    condition:
+      type: sql_ast
+      params:
+        statements:
+          - DELETE
+          - UPDATE
+        require: WHERE_CLAUSE

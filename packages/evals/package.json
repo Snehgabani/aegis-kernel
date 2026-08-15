@@ -1,0 +1,33 @@
+{
+  "name": "@aegis-kernel/evals",
+  "version": "1.0.0",
+  "description": "Phase 2 External Benchmark Evaluation Harness for InjecAgent, AgentDojo, and MCPTox",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aegis-kernel/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "tsup": "^8.3.6",
+    "vitest": "^3.0.5"
+  }
+}

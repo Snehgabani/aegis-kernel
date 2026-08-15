@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.turbo/
+.aegis/events.jsonl
+.aegis/*.log
+.aegis/license.json
+.DS_Store
+coverage/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+.wrangler/
+

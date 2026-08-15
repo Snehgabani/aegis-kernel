@@ -1,0 +1,34 @@
+id: fintech-trade-guard
+name: FinTech Algorithmic Trading & Execution Safety Guard
+version: 1.0.0
+description: Enforces order ceilings, price slippage bounds, and market order limits on automated trading agents
+
+rules:
+  - id: TRADE-001
+    severity: critical
+    description: Maximum single trade notional order value cannot exceed $100,000
+    condition:
+      type: numeric
+      params:
+        field: notional_value
+        max: 100000
+
+  - id: TRADE-002
+    severity: critical
+    description: Maximum execution rate ceiling (max 30 orders/minute)
+    condition:
+      type: numeric
+      params:
+        field: notional_value
+        rate_limit:
+          max_per_minute: 30
+
+  - id: TRADE-003
+    severity: critical
+    description: Prohibit market orders on illiquid instrument tickers
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '\b(?:PENNY|OTC|ILLIQUID)_[A-Z0-9]+\b'
+        match_action: block

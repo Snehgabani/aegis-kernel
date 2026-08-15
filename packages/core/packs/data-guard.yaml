@@ -1,0 +1,32 @@
+id: data-guard
+name: Aegis PII & Credential Leak Guard
+version: 1.0.0
+description: Detects and blocks leakage of credit cards, SSNs, and API keys
+
+rules:
+  - id: DATA-001
+    severity: critical
+    description: Block credit cards and US Social Security numbers
+    suggestedFix: Redact PII (Credit Cards / SSN) before calling external APIs.
+    condition:
+      type: regex
+      params:
+        patterns:
+          - CREDIT_CARD
+          - US_SSN
+        match_action: block
+
+  - id: DATA-002
+    severity: critical
+    description: Block API secret keys and Bearer authentication tokens
+    suggestedFix: API keys must not be passed in tool payload body.
+    condition:
+      type: regex
+      params:
+        patterns:
+          - OPENAI_API_KEY
+          - GITHUB_TOKEN
+          - AWS_ACCESS_KEY
+          - STRIPE_KEY
+          - GENERIC_BEARER
+        match_action: block

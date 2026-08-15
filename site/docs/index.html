@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Documentation — Deterministic Safety Gateway for AI Agents</title>
+  <meta name="description" content="Complete developer and architecture documentation for Aegis Invariant Kernel across TypeScript, Python, MCP, LangChain, and OpenAI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --sidebar: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --primary: #3b82f6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --code-bg: #020617;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; display: flex; min-height: 100vh; }
+    
+    /* Sidebar */
+    aside { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 24px 16px; position: fixed; top: 0; bottom: 0; overflow-y: auto; }
+    .brand { font-size: 1.15rem; font-weight: 700; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; margin-bottom: 24px; padding: 0 8px; }
+    .nav-group { margin-bottom: 20px; }
+    .nav-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0 8px 6px; }
+    .nav-link { display: block; padding: 6px 8px; color: #cbd5e1; text-decoration: none; font-size: 0.85rem; border-radius: 6px; font-weight: 500; transition: all 0.15s; }
+    .nav-link:hover, .nav-link.active { background: var(--surface); color: var(--primary); }
+
+    /* Content */
+    main { margin-left: 280px; flex: 1; padding: 48px 40px; max-width: 960px; }
+    h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+    h2 { font-size: 1.5rem; font-weight: 700; margin-top: 40px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 1.15rem; font-weight: 600; margin-top: 24px; margin-bottom: 12px; }
+    p { color: #cbd5e1; margin-bottom: 16px; }
+    
+    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: var(--mono); font-size: 0.85rem; overflow-x: auto; margin-bottom: 20px; }
+    code { font-family: var(--mono); color: #38bdf8; }
+    pre code { color: inherit; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.85rem; }
+    th, td { padding: 10px 12px; text-align: left; border: 1px solid var(--border); }
+    th { background: var(--sidebar); font-weight: 600; }
+
+    .callout { background: rgba(59, 130, 246, 0.1); border-left: 4px solid var(--primary); padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <a href="../index.html" class="brand">🛡️ Aegis Docs</a>
+    
+    <div class="nav-group">
+      <div class="nav-title">Getting Started</div>
+      <a href="#quickstart" class="nav-link">Quickstart</a>
+      <a href="#architecture" class="nav-link">Architecture (<2ms)</a>
+      <a href="#cli" class="nav-link">CLI Commands</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-title">SDKs & Adapters</div>
+      <a href="#typescript" class="nav-link">TypeScript SDK</a>
+      <a href="#python" class="nav-link">Python SDK</a>
+      <a href="#mcp" class="nav-link">Model Context Protocol</a>
+      <a href="#langchain" class="nav-link">LangChain & CrewAI</a>
+      <a href="#openai" class="nav-link">OpenAI & Claude</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-title">Compliance Rule Packs</div>
+      <a href="#packs" class="nav-link">Built-in & Enterprise Packs</a>
+      <a href="#custom-rules" class="nav-link">Authoring Custom Rules</a>
+      <a href="#proof-hash" class="nav-link">Cryptographic ProofHash</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-title">Live Portals</div>
+      <a href="../playground/index.html" class="nav-link">Interactive Playground &rarr;</a>
+      <a href="../dashboard/index.html" class="nav-link">Auditor Console &rarr;</a>
+    </div>
+  </aside>
+
+  <main>
+    <h1>Aegis Invariant Kernel Documentation</h1>
+    <p>Aegis is an in-process, deterministic safety clearance gateway for AI Agent tool calls. It intercepts tool invocations before execution, verifying AST invariants, numerical bounds, and schema contracts in <strong>&lt;2ms</strong> with <strong>0 network egress</strong>.</p>
+
+    <div class="callout">
+      <strong>Why Invariants Beat LLM Guardrails:</strong> Probabilistic guardrails (LLM-as-a-judge) add 150ms+ network latency and fail non-deterministically. Aegis parses Abstract Syntax Trees (ASTs) in-process to mathematically guarantee safety bounds.
+    </div>
+
+    <h2 id="quickstart">Quickstart</h2>
+    <h3>1. Node.js & TypeScript</h3>
+    <pre><code>npm install @aegis-kernel/core
+npx aegis init</code></pre>
+
+    <h3>2. Python 3.9+</h3>
+    <pre><code>pip install aegis-kernel</code></pre>
+    <pre><code>from aegis_kernel import aegis_guard
+
+@aegis_guard(tool_name="database_exec")
+def execute_sql(query: str):
+    # Automatically blocked if query contains mass DELETE without WHERE or DROP TABLE
+    return db.execute(query)</code></pre>
+
+    <h2 id="mcp">Model Context Protocol (MCP) Middleware</h2>
+    <p>Aegis provides drop-in JSON-RPC middleware for MCP servers with <strong>runtime schema pinning</strong> and <strong>output redaction</strong>:</p>
+    <pre><code>import { AegisMCPMiddleware } from '@aegis-kernel/mcp';
+
+const mcpGuard = new AegisMCPMiddleware({
+  mode: 'enforce',
+  packs: ['@aegis/sql-guard', '@aegis/data-guard']
+});
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const clearance = await mcpGuard.interceptCall(request);
+  if (!clearance.allowed) {
+    return clearance.errorResponse; // Returns self-healing suggestedFix to agent
+  }
+  return executeTool(request);
+});</code></pre>
+
+    <h2 id="packs">Enterprise Compliance Rule Packs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pack Name</th>
+          <th>Regulatory Standard</th>
+          <th>Enforced Invariants</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>@aegis/sql-guard</code></td>
+          <td>OWASP Top 10</td>
+          <td>Prohibits unconstrained WHERE 1=1 mutations & DDL wipes.</td>
+        </tr>
+        <tr>
+          <td><code>@aegis/hipaa-guard</code></td>
+          <td>HIPAA Security Rule</td>
+          <td>Blocks unmasked NPI, DEA, and ePHI diagnostic codes.</td>
+        </tr>
+        <tr>
+          <td><code>@aegis/pci-dss-guard</code></td>
+          <td>PCI-DSS v4.0</td>
+          <td>Blocks Credit Card PAN, CVV, and live stripe secret tokens.</td>
+        </tr>
+        <tr>
+          <td><code>@aegis/soc2-guard</code></td>
+          <td>SOC 2 Type II</td>
+          <td>Blocks system path traversal (<code>/etc/shadow</code>) and unauthorized mutations.</td>
+        </tr>
+        <tr>
+          <td><code>@aegis/eu-ai-act-guard</code></td>
+          <td>EU AI Act (Reg 2024/1689)</td>
+          <td>Blocks high-risk social scoring and critical infrastructure overrides.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="proof-hash">Cryptographic SHA-256 ProofHash</h2>
+    <p>Every tool evaluation produces an immutable proof hash binding the tool call to the policy commitment:</p>
+    <pre><code>ProofHash = SHA256(ToolName + CanonicalJSON(Params) + PolicyHash + Timestamp)</code></pre>
+  </main>
+
+</body>
+</html>

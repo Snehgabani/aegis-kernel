@@ -1,0 +1,30 @@
+name: 'Aegis Policy & Invariant Clearance Gate'
+description: 'Deterministic security clearance gate for AI Agent tool definitions, migrations, and prompt invariants in CI/CD'
+author: 'Aegis Project Contributors'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  config:
+    description: 'Path to aegis.config.yaml'
+    required: false
+    default: 'aegis.config.yaml'
+  fail-on-violation:
+    description: 'Whether to fail the CI job if security invariants fail'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run Aegis Invariant Testbed
+      shell: bash
+      run: |
+        echo "🛡️ Running Aegis Invariant CI/CD Security Gate..."
+        npx aegis test

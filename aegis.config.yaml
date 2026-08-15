@@ -1,0 +1,27 @@
+# aegis.config.yaml — Aegis Invariant Kernel Configuration
+
+# Operating mode: "enforce" (hard-block) or "shadow" (log-only audit)
+mode: "enforce"
+
+# Fail-safe behavior if engine internal evaluation encounters an error
+# "fail-open" = allow action + log error (recommended for general dev)
+# "fail-closed" = block action + log error (recommended for high-security production)
+failPolicy: "fail-open"
+
+# Pre-configured rule packs
+packs:
+  - "@aegis/sql-guard"
+  - "@aegis/finance-guard"
+  - "@aegis/data-guard"
+
+# Structured telemetry & event logging
+logging:
+  enabled: true
+  path: ".aegis/events.jsonl"
+  ledgerPath: ".aegis/learning-ledger.json"
+  maxFileSizeMb: 50
+
+# Runtime thresholds for alerts
+thresholds:
+  maxLatencyMs: 10
+  maxFalsePositiveRate: 0.05

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Invariant Kernel — Deterministic Safety Clearance for AI Agents</title>
+  <meta name="description" content="Deterministic, sub-2ms safety clearance gateway for AI agents. Enforce AST invariants and mathematical policies on database queries, financial transfers, and API tool calls.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --accent-warn: #f59e0b;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navigation */
+    nav {
+      border-bottom: 1px solid var(--card-border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      background: rgba(9, 13, 22, 0.9);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      border: 1px solid var(--card-border);
+      color: #fff;
+      background: transparent;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 96px 0 64px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #60a5fa;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lead {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+
+    /* Terminal Preview */
+    .terminal {
+      background: #0d121f;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 840px;
+      margin: 0 auto;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .terminal-header {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-content {
+      color: #cbd5e1;
+    }
+
+    .prompt { color: #38bdf8; }
+    .success { color: #34d399; }
+    .blocked { color: #f87171; }
+    .dim { color: #64748b; }
+
+    /* Pricing Section */
+    .pricing-section {
+      padding: 96px 0;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .price-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .price-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    .price-card.featured {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, rgba(17, 24, 39, 1) 100%);
+    }
+
+    .card-badge {
+      position: absolute;
+      top: -12px;
+      right: 24px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    .plan-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .plan-price {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .plan-price span {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .plan-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-bottom: 32px;
+      flex-grow: 1;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      color: #e2e8f0;
+    }
+
+    .feature-list li .check {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        🛡️ Aegis Kernel
+      </a>
+      <div class="nav-links">
+        <a href="#features">Architecture</a>
+        <a href="#pricing">Pricing</a>
+        <a href="https://github.com" target="_blank">GitHub</a>
+        <a href="#pricing" class="btn btn-primary">Get Pro</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container">
+      <div class="badge">Sub-2ms Deterministic Agent Firewall</div>
+      <h1>Protect Production Systems from Rogue AI Agent Actions</h1>
+      <p class="lead">
+        Deterministic AST clearance gateway for LLM tool calls. Enforce SQL invariants, financial rate bounds, PII sanitization, and state assertions in &lt;2ms with zero network egress.
+      </p>
+      <div class="hero-cta">
+        <a href="#pricing" class="btn btn-primary">Start Pro Trial ($49/mo)</a>
+        <a href="https://github.com" class="btn btn-outline">View on GitHub (MIT)</a>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-content">
+          <p><span class="prompt">$</span> npx aegis test</p>
+          <br>
+          <p>🛡️  Aegis Invariant Kernel: Running Security Testbed...</p>
+          <p><span class="success">✔</span> SQL-01: Mass DELETE without WHERE: <span class="blocked">🛑 BLOCKED (Correct)</span> <span class="dim">(1.14ms)</span></p>
+          <p><span class="success">✔</span> SQL-02: Destructive DROP TABLE: <span class="blocked">🛑 BLOCKED (Correct)</span> <span class="dim">(1.20ms)</span></p>
+          <p><span class="success">✔</span> FIN-01: Payout exceeding $10,000 ceiling: <span class="blocked">🛑 BLOCKED (Correct)</span> <span class="dim">(0.03ms)</span></p>
+          <p><span class="success">✔</span> PII-01: OpenAI API Key leak in parameters: <span class="blocked">🛑 BLOCKED (Correct)</span> <span class="dim">(0.02ms)</span></p>
+          <p><span class="success">✔</span> SQL-05: Legitimate targeted SELECT query: <span class="success">✅ ALLOWED (Safe)</span> <span class="dim">(2.84ms)</span></p>
+          <br>
+          <p class="success">═══════════════════════════════════════════════════════════════</p>
+          <p class="success">  AEGIS AGENT SAFETY SCORECARD: 100% Cleared | Avg Latency: 1.14ms</p>
+          <p class="success">═══════════════════════════════════════════════════════════════</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="pricing-section" id="pricing">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Transparent, Predictable Pricing</h2>
+        <p class="lead">From local open-source testing to enterprise SOC 2 and HIPAA compliance.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Community -->
+        <div class="price-card">
+          <h3 class="plan-name">Community</h3>
+          <div class="plan-price">$0 <span>/ forever</span></div>
+          <p class="plan-desc">For indie developers & prototypes.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Core Invariant Engine (&lt;2ms)</li>
+            <li><span class="check">✓</span> 3 Base Rule Packs (SQL, Finance, Data)</li>
+            <li><span class="check">✓</span> Zero-Eval Declarative DSL</li>
+            <li><span class="check">✓</span> Adapters: MCP, LangChain, OpenAI, Claude</li>
+            <li><span class="check">✓</span> Local Event Log & Learning Ledger</li>
+            <li><span class="check">✓</span> Up to 10,000 local checks/mo</li>
+          </ul>
+          <a href="https://github.com" class="btn btn-outline">Install Free (npm)</a>
+        </div>
+
+        <!-- Pro -->
+        <div class="price-card featured">
+          <div class="card-badge">POPULAR</div>
+          <h3 class="plan-name">Pro</h3>
+          <div class="plan-price">$49 <span>/ month</span></div>
+          <p class="plan-desc">For production agent builders & startups.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> <strong>Everything in Community</strong></li>
+            <li><span class="check">✓</span> <strong>HIPAA Guard:</strong> PHI & NPI Invariants</li>
+            <li><span class="check">✓</span> <strong>PCI-DSS Guard:</strong> Card & CVV Invariants</li>
+            <li><span class="check">✓</span> Offline Signed License Token</li>
+            <li><span class="check">✓</span> Cloud Telemetry & Audit Trail Export</li>
+            <li><span class="check">✓</span> Up to 100,000 checks/mo</li>
+            <li><span class="check">✓</span> Direct Email Engineering Support</li>
+          </ul>
+          <a href="https://buy.stripe.com/aegis_pro_checkout" class="btn btn-primary">Subscribe via Stripe</a>
+        </div>
+
+        <!-- Scale -->
+        <div class="price-card">
+          <h3 class="plan-name">Scale</h3>
+          <div class="plan-price">$199 <span>/ month</span></div>
+          <p class="plan-desc">For fintech & high-throughput agent apps.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> <strong>Everything in Pro</strong></li>
+            <li><span class="check">✓</span> <strong>SOC 2 Type II System Guard</strong></li>
+            <li><span class="check">✓</span> Centralized Team Triage Dashboard</li>
+            <li><span class="check">✓</span> Slack & PagerDuty Alert Webhooks</li>
+            <li><span class="check">✓</span> Up to 1,000,000 checks/mo</li>
+            <li><span class="check">✓</span> Priority Feature Requests</li>
+          </ul>
+          <a href="https://buy.stripe.com/aegis_scale_checkout" class="btn btn-outline">Subscribe via Stripe</a>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="price-card">
+          <h3 class="plan-name">Enterprise</h3>
+          <div class="plan-price">$499 <span>/ month</span></div>
+          <p class="plan-desc">For banks, healthcare & regulated enterprise.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> <strong>Everything in Scale</strong></li>
+            <li><span class="check">✓</span> Unlimited High-Volume Throughput</li>
+            <li><span class="check">✓</span> Custom Proprietary Rule Pack Creation</li>
+            <li><span class="check">✓</span> Air-gapped On-Prem License Server</li>
+            <li><span class="check">✓</span> SOC 2 / ISO 42001 Compliance Package</li>
+            <li><span class="check">✓</span> 1-Hour Critical Security SLA</li>
+          </ul>
+          <a href="mailto:enterprise@aegis-kernel.dev" class="btn btn-outline">Contact Enterprise</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>MIT License &copy; 2026 Aegis Project Contributors. Commercial packs &copy; Aegis Security Inc.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+id: sql-guard
+name: Aegis SQL Mutation & Destructive Operation Guard
+version: 1.0.0
+description: Enforces AST-level safety invariants on database queries
+
+rules:
+  - id: SQL-001
+    severity: critical
+    description: Prohibit DELETE statements without a WHERE clause
+    suggestedFix: Add a targeted WHERE clause to delete specific rows.
+    condition:
+      type: sql_ast
+      params:
+        statements:
+          - DELETE
+        require: WHERE_CLAUSE
+
+  - id: SQL-002
+    severity: critical
+    description: Prohibit destructive DROP and TRUNCATE commands
+    suggestedFix: Destructive DDL statements are prohibited in production.
+    condition:
+      type: sql_ast
+      params:
+        block_statements:
+          - DROP
+          - TRUNCATE
+
+  - id: SQL-003
+    severity: critical
+    description: Prohibit UPDATE statements without a WHERE clause
+    suggestedFix: Add a specific WHERE clause to prevent updating all records.
+    condition:
+      type: sql_ast
+      params:
+        statements:
+          - UPDATE
+        require: WHERE_CLAUSE

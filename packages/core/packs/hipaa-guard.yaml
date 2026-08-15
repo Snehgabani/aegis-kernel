@@ -1,0 +1,36 @@
+id: hipaa-guard
+name: HIPAA Healthcare & Protected Health Information Invariant Guard
+version: 1.0.0
+description: Technical safeguards enforcing HIPAA 164.312(a)(1) against PHI exfiltration
+
+rules:
+  - id: HIPAA-001
+    severity: critical
+    description: Prohibit unmasked National Provider Identifier (NPI) and Social Security Numbers in outbound agent tools
+    condition:
+      type: regex
+      params:
+        patterns:
+          - US_SSN
+          - US_NPI
+        match_action: block
+
+  - id: HIPAA-002
+    severity: critical
+    description: Block DEA registration numbers and prescription identifiers from unauthorized external transmission
+    condition:
+      type: regex
+      params:
+        patterns:
+          - US_DEA
+        match_action: block
+
+  - id: HIPAA-003
+    severity: warning
+    description: Detect and flag clinical diagnostic ICD-10 codes in unstructured tool arguments
+    condition:
+      type: regex
+      params:
+        patterns:
+          - ICD10_CODE
+        match_action: warn

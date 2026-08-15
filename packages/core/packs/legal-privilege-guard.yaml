@@ -1,0 +1,25 @@
+id: legal-privilege-guard
+name: Legal Confidentiality & Attorney-Client Privilege Invariant Guard
+version: 1.0.0
+description: Prevents accidental exfiltration of privileged legal work-product and confidential settlement drafts
+
+rules:
+  - id: LEGAL-001
+    severity: critical
+    description: Prohibit transmission of Attorney-Client Privileged document markers to third-party endpoints
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '(?i)\b(?:ATTORNEY-CLIENT\s+PRIVILEGED|WORK\s+PRODUCT\s+DOCTRINE|CONFIDENTIAL\s+SETTLEMENT\s+COMMUNICATION)\b'
+        match_action: block
+
+  - id: LEGAL-002
+    severity: critical
+    description: Block judicial seal or protective order violations in external tool payloads
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '(?i)\b(?:UNDER\s+SEAL|PROTECTIVE\s+ORDER\s+RESTRICTED)\b'
+        match_action: block

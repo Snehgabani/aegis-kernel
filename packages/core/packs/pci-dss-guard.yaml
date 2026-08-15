@@ -1,0 +1,35 @@
+id: pci-dss-guard
+name: PCI-DSS v4.0 Payment Card Industry Invariant Guard
+version: 1.0.0
+description: Enforces technical standards for cardholder data environments (CDE) under PCI-DSS Requirement 3 & 6
+
+rules:
+  - id: PCI-001
+    severity: critical
+    description: Prohibit Primary Account Numbers (PAN / credit cards) in plain text tool calls
+    condition:
+      type: regex
+      params:
+        patterns:
+          - CREDIT_CARD
+        match_action: block
+
+  - id: PCI-002
+    severity: critical
+    description: Strict prohibition of Card Verification Value (CVV/CVC) in any agent storage or transmission
+    condition:
+      type: regex
+      params:
+        patterns:
+          - CREDIT_CARD_CVV
+        match_action: block
+
+  - id: PCI-003
+    severity: critical
+    description: Block payment gateway live secret tokens from leaking into agent execution logs
+    condition:
+      type: regex
+      params:
+        patterns:
+          - STRIPE_KEY
+        match_action: block

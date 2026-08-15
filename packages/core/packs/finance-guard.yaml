@@ -1,0 +1,26 @@
+id: finance-guard
+name: Aegis Financial Bounds & Overspend Guard
+version: 1.0.0
+description: Enforces numeric limits and rate controls on payouts and transactions
+
+rules:
+  - id: FIN-001
+    severity: critical
+    description: Single transaction amount cannot exceed $10,000
+    suggestedFix: Transaction amount exceeds maximum single-action ceiling of $10,000.
+    condition:
+      type: numeric
+      params:
+        field: amount
+        max: 10000
+
+  - id: FIN-002
+    severity: critical
+    description: Financial tool execution rate ceiling (max 10/min)
+    suggestedFix: Payout frequency ceiling exceeded. Wait before retrying.
+    condition:
+      type: numeric
+      params:
+        field: amount
+        rate_limit:
+          max_per_minute: 10

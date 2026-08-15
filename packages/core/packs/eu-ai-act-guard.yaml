@@ -1,0 +1,25 @@
+id: eu-ai-act-guard
+name: EU AI Act High-Risk Safety & Governance Guard
+version: 1.0.0
+description: Enforces Article 9 (Risk Management System) and Article 14 (Human Oversight) invariants for high-risk autonomous AI systems
+
+rules:
+  - id: EU-AI-001
+    severity: critical
+    description: Prohibit automated high-risk social scoring or real-time biometric identification tool calls
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '(?i)\b(?:SOCIAL_SCORING|SUBLIMINAL_MANIPULATION|VULNERABILITY_EXPLOIT|REALTIME_BIOMETRIC_ID)\b'
+        match_action: block
+
+  - id: EU-AI-002
+    severity: critical
+    description: Prohibit unconstrained critical infrastructure or electrical grid automated modifications without dual-key authorization
+    condition:
+      type: regex
+      params:
+        patterns:
+          - '(?i)\b(?:GRID_OVERRIDE|SCADA_MUTATE|WATER_TREATMENT_SHUTDOWN|EMERGENCY_SYSTEM_OVERRIDE)\b'
+        match_action: block
