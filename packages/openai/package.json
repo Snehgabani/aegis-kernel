@@ -2,6 +2,30 @@
   "name": "@aegis-kernel/openai",
   "version": "1.0.0",
   "description": "OpenAI Function Calling and Assistant Tools safety guard",
+  "license": "MIT",
+  "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
+  "homepage": "https://aegis-kernel.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git",
+    "directory": "packages/openai"
+  },
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
+  "keywords": [
+    "openai",
+    "function-calling",
+    "ai-safety",
+    "guardrails",
+    "llm-tools"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

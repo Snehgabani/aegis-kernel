@@ -1,0 +1,43 @@
+name: "🚀 Feature Request"
+description: "Suggest an idea or invariant capability for Aegis Invariant Kernel"
+title: "feat: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature! Please check existing issues first.
+  - type: input
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A concise description of what you'd like to see added.
+      placeholder: e.g. Add native LangGraph state interceptor
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What problem does this solve? What use case does it unlock?
+      placeholder: Describe the security or operational challenge you are facing...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution & API Design
+      description: Describe how the feature should behave and what the developer API should look like.
+      placeholder: |
+        ```typescript
+        // Proposed usage example
+        ```
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative approaches or existing workarounds?
+    validations:
+      required: false

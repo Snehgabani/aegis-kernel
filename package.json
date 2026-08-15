@@ -5,6 +5,16 @@
   "type": "module",
   "packageManager": "npm@10.9.8",
   "description": "Aegis Invariant Kernel: Deterministic Tool-Call Safety Gateway for AI Agents",
+  "license": "MIT",
+  "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
+  "homepage": "https://aegis-kernel.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
   "workspaces": [
     "packages/*",
     "services/*"

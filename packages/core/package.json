@@ -3,6 +3,33 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Core deterministic invariant clearance engine for AI agent tool execution",
+  "license": "MIT",
+  "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
+  "homepage": "https://aegis-kernel.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
+  "keywords": [
+    "ai-safety",
+    "guardrails",
+    "tool-call-security",
+    "mcp",
+    "llm-security",
+    "prompt-injection",
+    "invariants",
+    "agent-firewall"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -2,6 +2,30 @@
   "name": "@aegis-kernel/cli",
   "version": "1.0.0",
   "description": "Developer CLI for Aegis Invariant Kernel: init, test, and report",
+  "license": "MIT",
+  "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
+  "homepage": "https://aegis-kernel.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
+  "keywords": [
+    "aegis",
+    "ai-guardrails",
+    "cli",
+    "agent-security",
+    "tool-clearance"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

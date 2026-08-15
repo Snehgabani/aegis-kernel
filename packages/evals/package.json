@@ -2,6 +2,30 @@
   "name": "@aegis-kernel/evals",
   "version": "1.0.0",
   "description": "Phase 2 External Benchmark Evaluation Harness for InjecAgent, AgentDojo, and MCPTox",
+  "license": "MIT",
+  "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
+  "homepage": "https://aegis-kernel.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git",
+    "directory": "packages/evals"
+  },
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
+  "keywords": [
+    "evals",
+    "benchmarking",
+    "ai-safety",
+    "adversarial-testing",
+    "guardrails"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,6 +41,7 @@
       }
     }
   },
+  "files": ["dist"],
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
