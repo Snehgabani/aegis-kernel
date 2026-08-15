@@ -12,8 +12,8 @@ Only the latest active major version receives active security patches and CVE re
 
 | Version | Supported | Security Patch SLA |
 | :--- | :--- | :--- |
-| **v1.x.x (Current)** |  Yes | Critical: < 24 Hours / High: < 72 Hours |
-| < v1.0.0 (Beta) |  No | End of Life |
+| **v1.x.x (Current)** | ✅ Yes | Critical: < 24 Hours / High: < 72 Hours |
+| < v1.0.0 (Beta) | ❌ No | End of Life |
 
 ---
 
@@ -29,7 +29,7 @@ To report a vulnerability:
 Please include:
 - A clear description of the attack vector or bypass.
 - A minimal reproduction script or JSON tool payload that evades the invariant checkers.
-- The specific rule pack or checker involved (`SqlChecker`, `NumericChecker`, `PiiChecker`, `StateChecker`).
+- The specific rule pack or checker involved (`SqlChecker`, `NumericChecker`, `PiiChecker`, `StateChecker`, `CustomChecker`).
 - Impact assessment on autonomous agent environments.
 
 ---
@@ -38,3 +38,16 @@ Please include:
 - **Initial Triage & Acknowledgment**: Within **12 hours**.
 - **Proof of Concept Validation & Patch Delivery**: Within **24 to 48 hours**.
 - **Public CVE Release & Attribution**: Coordinated with the reporter with full credit in our security advisories directory (`docs/advisories/`).
+
+---
+
+## 🛡️ Security Researcher Safe Harbor
+
+We consider good-faith security research to be vital for the open-source and AI safety ecosystem. We pledge that:
+
+1. **No Legal Action**: We will not pursue civil or criminal legal action (including under the Computer Fraud and Abuse Act (CFAA) or DMCA) against researchers who conduct security research and report vulnerabilities in good faith in accordance with this policy.
+2. **Good-Faith Research Defined**: To qualify for safe harbor, researchers must:
+   - Make every effort to avoid privacy violations, degradation of user experience, and disruption to production systems.
+   - Only interact with test accounts or systems owned or authorized by the researcher.
+   - Refrain from accessing, modifying, or retaining non-public data beyond the minimum necessary to demonstrate a proof of concept.
+   - Give our engineering team a reasonable period (standard 90-day coordinated disclosure) to address the issue before making details public.

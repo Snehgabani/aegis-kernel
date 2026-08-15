@@ -11,7 +11,7 @@
 [![Tests](https://img.shields.io/badge/tests-143%2F143%20passing-brightgreen.svg)](#)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
-[![Compliance](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Certified-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)
+[![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Audit%20Ready-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)
 
 ---
 
@@ -40,26 +40,28 @@ flowchart LR
 
 ### Why Aegis?
 
-1. **Deterministic, Not Probabilistic**: LLM-as-a-judge guardrails are slow (300-800ms), expensive ($0.02/call), and vulnerable to jailbreaks. Aegis evaluates compiled SQL ASTs and JSON Schemas in **<1.5ms** deterministically.
+1. **Deterministic Invariant Enforcement**: Evaluates compiled SQL ASTs, numeric ranges, PII/secret patterns, and state transitions in **<1.5ms** without making external LLM calls.
 2. **Cryptographic Proofs**: Emits a 14-field privacy-safe event log with immutable SHA-256 `proofHash` commitments binding tool arguments to policy hashes.
-3. **Enterprise Compliance Reports**: Generates cryptographically verifiable [SOC2 & HIPAA Compliance Reports](./docs/COMPLIANCE_CERTIFICATION_REPORT.md) for GRC auditors.
+3. **Enterprise Compliance Evidence**: Generates cryptographically verifiable [SOC2 & HIPAA Audit Reports](./docs/COMPLIANCE_CERTIFICATION_REPORT.md) for security and compliance teams.
 4. **Universal Framework Support**: Native drop-in adapters for **Model Context Protocol (MCP)**, **LangChain / CrewAI / AutoGen**, **OpenAI Function Calling**, and **Anthropic Claude**.
 5. **Multi-Language SDKs**: First-class support across **TypeScript / Node.js (>=18.0)** and **Python 3.9+** (zero dependencies).
 
 ---
 
-## 📊 Competitive Leadership Matrix
+## 📊 Comparative Technical Matrix
 
 | Capability | Aegis Invariant Kernel | NVIDIA NeMo Guardrails | Lakera Guard | Guardrails AI |
 | :--- | :--- | :--- | :--- | :--- |
 | **P50 Evaluation Latency** | **<0.25 ms (In-Memory)** | 150 – 500 ms (LLM Calls) | 40 – 80 ms (Cloud API) | 50 – 200 ms (Python regex/LLM) |
-| **Clearance Guarantee** | **100% Deterministic AST** | Heuristic / Colang | Cloud ML Classifiers | RAIL regex / LLM Judge |
+| **Clearance Mechanism** | **Deterministic AST & Schemas** | Heuristic / Colang | Cloud ML Classifiers | RAIL regex / LLM Judge |
 | **Model Context Protocol (MCP)** | **Native JSON-RPC 2.0 Hook** | ❌ No native MCP | ❌ No native MCP | ❌ No native MCP |
 | **Zero Network Egress** | **100% In-Process / Local** | ❌ Cloud LLM dependent | ❌ Cloud API egress | ❌ Cloud LLM dependent |
 | **TypeScript / Node.js Native** | **First-Class TypeScript Monorepo** | ❌ Python only | ❌ Cloud REST API only | ⚠️ TypeScript client wrapper |
 | **Python SDK (Zero Dependencies)** | **Native `@aegis_guard` (0 deps)** | Heavy deps (`langchain`) | Cloud API client | Heavy Python wheel |
 | **Cryptographic Audit Proofs** | **SHA-256 `proofHash` per event** | ❌ Ephemeral logs | ❌ Proprietary cloud logs | ❌ Basic event dict |
 | **Empirical F1 Benchmark** | **100.0% (100-Vector Testbed)** | ~86.4% | ~91.2% | ~88.0% |
+
+> *Trademark Disclaimer: NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement. Comparative metrics reflect reproducible empirical tests on the open-source 100-vector testbed on Apple M-series hardware (Node.js 22).*
 
 ---
 
@@ -153,6 +155,7 @@ npx aegis pack validate custom-pack.yaml
 - **Auditor Console:** [`site/dashboard/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/dashboard/index.html) — Live audit stream & one-click CSV export.
 - **CISO Compliance White Paper:** [`docs/compliance/CISO_SECURITY_WHITE_PAPER.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/CISO_SECURITY_WHITE_PAPER.md) (SOC 2, HIPAA, PCI-DSS).
 - **EU AI Act & GDPR Mapping:** [`docs/compliance/EU_AI_ACT_MAPPING.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/EU_AI_ACT_MAPPING.md) (Articles 9–15).
+- **Legal & Ethical Disclaimers:** [`DISCLAIMER.md`](./DISCLAIMER.md).
 
 ---
 
@@ -160,7 +163,8 @@ npx aegis pack validate custom-pack.yaml
 
 - **Contributing Guide**: See [CONTRIBUTING.md](./CONTRIBUTING.md) for local dev setup, coding standards, and PR requirements.
 - **Code of Conduct**: See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
-- **Security Policy**: See [SECURITY.md](./SECURITY.md) to responsibly disclose vulnerabilities.
+- **Security Policy**: See [SECURITY.md](./SECURITY.md) for responsible disclosure and Safe Harbor terms.
+- **Legal Disclaimer**: See [DISCLAIMER.md](./DISCLAIMER.md).
 - **Discussions & Support**: Open an issue on [GitHub Issues](https://github.com/Snehgabani/aegis-kernel/issues).
 
 ---
