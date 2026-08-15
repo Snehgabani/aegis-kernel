@@ -1,24 +1,20 @@
-name: Nightly Adversarial Fuzzing & Continuous Benchmark
+name: Aegis Nightly Adversarial Fuzzing & Mutation Audit
 
 on:
   schedule:
     - cron: '0 2 * * *' # Every night at 02:00 UTC
   workflow_dispatch:
 
-permissions:
-  issues: write
-  contents: write
-
 jobs:
-  nightly-adversarial-run:
-    name: Nightly 100-Vector Adversarial & Stress Benchmark
+  adversarial-fuzz:
+    name: Nightly Invariant Stress & Fuzz Testing
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
@@ -26,24 +22,14 @@ jobs:
       - name: Install Dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build Packages
+      - name: Build Monorepo
         run: npm run build
 
-      - name: Run 100-Vector Tricky & Adversarial Testbed
-        id: benchmark
-        run: |
-          node packages/cli/dist/index.js benchmark --tricky > benchmark_output.txt
-          cat benchmark_output.txt
+      - name: Execute 1,000-Iteration High-Concurrency Stress Test
+        run: npx vitest run packages/core/__tests__/adversarial.test.ts
 
-      - name: Check for Discrepancies
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '🚨 Nightly Adversarial Benchmark Regression Alert',
-              body: 'The nightly 100-vector adversarial stress test failed or detected discrepancies. Please review recent engine commits.',
-              labels: ['security', 'automated-alert', 'bug']
-            });
+      - name: Execute 100-Vector Tricky Adversarial Testbed
+        run: npx vitest run packages/evals/__tests__/tricky-100.test.ts
+
+      - name: Run CLI Adversarial Benchmark
+        run: node packages/cli/dist/index.js benchmark --tricky
