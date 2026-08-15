@@ -1,0 +1,28 @@
+# Smithery.ai & Open MCP Registry Manifest
+# Enables 1-click installation in Claude Desktop, Cursor, and Windsurf
+
+name: "@aegis-kernel/mcp"
+version: "1.0.0"
+description: "Deterministic tool-call clearance gateway and schema pinning firewall for Model Context Protocol (MCP)"
+license: "MIT"
+repository: "https://github.com/Snehgabani/aegis-kernel"
+
+command:
+  type: "node"
+  entry: "node_modules/@aegis-kernel/cli/dist/index.js"
+  args: ["mcp", "--enforce"]
+
+categories:
+  - "security"
+  - "ai-safety"
+  - "mcp"
+  - "guardrails"
+
+capabilities:
+  tools: true
+  prompts: false
+  resources: true
+
+env:
+  AEGIS_MODE: "enforce"
+  AEGIS_POLICY_PACKS: "sql-guard,data-guard,finance-guard"

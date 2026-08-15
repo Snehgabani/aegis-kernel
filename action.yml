@@ -1,0 +1,40 @@
+name: "Aegis AI Agent Security & Compliance Audit Action"
+description: "Deterministically audit AI agent tool calls, SQL AST invariants, numeric risk bounds, and PII leaks in CI/CD."
+author: "Sneh Gabani"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  config-path:
+    description: "Path to aegis.config.yaml"
+    required: false
+    default: "./aegis.config.yaml"
+  mode:
+    description: "Enforcement mode: enforce or shadow"
+    required: false
+    default: "enforce"
+  generate-report:
+    description: "Generate SOC2/HIPAA compliance markdown report in GITHUB_STEP_SUMMARY"
+    required: false
+    default: "true"
+
+outputs:
+  safety-score:
+    description: "Calculated Agent Safety Score (0-100)"
+  verdict:
+    description: "Final clearance verdict: PASSED or FAILED"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Run Aegis Test Suite & Policy Audit
+      shell: bash
+      run: |
+        npx --yes @aegis-kernel/cli test --config "${{ inputs.config-path }}" --mode "${{ inputs.mode }}"
