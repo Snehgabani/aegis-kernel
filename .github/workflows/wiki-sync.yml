@@ -1,0 +1,33 @@
+name: Synchronize Documentation to GitHub Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/wiki/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-wiki:
+    name: Sync docs/wiki to GitHub Wiki Repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Push to GitHub Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        continue-on-error: true
+        with:
+          repository: ${{ github.repository }}
+          path: docs/wiki
+          commit-message: "docs(wiki): synchronize wiki documentation from main [skip ci]"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
