@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "vitest.explorer",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml",
+    "ms-python.python",
+    "golang.go",
+    "github.vscode-github-actions",
+    "ms-azuretools.vscode-docker"
+  ]
+}

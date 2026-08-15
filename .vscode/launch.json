@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug All Vitest Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Aegis Gateway Service",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/services/gateway",
+      "program": "${workspaceFolder}/services/gateway/src/index.ts",
+      "runtimeArgs": ["--loader", "ts-node/esm"],
+      "env": {
+        "PORT": "8787"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Aegis CLI (Doctor)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/packages/cli/dist/index.js",
+      "args": ["doctor"],
+      "preLaunchTask": "npm: build",
+      "console": "integratedTerminal"
+    }
+  ]
+}

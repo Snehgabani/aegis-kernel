@@ -1,0 +1,42 @@
+name: PR Invariant & Benchmark Guard
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark-gate:
+    name: Sub-1.5ms Latency & F1 Balance Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR Branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies & Build
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Run 100-Vector Adversarial Benchmark
+        id: bench
+        run: |
+          npx vitest run packages/evals/__tests__/tricky-100.test.ts
+
+      - name: Verify Architectural Boundary Invariants
+        run: |
+          node scripts/live-e2e-proof.mjs
