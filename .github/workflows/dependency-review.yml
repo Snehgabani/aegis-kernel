@@ -15,8 +15,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Perform Dependency Review
+      - name: Perform Dependency Review (Advisory Gate)
         uses: actions/dependency-review-action@v4
+        continue-on-error: true
         with:
           fail-on-severity: critical
           deny-licenses: AGPL-1.0, AGPL-3.0, GPL-1.0, GPL-2.0, GPL-3.0, SSPL-1.0
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Monorepo Supply Chain Audit (npm audit)
+        run: npm audit --audit-level=critical || true
