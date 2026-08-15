@@ -1,0 +1,56 @@
+{
+  "name": "aegis-vscode",
+  "displayName": "Aegis AI Agent Security Linter",
+  "description": "Deterministic AST linter and security policy checker for AI agent tool definitions and SQL queries.",
+  "version": "1.0.0",
+  "publisher": "aegis-security",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "mcp",
+    "ai safety",
+    "agent security",
+    "sql guard",
+    "llm guardrails"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aegis.auditWorkspace",
+        "title": "Aegis: Audit Agent Tool Invariants"
+      },
+      {
+        "command": "aegis.verifyPolicies",
+        "title": "Aegis: Verify YAML Policy Packs"
+      }
+    ],
+    "configuration": {
+      "title": "Aegis Invariant Kernel",
+      "properties": {
+        "aegis.enableRealtimeLint": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time AST linting of SQL queries and MCP tool arguments."
+        },
+        "aegis.configPath": {
+          "type": "string",
+          "default": "./aegis.config.yaml",
+          "description": "Path to the local aegis.config.yaml."
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Snehgabani/aegis-kernel"
+  },
+  "license": "MIT"
+}
