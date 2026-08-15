@@ -2,7 +2,8 @@ name: Aegis Pull Request Security & Invariant Bot
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,19 +14,17 @@ jobs:
   pr-security-audit:
     name: Aegis Invariant PR Review Bot
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Build Monorepo
         run: npm run build
@@ -38,7 +37,7 @@ jobs:
 
       - name: Post PR Comment
         uses: actions/github-script@v7
-        if: always()
+        if: github.event_name == 'pull_request'
         with:
           script: |
             const fs = require('fs');
