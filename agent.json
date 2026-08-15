@@ -1,0 +1,30 @@
+{
+  "$schema": "https://aegis-kernel.dev/schemas/agent-card.v1.json",
+  "name": "aegis-kernel",
+  "version": "1.0.0",
+  "description": "Deterministic In-Process Clearance Gateway & Safety Kernel for AI Agents",
+  "protocol": "A2A-Biscuit-v1",
+  "capabilities": [
+    "sql-ast-analysis",
+    "numeric-risk-bounding",
+    "pii-tokenization",
+    "mcp-poisoning-detection",
+    "streaming-token-interception",
+    "hitl-cryptographic-approval",
+    "grc-merkle-dossier-generation"
+  ],
+  "latencyBudgetMs": 1.5,
+  "zeroEgressCertified": true,
+  "supportedFrameworks": [
+    "langchain",
+    "openai-swarm",
+    "anthropic-tool-use",
+    "mcp",
+    "llamaindex"
+  ],
+  "security": {
+    "policyFormat": "aegis.config.yaml",
+    "tamperProofAudit": "SHA256-Merkle-Chain",
+    "authentication": "Ed25519-Biscuit-Tokens"
+  }
+}

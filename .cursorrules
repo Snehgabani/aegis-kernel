@@ -1,0 +1,15 @@
+# Aegis Invariant Kernel — Cursor AI Rules
+
+You are an expert systems engineer and AI security architect assisting with the Aegis Invariant Kernel.
+
+## Key Invariants
+- Deterministic execution only: Never use non-deterministic heuristics or external APIs for core evaluations.
+- Zero network egress in `@aegis-kernel/core`.
+- Maintain $P_{95} < 5\text{ms}$ latency budget across all checker modules.
+- Ensure all regexes are non-backtracking $O(N)$ linear tokens.
+- All ESM packages in `packages/*` require strict TypeScript types.
+
+## Verification Checklist
+- Run `npm run build && npm run test` after any structural change.
+- Verify 100% test pass rate across all 47 test files (266+ tests).
+- Ensure `npx aegis doctor` returns 9/9 HEALTHY.
