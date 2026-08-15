@@ -100,7 +100,14 @@ export class AegisEngine {
   public evaluate(toolCall: ToolCall, options?: EvaluateOptions): AegisVerdict {
     const startTime = performance.now();
     const timestamp = new Date().toISOString();
-    const toolCallFingerprint = computeToolCallFingerprint(toolCall);
+    const safeToolCall: ToolCall = {
+      tool: typeof toolCall?.tool === 'string' ? toolCall.tool : 'unknown_tool',
+      params:
+        toolCall?.params && typeof toolCall.params === 'object' && !Array.isArray(toolCall.params)
+          ? toolCall.params
+          : {},
+    };
+    const toolCallFingerprint = computeToolCallFingerprint(safeToolCall);
     const violations: AegisViolation[] = [];
     let rulesEvaluated = 0;
 
@@ -108,12 +115,12 @@ export class AegisEngine {
       // Resolve state: explicit option state or synchronous provider result
       let stateContext = options?.state;
       if (!stateContext && options?.stateProvider) {
-        const result = options.stateProvider(toolCall);
+        const result = options.stateProvider(safeToolCall);
         if (!(result instanceof Promise)) {
           stateContext = result;
         }
       } else if (!stateContext && this.defaultStateProvider) {
-        const result = this.defaultStateProvider(toolCall);
+        const result = this.defaultStateProvider(safeToolCall);
         if (!(result instanceof Promise)) {
           stateContext = result;
         }
@@ -122,7 +129,7 @@ export class AegisEngine {
       for (const pack of this.packs) {
         for (const rule of pack.rules) {
           rulesEvaluated++;
-          const ruleViolations = this.evaluateRule(rule, pack.id, toolCall, {
+          const ruleViolations = this.evaluateRule(rule, pack.id, safeToolCall, {
             ...options,
             state: stateContext,
           });

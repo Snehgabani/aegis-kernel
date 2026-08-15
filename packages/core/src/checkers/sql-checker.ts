@@ -302,8 +302,9 @@ export class SqlChecker {
     return decommented.length > 0 ? decommented : rawSql.trim();
   }
 
-  private findNestedSql(obj: unknown): string | null {
-    if (!obj || typeof obj !== 'object') return null;
+  private findNestedSql(obj: unknown, visited: Set<unknown> = new Set()): string | null {
+    if (!obj || typeof obj !== 'object' || visited.has(obj)) return null;
+    visited.add(obj);
     const record = obj as Record<string, unknown>;
 
     for (const key of ['sql', 'query', 'statement', 'command', 'q']) {
@@ -314,7 +315,7 @@ export class SqlChecker {
 
     for (const val of Object.values(record)) {
       if (val && typeof val === 'object') {
-        const found = this.findNestedSql(val);
+        const found = this.findNestedSql(val, visited);
         if (found) return found;
       }
     }

@@ -204,6 +204,9 @@ export class CustomChecker {
     let current: any = contextParams;
 
     for (const part of parts) {
+      if (['__proto__', 'constructor', 'prototype'].includes(part)) {
+        return undefined; // Strictly disallow prototype traversal
+      }
       if (current === null || current === undefined || typeof current !== 'object') {
         return undefined;
       }
@@ -212,7 +215,10 @@ export class CustomChecker {
 
     if (current !== undefined) return current;
 
-    // Try direct key on contextParams
+    // Try direct key on contextParams (rejecting prototype keywords)
+    if (['__proto__', 'constructor', 'prototype'].includes(trimmed)) {
+      return undefined;
+    }
     return (contextParams as any)[trimmed];
   }
 }

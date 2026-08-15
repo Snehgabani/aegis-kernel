@@ -80,7 +80,11 @@ export class PiiChecker {
     return stripped.normalize('NFKD');
   }
 
-  private collectStringValues(obj: unknown, collected: string[] = []): string[] {
+  private collectStringValues(
+    obj: unknown,
+    collected: string[] = [],
+    visited: Set<unknown> = new Set()
+  ): string[] {
     if (typeof obj === 'string') {
       collected.push(obj);
       const normalized = this.normalizeString(obj);
@@ -88,17 +92,21 @@ export class PiiChecker {
         collected.push(normalized);
       }
     } else if (Array.isArray(obj)) {
+      if (visited.has(obj)) return collected;
+      visited.add(obj);
       for (const item of obj) {
-        this.collectStringValues(item, collected);
+        this.collectStringValues(item, collected, visited);
       }
     } else if (obj !== null && typeof obj === 'object') {
+      if (visited.has(obj)) return collected;
+      visited.add(obj);
       for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
         collected.push(key);
         const normKey = this.normalizeString(key);
         if (normKey !== key) {
           collected.push(normKey);
         }
-        this.collectStringValues(val, collected);
+        this.collectStringValues(val, collected, visited);
       }
     }
     return collected;

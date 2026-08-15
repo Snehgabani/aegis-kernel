@@ -124,8 +124,13 @@ export class StateChecker {
     return this.findNestedValue(params, tenantField);
   }
 
-  private findNestedValue(obj: unknown, key: string): unknown {
-    if (!obj || typeof obj !== 'object') return undefined;
+  private findNestedValue(
+    obj: unknown,
+    key: string,
+    visited: Set<unknown> = new Set()
+  ): unknown {
+    if (!obj || typeof obj !== 'object' || visited.has(obj)) return undefined;
+    visited.add(obj);
     const record = obj as Record<string, unknown>;
 
     if (key in record && record[key] !== undefined) {
@@ -134,7 +139,7 @@ export class StateChecker {
 
     for (const val of Object.values(record)) {
       if (val && typeof val === 'object') {
-        const found = this.findNestedValue(val, key);
+        const found = this.findNestedValue(val, key, visited);
         if (found !== undefined) return found;
       }
     }

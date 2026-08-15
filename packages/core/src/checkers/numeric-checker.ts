@@ -99,20 +99,25 @@ export class NumericChecker {
     return this.findNestedNumber(params, targetField);
   }
 
-  private findNestedNumber(obj: unknown, fieldName: string): number | null {
-    if (!obj || typeof obj !== 'object') return null;
+  private findNestedNumber(
+    obj: unknown,
+    fieldName: string,
+    visited: Set<unknown> = new Set()
+  ): number | null {
+    if (!obj || typeof obj !== 'object' || visited.has(obj)) return null;
+    visited.add(obj);
     const record = obj as Record<string, unknown>;
 
     if (fieldName in record && record[fieldName] !== null && record[fieldName] !== undefined) {
       const num = Number(record[fieldName]);
-      if (!isNaN(num) && typeof record[fieldName] !== 'boolean') {
+      if (Number.isFinite(num) && typeof record[fieldName] !== 'boolean') {
         return num;
       }
     }
 
     for (const val of Object.values(record)) {
       if (val && typeof val === 'object') {
-        const found = this.findNestedNumber(val, fieldName);
+        const found = this.findNestedNumber(val, fieldName, visited);
         if (found !== null) return found;
       }
     }

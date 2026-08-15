@@ -1,5 +1,5 @@
 import { AegisEngine } from '@aegis-kernel/core';
-import { TRICKY_100_DATASET, type TrickyVector } from './tricky-100-dataset.js';
+import { TRICKY_100_DATASET } from './tricky-100-dataset.js';
 
 export interface TrickyBenchmarkResult {
   totalVectors: number;
