@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import pc from 'picocolors';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { RulePackLoader, AegisLicenseManager } from '@aegis-kernel/core';
 
 export function runPackList(): void {

@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import AjvModule from 'ajv';
 import type { RulePack } from './types.js';
 
