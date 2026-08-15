@@ -24,51 +24,104 @@ Most existing AI guardrails (Guardrails AI, NeMo, Lakera) use **probabilistic LL
 Aegis takes a **zero-trust, deterministic compiler approach**:
 
 ```mermaid
-flowchart LR
-    subgraph INGRESS["🤖 Autonomous AI Agents & Frameworks"]
-        direction TB
-        A1["LangChain / CrewAI / AutoGen"]
-        A2["OpenAI Function Calling / Swarm"]
-        A3["Anthropic Claude Tool Use"]
-        A4["Model Context Protocol (MCP)"]
+flowchart TD
+    subgraph INGRESS["1. Ingress & Framework Adapters"]
+        direction LR
+        I1["LangChain / CrewAI / AutoGen"]
+        I2["OpenAI Tool Calling / Swarm"]
+        I3["Anthropic Claude Tool Use"]
+        I4["Model Context Protocol (JSON-RPC 2.0)"]
     end
 
-    INGRESS -->|Tool-Call Proposal| PIPELINE
+    INGRESS -->|Raw ToolCall: tool, params, token| TIER1
 
-    subgraph PIPELINE["🛡️ Aegis In-Process Clearance Pipeline (<1.5ms, Zero Network Egress)"]
+    subgraph TIER1["Tier 1: Lexical Normalization & Fast-Path Intercept (<0.03ms)"]
+        direction TB
+        T1_1["Aho-Corasick Streaming Interceptor<br/><i>(Sliding window token secret scanner)</i>"]
+        T1_2["Unicode NFKD Sanitizer<br/><i>(Homoglyph & zero-width character stripper)</i>"]
+        T1_3["Zero-Egress Prompt Injection Classifier<br/><i>(Local linguistic instruction override analyzer)</i>"]
+        
+        T1_1 --> T1_2 --> T1_3
+    end
+
+    TIER1 -->|Sanitized Tool Payload| TIER2
+
+    subgraph TIER2["Tier 2: Structural AST Compilers & Semantic Validation (<0.15ms)"]
+        direction LR
+        
+        subgraph T2_SQL["SQL AST Engine"]
+            S1["Multi-Dialect Parser<br/>(Postgres, MySQL, SQLite, T-SQL)"]
+            S2["AST Visitor Guard<br/>(Tautological WHERE 1=1, Mutating CTEs)"]
+            S1 --> S2
+        end
+
+        subgraph T2_NUM["Numeric Engine"]
+            N1["Safe BigInt / Currency Normalizer"]
+            N2["Finite Range & Velocity Clamping"]
+            N1 --> N2
+        end
+
+        subgraph T2_PII["PII Token Vault"]
+            P1["16-Byte Salt Anonymizer"]
+            P2["Deterministic Reversible Mapping"]
+            P1 --> P2
+        end
+
+        subgraph T2_POL["Policy & Plugins"]
+            R1["Cedar / Rego Policy AST Engine"]
+            R2["WASM Sandbox Validator Runner"]
+            R1 --> R2
+        end
+    end
+
+    TIER2 -->|Validated AST & Masked Values| TIER3
+
+    subgraph TIER3["Tier 3: Temporal, Behavioral & Cryptographic Topology (<0.06ms)"]
+        direction LR
+
+        subgraph T3_AUTH["Identity & Tokens"]
+            A1["Agent Identity & RBAC Policy Manager"]
+            A2["Ed25519 Biscuit Monotonic Attenuation"]
+            A1 --> A2
+        end
+
+        subgraph T3_GRAPH["Behavioral Graphs"]
+            G1["Causal Execution DAG<br/><i>(Multi-step exfiltration detector)</i>"]
+            G2["Crescendo Conversation Tracker<br/><i>(Exponential decay drift tracker)</i>"]
+            G1 --> G2
+        end
+
+        subgraph T3_CTRL["Swarm Controls"]
+            C1["Swarm Delegation Router<br/><i>(Global budget ceilings)</i>"]
+            C2["Multi-Strike Circuit Breaker<br/><i>(Quarantine state machine)</i>"]
+            C1 --> C2
+        end
+    end
+
+    TIER3 -->|Aggregate Verification State| TIER4
+
+    subgraph TIER4["Tier 4: Cryptographic Commitments, Explainability & GRC (<0.02ms)"]
         direction TB
         
-        subgraph T1["1. Lexical & Ingress Guard"]
-            L1["Aho-Corasick Streaming Interceptor"]
-            L2["Unicode NFKD / Confusable Sanitizer"]
-            L3["Zero-Egress Prompt Injection Classifier"]
+        subgraph T4_CRYPTO["Cryptographic Integrity"]
+            CR1["SHA-256 ProofHash Commitment Generator"]
+            CR2["Append-Only Merkle Audit Ledger<br/><i>(Chained previousRootHash for SOC2/HIPAA)</i>"]
+            CR1 --> CR2
         end
 
-        subgraph T2["2. Structural AST & Semantic Engine"]
-            S1["Multi-Dialect SQL AST Parser<br/>(Postgres, MySQL, SQLite, T-SQL)"]
-            S2["Numeric Risk Bounds & Safe BigInts"]
-            S3["PII Token Vault (16-Byte Salt Anonymizer)"]
-            S4["Policy-as-Code Engine (Cedar / Rego AST)"]
+        subgraph T4_DECISION["Decision & Explainability Hub"]
+            DEC{"Clearance<br/>Decision Matrix"}
+            EX1["EU AI Act Art. 13 Plain-English Explainer"]
+            EX2["Self-Healing AST Re-Ask Fix Generator"]
+            DEC --> EX1
+            DEC --> EX2
         end
 
-        subgraph T3["3. Temporal & Identity Topology"]
-            C1["Agent Identity & RBAC Policy Manager"]
-            C2["Ed25519 Biscuit Monotonic Attenuation"]
-            C3["Causal Execution DAG (Anti-Exfiltration)"]
-            C4["Crescendo Multi-Turn Drift Tracker"]
-        end
-
-        subgraph T4["4. Cryptographic Proofs & Decision Hub"]
-            D1["SHA-256 ProofHash & Merkle GRC Ledger"]
-            D2["EU AI Act Plain-English Explainer"]
-            D3["Self-Healing AST Auto-Fix Generator"]
-        end
-
-        T1 --> T2 --> T3 --> T4
+        T4_CRYPTO --> T4_DECISION
     end
 
-    T4 -->|Verdict: ALLOWED| OUT_ALLOW[("🎯 Production DB / APIs<br/>+ SHA-256 Proof Hash")]
-    T4 -->|Verdict: BLOCKED / REASK| OUT_BLOCK["💥 LLM Auto-Fix Re-Ask Feedback<br/>+ SIEM Alert & Quarantine"]
+    DEC -->|Verdict: ALLOWED| OUT_ALLOW[("🎯 Production DB / APIs / Tool Execution<br/><i>+ SHA-256 Cryptographic Proof Receipt</i>")]
+    DEC -->|Verdict: REASK / BLOCKED| OUT_BLOCK["💥 LLM Self-Healing Feedback Fix<br/><i>+ Auto-Correction Prompt & SIEM / STIX Alert</i>"]
 ```
 
 1. **Multi-Dialect AST Invariants**: Compiles SQL arguments into Abstract Syntax Trees across PostgreSQL, MySQL, SQLite, and TransactSQL. Detects tautological `WHERE 1=1` constant folds, recursive mutating CTEs (`WITH deleted AS (DELETE ...)`), and comment-splitting evasion attacks (`DEL/**/ETE`).
