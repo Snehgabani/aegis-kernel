@@ -1,0 +1,35 @@
+name: PR Size Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  size-label:
+    name: Compute & Assign PR Size Label
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Size Labeler
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_max_size: '15'
+          s_max_size: '100'
+          m_max_size: '400'
+          l_max_size: '1000'
+          fail_if_xl: 'false'
+          message_if_xl: '⚠️ This PR is larger than 1,000 LOC. Consider breaking it into smaller focused review units for thorough review.'
+          files_to_ignore: |
+            package-lock.json
+            pnpm-lock.yaml
+            yarn.lock
+            *.lock
+            dist/*
+            docs/assets/*

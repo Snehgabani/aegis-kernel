@@ -1,0 +1,29 @@
+name: Markdown & Documentation Link Integrity
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  link-checker:
+    name: Lychee Link Checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Scan Markdown Files for Dead Links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --exclude-mail --max-concurrency 8 --timeout 20 './**/*.md' './site/**/*.html'
+          fail: false
+          token: ${{ secrets.GITHUB_TOKEN }}
