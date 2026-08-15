@@ -9,6 +9,7 @@ import { runHubList, runHubSearch, runHubInstall } from './hub-cli.js';
 import { runRepl } from './repl-cli.js';
 import { runBenchmark } from './benchmark-cli.js';
 import { runMatrix } from './matrix-cli.js';
+import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
 
 const program = new Command();
 
@@ -120,6 +121,31 @@ licenseCmd
   .description('Display active plan, expiration, and unlocked rule packs')
   .action(() => {
     runLicenseStatus();
+  });
+
+const complianceCmd = program
+  .command('compliance')
+  .description('Enterprise GRC compliance dossier generation and regulatory audit reporting');
+
+complianceCmd
+  .command('export')
+  .description('Generate an audit-ready compliance dossier (SOC 2, ISO 42001, EU AI Act, NIST AI RMF)')
+  .option('-f, --format <format>', 'Export format: markdown or json', 'markdown')
+  .option('-o, --output <path>', 'Destination output file path')
+  .option('-l, --limit <number>', 'Number of historical events to audit', '1000')
+  .action((options) => {
+    runComplianceExport({
+      format: options.format,
+      output: options.output,
+      limit: parseInt(options.limit, 10),
+    });
+  });
+
+program
+  .command('explain <tool> [payload]')
+  .description('Generate transparent plain-English explanation for a tool call under EU AI Act Art. 13')
+  .action((tool: string, payload?: string) => {
+    runExplainToolCall(tool, payload || '{}');
   });
 
 program

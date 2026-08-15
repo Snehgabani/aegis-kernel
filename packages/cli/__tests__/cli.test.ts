@@ -217,6 +217,37 @@ describe('Aegis CLI Package', () => {
     });
   });
 
+  describe('aegis compliance and explain commands', () => {
+    it('should export compliance dossier to file', async () => {
+      const { runComplianceExport, runExplainToolCall } = await import('../src/compliance-cli.js');
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const exportFile = path.join(tempDir, 'dossier.md');
+      runComplianceExport({ output: exportFile, format: 'markdown', limit: 10 });
+
+      expect(fs.existsSync(exportFile)).toBe(true);
+      const content = fs.readFileSync(exportFile, 'utf8');
+      expect(content).toContain('Executive GRC Compliance Dossier');
+      expect(content).toContain('SOC2_TYPE_II');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should generate plain-English explanation for tool call via CLI', async () => {
+      const { runExplainToolCall } = await import('../src/compliance-cli.js');
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      runExplainToolCall('execute_sql', '{"query": "DROP TABLE users"}');
+
+      const loggedText = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
+      expect(loggedText).toContain('EXPLAINABILITY ENGINE');
+      expect(loggedText).toContain('BLOCKED');
+      expect(loggedText).toContain('Catastrophic Data Destruction');
+
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe('binary entrypoint validation', () => {
     it('should have executable bin script pointing to CJS bundle', () => {
       const binPath = path.resolve(__dirname, '../bin/aegis.js');

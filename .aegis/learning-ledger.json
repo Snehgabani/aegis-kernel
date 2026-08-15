@@ -1,7 +1,7 @@
 {
-  "totalEventsProcessed": 54,
+  "totalEventsProcessed": 57,
   "totalBlocked": 10,
-  "totalAllowed": 44,
+  "totalAllowed": 47,
   "totalOverrides": 0,
   "rulePerformance": {
     "SQL-001": {
@@ -60,5 +60,5 @@
     }
   },
   "uncoveredTools": {},
-  "lastUpdated": "2026-08-15T20:21:30.625Z"
+  "lastUpdated": "2026-08-15T20:27:08.180Z"
 }
