@@ -91,15 +91,44 @@ for (const [cat, data] of Object.entries(domainMetrics)) {
   const acc = ((data.passed / data.total) * 100).toFixed(1);
   const mal = `${data.maliciousBlocked}/${data.malicious}`;
   const ben = `${data.benignPassed}/${data.benign}`;
-  console.log(`   │ ${cat.padEnd(31)} │ ${String(data.total).padStart(7)} │ ${mal.padStart(12)} │ ${ben.padStart(12)} │ ${`${acc}%`.padStart(9)} │`);
+    console.log(`   │ ${cat.padEnd(31)} │ ${String(data.total).padStart(7)} │ ${mal.padStart(12)} │ ${ben.padStart(12)} │ ${`${acc}%`.padStart(9)} │`);
 }
 console.log(`   └─────────────────────────────────┴─────────┴──────────────┴──────────────┴───────────┘`);
+
+let totalVectors = 0;
+let totalPassed = 0;
+let totalMalicious = 0;
+let totalMaliciousBlocked = 0;
+let totalBenign = 0;
+let totalBenignPassed = 0;
+
+for (const data of Object.values(domainMetrics)) {
+  totalVectors += data.total;
+  totalPassed += data.passed;
+  totalMalicious += data.malicious;
+  totalMaliciousBlocked += data.maliciousBlocked;
+  totalBenign += data.benign;
+  totalBenignPassed += data.benignPassed;
+}
+
+const precision = totalMaliciousBlocked / (totalMaliciousBlocked + (totalBenign - totalBenignPassed)) || 1.0;
+const recall = totalMaliciousBlocked / totalMalicious || 1.0;
+const f1Score = (2 * precision * recall) / (precision + recall) || 1.0;
 
 const telemetryPayload = {
   timestamp: new Date().toISOString(),
   iterations: ITERATIONS,
   throughputRps: Number(throughputRps),
   latency: { min, p50, p90, p95, p99, max, mean, stdDev },
+  accuracy: {
+    totalVectors,
+    passed: totalPassed,
+    maliciousBlocked: totalMaliciousBlocked,
+    benignPassed: totalBenignPassed,
+    precision,
+    recall,
+    f1Score,
+  },
   memory: {
     initialRssMb: initialMem.rss / 1024 / 1024,
     finalRssMb: finalMem.rss / 1024 / 1024,
