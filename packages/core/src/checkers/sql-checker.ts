@@ -285,12 +285,8 @@ export class SqlChecker {
       return null;
     }
 
-    // Strip inline C-style comments (e.g. /*comment*/ or DEL/**/ETE) and SQL line comments (-- ...)
-    let decommented = rawSql
-      .replace(/\/\*[\s\S]*?\*\//g, ' ')
-      .replace(/--.*$/gm, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Strip inline C-style comments (e.g. /*comment*/ or DEL/**/ETE) and SQL line comments (-- ...) using linear scanner
+    let decommented = SqlChecker.stripSqlComments(rawSql);
 
     // Reassemble keywords split by comments (e.g. 'DEL ETE' -> 'DELETE')
     decommented = decommented
@@ -300,6 +296,36 @@ export class SqlChecker {
       .replace(/\bTRUN\s+CATE\b/gi, 'TRUNCATE');
 
     return decommented.length > 0 ? decommented : rawSql.trim();
+  }
+
+  private static stripSqlComments(sql: string): string {
+    let result = '';
+    let i = 0;
+    const len = sql.length;
+
+    while (i < len) {
+      // Check block comment /* ... */
+      if (sql[i] === '/' && i + 1 < len && sql[i + 1] === '*') {
+        i += 2;
+        while (i + 1 < len && !(sql[i] === '*' && sql[i + 1] === '/')) {
+          i++;
+        }
+        i += 2; // skip */
+        result += ' ';
+      } else if (sql[i] === '-' && i + 1 < len && sql[i + 1] === '-') {
+        // Line comment -- ...
+        i += 2;
+        while (i < len && sql[i] !== '\n' && sql[i] !== '\r') {
+          i++;
+        }
+        result += ' ';
+      } else {
+        result += sql[i];
+        i++;
+      }
+    }
+
+    return result.replace(/\s+/g, ' ').trim();
   }
 
   private findNestedSql(obj: unknown, visited: Set<unknown> = new Set()): string | null {
@@ -354,7 +380,7 @@ export class SqlChecker {
       });
     }
 
-    if (/\bALTER\s+TABLE\s+.*\bDROP\b/i.test(normalized)) {
+    if (/\bALTER\s+TABLE\s+[^;]*\bDROP\b/i.test(normalized)) {
       violations.push({
         ruleId,
         packId,
@@ -367,7 +393,7 @@ export class SqlChecker {
 
     if (
       /\bDELETE\s+FROM\s+[^\s;]+(?:\s*;|\s*$)/i.test(normalized) ||
-      /\bDELETE\s+FROM\s+.*\bWHERE\s+(?:1\s*=\s*1|true)\b/i.test(normalized)
+      /\bDELETE\s+FROM\s+[^;]*\bWHERE\s+(?:1\s*=\s*1|true)\b/i.test(normalized)
     ) {
       violations.push({
         ruleId,
