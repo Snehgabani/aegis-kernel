@@ -14,7 +14,6 @@ jobs:
     name: Scorecard Analysis
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
       id-token: write
       contents: read
       actions: read
@@ -32,7 +31,9 @@ jobs:
           results_format: sarif
           publish_results: true
 
-      - name: Upload SARIF to GitHub Security Center
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Archive Scorecard SARIF Evidence Artifact
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: results.sarif
+          name: openssf-scorecard-sarif
+          path: results.sarif
+          retention-days: 90
