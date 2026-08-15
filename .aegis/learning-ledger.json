@@ -1,7 +1,7 @@
 {
-  "totalEventsProcessed": 60,
-  "totalBlocked": 10,
-  "totalAllowed": 50,
+  "totalEventsProcessed": 71,
+  "totalBlocked": 11,
+  "totalAllowed": 60,
   "totalOverrides": 0,
   "rulePerformance": {
     "SQL-001": {
@@ -57,8 +57,17 @@
       "averageLatencyMs": 4.4435,
       "triageStatus": "healthy",
       "lastFired": "2026-08-15T19:51:10.087Z"
+    },
+    "FIN-CUSTOM-01": {
+      "timesEvaluated": 0,
+      "timesFired": 1,
+      "overridesCount": 0,
+      "overrideRatio": 0,
+      "averageLatencyMs": 0.14,
+      "triageStatus": "healthy",
+      "lastFired": "2026-08-15T20:46:58.046Z"
     }
   },
   "uncoveredTools": {},
-  "lastUpdated": "2026-08-15T20:31:43.804Z"
+  "lastUpdated": "2026-08-15T20:49:48.901Z"
 }

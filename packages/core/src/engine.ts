@@ -111,11 +111,12 @@ export class AegisEngine {
           ? toolCall.params
           : {},
     };
-    const toolCallFingerprint = computeToolCallFingerprint(safeToolCall);
     const violations: AegisViolation[] = [];
     let rulesEvaluated = 0;
+    let toolCallFingerprint = '';
 
     try {
+      toolCallFingerprint = computeToolCallFingerprint(safeToolCall);
       // Resolve state: explicit option state or synchronous provider result
       let stateContext = options?.state;
       if (!stateContext && options?.stateProvider) {
@@ -183,7 +184,7 @@ export class AegisEngine {
       // Telemetry & Learning Ledger Recording
       const event = this.logger.logEvent({
         framework: options?.framework ?? 'raw',
-        toolName: toolCall.tool,
+        toolName: safeToolCall.tool,
         toolCallFingerprint,
         mode: this.mode,
         verdict: verdict.allowed ? 'ALLOWED' : 'BLOCKED',
@@ -209,8 +210,8 @@ export class AegisEngine {
       const latencyMs = Number((performance.now() - startTime).toFixed(3));
       return this.handleEvaluationError(
         err,
-        toolCall,
-        toolCallFingerprint,
+        safeToolCall,
+        toolCallFingerprint || 'unknown_fingerprint',
         rulesEvaluated,
         latencyMs,
         timestamp,

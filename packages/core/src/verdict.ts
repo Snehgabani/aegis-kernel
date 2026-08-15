@@ -2,9 +2,21 @@ import { createHash } from 'node:crypto';
 import type { AegisMode, AegisVerdict, AegisViolation, RulePack, ToolCall } from './types.js';
 
 export function computeToolCallFingerprint(toolCall: ToolCall): string {
+  const cache = new Set();
   const json = JSON.stringify({
     tool: toolCall.tool,
     params: toolCall.params,
+  }, (_key, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    if (typeof value === 'object' && value !== null) {
+      if (cache.has(value)) {
+        return '[Circular]';
+      }
+      cache.add(value);
+    }
+    return value;
   });
   return createHash('sha256').update(json).digest('hex');
 }

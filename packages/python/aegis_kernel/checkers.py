@@ -19,9 +19,20 @@ class PythonSqlChecker:
     @staticmethod
     def evaluate(rule_id: str, pack_id: str, params: Dict[str, Any], tool_call: ToolCall) -> List[AegisViolation]:
         violations: List[AegisViolation] = []
+
+        strings: List[str] = []
+        def collect(obj: Any):
+            if isinstance(obj, str):
+                strings.append(obj)
+            elif isinstance(obj, list):
+                for item in obj: collect(item)
+            elif isinstance(obj, dict):
+                for val in obj.values(): collect(val)
+        collect(tool_call.params)
+
         sql_text = ""
-        for val in tool_call.params.values():
-            if isinstance(val, str) and any(kw in val.upper() for kw in ["SELECT", "DELETE", "DROP", "UPDATE", "TRUNCATE", "ALTER"]):
+        for val in strings:
+            if any(kw in val.upper() for kw in ["SELECT", "DELETE", "DROP", "UPDATE", "TRUNCATE", "ALTER"]):
                 sql_text = val
                 break
 
@@ -112,9 +123,16 @@ class PythonNumericChecker:
         max_val = params.get("max")
         min_val = params.get("min")
 
+        val = None
         if field_name and field_name in tool_call.params:
             val = tool_call.params[field_name]
-            if isinstance(val, (int, float)):
+        elif "_args" in tool_call.params and isinstance(tool_call.params["_args"], list):
+            for arg in tool_call.params["_args"]:
+                if isinstance(arg, (int, float)):
+                    val = arg
+                    break
+
+        if isinstance(val, (int, float)):
                 if max_val is not None and val > max_val:
                     violations.append(AegisViolation(
                         rule_id=rule_id,

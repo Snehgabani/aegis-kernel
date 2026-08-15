@@ -25,3 +25,7 @@ export * from './compliance/grc-exporter.js';
 export * from './explainability.js';
 export * from './deception/honeytoken-manager.js';
 export * from './quarantine/distributed-circuit-breaker.js';
+export * from './streaming/stream-interceptor.js';
+export * from './state/conversation-tracker.js';
+export * from './auto-heal/reask-handler.js';
+export * from './pii/token-vault.js';

@@ -48,7 +48,12 @@ export class HITLEscalationManager {
 
   constructor(config: HITLEscalationConfig = {}) {
     this.ttlSeconds = config.ticketTtlSeconds ?? 300; // 5 minutes default
-    this.secret = config.signingSecret ?? 'aegis-default-hitl-signing-key';
+    if (config.signingSecret) {
+      this.secret = config.signingSecret;
+    } else {
+      this.secret = randomBytes(32).toString('hex');
+      console.warn('Warning: HITL signatures are using an ephemeral key. config.signingSecret was not provided.');
+    }
   }
 
   /**

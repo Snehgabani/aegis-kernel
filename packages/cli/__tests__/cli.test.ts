@@ -18,6 +18,7 @@ describe('Aegis CLI Package', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aegis-cli-test-'));
     originalCwd = process.cwd();
+    process.env.AEGIS_LICENSE_SECRET = 'dummy_secret_key_for_testing_123';
     process.chdir(tempDir);
   });
 
@@ -140,7 +141,7 @@ describe('Aegis CLI Package', () => {
     it('should activate valid enterprise license token and persist to .aegis/license.json', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const manager = new AegisLicenseManager();
+      const manager = new AegisLicenseManager('dummy_secret_key_for_testing_123');
       const validToken = manager.generateLicenseKey({
         customerId: 'enterprise_org_123',
         customerEmail: 'admin@org.com',

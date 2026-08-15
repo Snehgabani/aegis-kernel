@@ -24,23 +24,21 @@ export interface LicenseVerificationResult {
   error?: string;
 }
 
-// Built-in verification secret for self-hosted enterprise verification
-// In high-assurance deployments, this key is provided via AEGIS_LICENSE_SECRET environment variable
-const DEFAULT_VERIFICATION_SECRET =
-  process.env.AEGIS_LICENSE_SECRET || 'aegis_enterprise_lic_verification_secret_v1_deterministic';
-
 export class AegisLicenseManager {
   private secretKey: string;
   private cachedLicense: LicenseVerificationResult | null = null;
 
-  constructor(secretKey: string = DEFAULT_VERIFICATION_SECRET) {
-    this.secretKey = secretKey;
+  constructor(secretKey?: string) {
+    this.secretKey = secretKey || process.env.AEGIS_LICENSE_SECRET || '';
   }
 
   /**
    * Generates a signed enterprise license token (Issuer side)
    */
   public generateLicenseKey(payload: LicensePayload, secret: string = this.secretKey): string {
+    if (!secret) {
+      throw new Error('AEGIS_LICENSE_SECRET environment variable is required for enterprise license verification');
+    }
     const jsonStr = JSON.stringify(payload);
     const payloadB64 = Buffer.from(jsonStr, 'utf8').toString('base64url');
     const signature = createHmac('sha256', secret).update(payloadB64).digest('hex');
@@ -51,6 +49,9 @@ export class AegisLicenseManager {
    * Verifies an enterprise license token offline with zero network latency
    */
   public verifyLicenseKey(licenseKey: string): LicenseVerificationResult {
+    if (!this.secretKey) {
+      throw new Error('AEGIS_LICENSE_SECRET environment variable is required for enterprise license verification');
+    }
     if (!licenseKey || typeof licenseKey !== 'string' || !licenseKey.startsWith('aegis_lic_')) {
       return {
         valid: false,
