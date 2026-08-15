@@ -4,14 +4,12 @@
 > *Sub-1.5ms Latency • Zero Network Egress • Deterministic Policy & State Invariants*
 
 [![CI Matrix](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Nightly Audit](https://github.com/Snehgabani/aegis-kernel/actions/workflows/nightly-health-audit.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![CodeQL SAST](https://github.com/Snehgabani/aegis-kernel/actions/workflows/codeql.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
-[![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8.svg?logo=go)](./packages/go)
-[![Rust](https://img.shields.io/badge/Rust-1.75%2B-dea584.svg?logo=rust)](./packages/rust)
-[![GitHub Action](https://img.shields.io/badge/GitHub%20Action-v1-blue.svg?logo=github)](./docs/MARKETPLACE_ACTION_GUIDE.md)
-[![Tests](https://img.shields.io/badge/tests-248%2F248%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-266%2F266%20passing-brightgreen.svg)](#)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
 [![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Audit%20Ready-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)
@@ -152,6 +150,12 @@ Audit AI agent tool invariants and generate compliance evidence directly in your
 # Initialize aegis.config.yaml in current project
 npx aegis init
 
+# Run system health diagnostics across all invariant subsystems
+npx aegis doctor
+
+# Scan workspace prompts and MCP definitions for threats & prompt injection
+npx aegis scan .
+
 # Run security bounds testbed & compute Agent Safety Scorecard
 npx aegis test
 
@@ -192,7 +196,7 @@ Real-time Server-Sent Events (SSE) token filtering with an Aho-Corasick trie sli
 ```typescript
 import { AegisStreamInterceptor } from '@aegis-kernel/core';
 
-const interceptor = new AegisStreamInterceptor(engine, { windowSize: 32, abortOnMatch: true });
+const interceptor = new AegisStreamInterceptor(engine, { maxPatternLength: 256, abortOnMatch: true });
 for await (const chunk of interceptor.intercept(llmTokenStream)) {
   if (chunk.action === 'ABORT') break; // Early abort on secret/PII detection
   process.stdout.write(chunk.text);
