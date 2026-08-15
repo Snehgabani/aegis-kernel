@@ -356,20 +356,26 @@ export class SqlChecker {
     sql: string
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
-    const normalized = sql.replace(/\s+/g, ' ').trim();
+    const rawTokens = sql.toUpperCase().split(/\s+/).filter(Boolean);
+    // Strip trailing semicolons from tokens using O(1) string slicing
+    const tokens = rawTokens.map((t) => (t.endsWith(';') ? t.slice(0, -1) : t));
 
-    if (/\bDROP\s+(TABLE|DATABASE|SCHEMA|VIEW)\b/i.test(normalized)) {
-      violations.push({
-        ruleId,
-        packId,
-        severity: 'critical',
-        message: `Destructive DROP statement detected via safety fallback filter.`,
-        suggestedFix: `Destructive DROP commands are blocked.`,
-        context: { fallbackUsed: true, pattern: 'DROP' },
-      });
+    const dropIdx = tokens.indexOf('DROP');
+    if (dropIdx !== -1 && dropIdx + 1 < tokens.length) {
+      const next = tokens[dropIdx + 1];
+      if (['TABLE', 'DATABASE', 'SCHEMA', 'VIEW'].includes(next)) {
+        violations.push({
+          ruleId,
+          packId,
+          severity: 'critical',
+          message: `Destructive DROP statement detected via safety fallback filter.`,
+          suggestedFix: `Destructive DROP commands are blocked.`,
+          context: { fallbackUsed: true, pattern: 'DROP' },
+        });
+      }
     }
 
-    if (/\bTRUNCATE\s+(TABLE)?\b/i.test(normalized)) {
+    if (tokens.includes('TRUNCATE')) {
       violations.push({
         ruleId,
         packId,
@@ -380,29 +386,55 @@ export class SqlChecker {
       });
     }
 
-    if (/\bALTER\s+TABLE\s+[^;]*\bDROP\b/i.test(normalized)) {
-      violations.push({
-        ruleId,
-        packId,
-        severity: 'critical',
-        message: `Destructive ALTER TABLE DROP detected via safety fallback filter.`,
-        suggestedFix: `Destructive schema modifications are blocked.`,
-        context: { fallbackUsed: true, pattern: 'ALTER_DROP' },
-      });
+    const alterIdx = tokens.indexOf('ALTER');
+    const alterTableIdx = alterIdx !== -1 && tokens[alterIdx + 1] === 'TABLE' ? alterIdx : -1;
+    if (alterTableIdx !== -1) {
+      const remaining = tokens.slice(alterTableIdx + 2);
+      if (remaining.includes('DROP')) {
+        violations.push({
+          ruleId,
+          packId,
+          severity: 'critical',
+          message: `Destructive ALTER TABLE DROP detected via safety fallback filter.`,
+          suggestedFix: `Destructive schema modifications are blocked.`,
+          context: { fallbackUsed: true, pattern: 'ALTER_DROP' },
+        });
+      }
     }
 
-    if (
-      /\bDELETE\s+FROM\s+[^\s;]+(?:\s*;|\s*$)/i.test(normalized) ||
-      /\bDELETE\s+FROM\s+[^;]*\bWHERE\s+(?:1\s*=\s*1|true)\b/i.test(normalized)
-    ) {
-      violations.push({
-        ruleId,
-        packId,
-        severity: 'critical',
-        message: `Mass DELETE statement detected via fallback filter.`,
-        suggestedFix: `Add a specific WHERE clause to your DELETE query.`,
-        context: { fallbackUsed: true, pattern: 'DELETE_NO_WHERE' },
-      });
+    const deleteIdx = tokens.indexOf('DELETE');
+    if (deleteIdx !== -1 && tokens[deleteIdx + 1] === 'FROM') {
+      const whereIdx = tokens.indexOf('WHERE', deleteIdx + 2);
+      if (whereIdx === -1) {
+        // No WHERE clause at all
+        violations.push({
+          ruleId,
+          packId,
+          severity: 'critical',
+          message: `Mass DELETE statement detected via fallback filter.`,
+          suggestedFix: `Add a specific WHERE clause to your DELETE query.`,
+          context: { fallbackUsed: true, pattern: 'DELETE_NO_WHERE' },
+        });
+      } else {
+        // Check for WHERE 1=1 or WHERE TRUE tautology
+        const whereClause = tokens.slice(whereIdx + 1).join(' ');
+        if (
+          whereClause === '1=1' ||
+          whereClause === '1 = 1' ||
+          whereClause === 'TRUE' ||
+          whereClause.startsWith('1=1') ||
+          whereClause.startsWith('1 = 1')
+        ) {
+          violations.push({
+            ruleId,
+            packId,
+            severity: 'critical',
+            message: `Mass DELETE statement detected via fallback filter.`,
+            suggestedFix: `Add a specific WHERE clause to your DELETE query.`,
+            context: { fallbackUsed: true, pattern: 'DELETE_NO_WHERE' },
+          });
+        }
+      }
     }
 
     return violations;
