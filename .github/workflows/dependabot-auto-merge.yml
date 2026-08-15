@@ -21,14 +21,16 @@ jobs:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
 
       - name: Auto-Approve PR
-        run: gh pr review --approve "$PR_URL"
+        continue-on-error: true
+        run: gh pr review --approve "$PR_URL" || true
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-Merge PR (Squash)
         if: steps.metadata.outputs.update-type != 'version-update:semver-major' || contains(steps.metadata.outputs.dependency-type, 'direct')
-        run: gh pr merge --auto --squash "$PR_URL"
+        continue-on-error: true
+        run: gh pr merge --auto --squash "$PR_URL" || true
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
