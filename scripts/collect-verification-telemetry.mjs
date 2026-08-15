@@ -1,5 +1,5 @@
 import { AegisEngine } from '../packages/core/dist/index.js';
-import { TRICKY_100_DATASET } from '../packages/evals/dist/index.mjs';
+import { TRICKY_100_DATASET } from '../packages/evals/dist/index.js';
 import * as process from 'node:process';
 import * as fs from 'node:fs';
 

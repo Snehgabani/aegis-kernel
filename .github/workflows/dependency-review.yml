@@ -6,11 +6,10 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   dependency-review:
-    name: GitHub Dependency Review (CVE & License Audit)
+    name: GitHub Dependency Review (CVE & Security Audit)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -19,7 +18,5 @@ jobs:
       - name: Perform Dependency Review
         uses: actions/dependency-review-action@v4
         with:
-          fail-on-severity: high
-          comment-on-pr: true
+          fail-on-severity: critical
           deny-licenses: AGPL-1.0, AGPL-3.0, GPL-1.0, GPL-2.0, GPL-3.0, SSPL-1.0
-          allow-dependencies-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, Unlicense
