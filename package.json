@@ -10,9 +10,9 @@
     "services/*"
   ],
   "scripts": {
-    "build": "turbo run build",
+    "build": "turbo run build --no-daemon",
     "test": "vitest run",
-    "lint": "turbo run lint",
+    "lint": "turbo run lint --no-daemon",
     "clean": "turbo run clean"
   },
   "devDependencies": {

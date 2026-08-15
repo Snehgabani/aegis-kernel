@@ -5,6 +5,8 @@ import type { AegisEvent, LearningLedger } from './types.js';
 export class LearningLedgerManager {
   private ledgerPath: string;
   private ledger: LearningLedger;
+  private saveTimeout: NodeJS.Timeout | null = null;
+  private isDirty = false;
 
   constructor(ledgerPath?: string) {
     this.ledgerPath = ledgerPath ?? '.aegis/learning-ledger.json';
@@ -101,7 +103,8 @@ export class LearningLedgerManager {
     }
 
     this.ledger.lastUpdated = new Date().toISOString();
-    this.persist();
+    this.isDirty = true;
+    this.schedulePersist();
   }
 
   public recordOverride(
@@ -110,14 +113,28 @@ export class LearningLedgerManager {
   ): void {
     this.ledger.totalOverrides += 1;
     this.ledger.lastUpdated = new Date().toISOString();
-    this.persist();
+    this.isDirty = true;
+    this.schedulePersist();
   }
 
   public getSummary(): LearningLedger {
     return { ...this.ledger };
   }
 
-  private persist(): void {
+  private schedulePersist(): void {
+    if (this.saveTimeout) return;
+    this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = null;
+      this.flushSync();
+    }, 100);
+    if (typeof (this.saveTimeout as any).unref === 'function') {
+      (this.saveTimeout as any).unref();
+    }
+  }
+
+  public flushSync(): void {
+    if (!this.isDirty) return;
+    this.isDirty = false;
     try {
       const dir = path.dirname(this.ledgerPath);
       if (!fs.existsSync(dir)) {
