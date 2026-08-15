@@ -5,10 +5,14 @@ on:
     - cron: '0 2 * * *' # Every night at 02:00 UTC
   workflow_dispatch:
 
+permissions: read-all
+
 jobs:
   adversarial-fuzz:
     name: Nightly Invariant Stress & Fuzz Testing
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Repository

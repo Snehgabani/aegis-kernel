@@ -4,17 +4,18 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: write
-  pull-requests: write
-  checks: read
-  statuses: read
+permissions: read-all
 
 jobs:
   dependabot-governance:
     name: Dependabot Security Triage & Auto-Merge Gate
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+      statuses: read
     steps:
       - name: Fetch Dependabot Metadata
         id: metadata

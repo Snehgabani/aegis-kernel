@@ -6,15 +6,16 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
 
-permissions:
-  contents: write
-  packages: write
-  id-token: write
+permissions: read-all
 
 jobs:
   verify-and-pack:
     name: Verify & Package All Monorepo Distributions
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
 
     steps:
       - name: Checkout Repository

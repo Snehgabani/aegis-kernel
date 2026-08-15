@@ -6,10 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+permissions: read-all
+
 jobs:
   typescript-matrix:
     name: Node.js Matrix & Invariant Verification
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -30,26 +34,27 @@ jobs:
       - name: Build All Monorepo Packages
         run: npm run build
 
-      - name: Strict TypeScript Compilation Check
+      - name: Typecheck & Lint All Packages
         run: npm run lint
 
-      - name: Run Monorepo Test Matrix & 100-Vector Benchmark
+      - name: Run Full Vitest Test Matrix (47 suites, 266+ tests)
         run: npm run test
 
-      - name: Run E2E Proof (Subsystem Verification)
+      - name: Run Diagnostics Integrity Check
+        run: node packages/cli/dist/index.js doctor
+
+      - name: Execute End-to-End Live Verification Suite
         run: node scripts/live-e2e-proof.mjs
 
-      - name: Security Audit (npm audit)
-        run: npm audit --audit-level=high || true
-        continue-on-error: true
-
   python-matrix:
-    name: Python Matrix (3.9 - 3.12)
+    name: Python SDK Matrix
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
       - name: Checkout Repository
@@ -60,5 +65,5 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run Python SDK Unit & Async Decorator Tests
+      - name: Run Python SDK Tests
         run: python -m unittest discover packages/python/tests

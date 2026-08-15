@@ -6,14 +6,16 @@ on:
       - 'v*'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
+permissions: read-all
 
 jobs:
   build-and-push:
     name: Build & Publish Docker Gateway Image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

@@ -7,10 +7,14 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions: read-all
+
 jobs:
   benchmark:
     name: 10,000-Iteration Latency & Threat Matrix Benchmark
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Repository
@@ -30,20 +34,20 @@ jobs:
       - name: Run Empirical Telemetry Benchmark
         run: node scripts/collect-verification-telemetry.mjs
 
-      - name: Generate GitHub Actions Step Summary
+      - name: Check Latency & Accuracy Invariants
         run: |
-          echo "## 🛡️ Aegis Invariant Kernel — Empirical Benchmark Telemetry" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ⚡ Latency & Throughput Profile (10,000 Evaluations)" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Throughput** | **$(jq -r '.throughputRps' .aegis/benchmark-telemetry.json) evals/sec** |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Mean Latency** | **$(jq -r '.latency.mean' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
-          echo "| **P50 (Median)** | **$(jq -r '.latency.p50' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
-          echo "| **P95 Latency** | **$(jq -r '.latency.p95' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
-          echo "| **P99 Latency** | **$(jq -r '.latency.p99' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🎯 100-Vector Threat Matrix Breakdown" >> $GITHUB_STEP_SUMMARY
-          echo "| Threat Category | Total | Blocked | Passed | Accuracy |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :---: | :---: | :---: | :---: |" >> $GITHUB_STEP_SUMMARY
-          jq -r '.threatDomains | to_entries[] | "| **" + .key + "** | " + (.value.total|tostring) + " | " + (.value.maliciousBlocked|tostring) + "/" + (.value.malicious|tostring) + " | " + (.value.benignPassed|tostring) + "/" + (.value.benign|tostring) + " | **" + (((.value.passed / .value.total) * 100)|tostring) + "%** |"' .aegis/benchmark-telemetry.json >> $GITHUB_STEP_SUMMARY
+          node -e '
+            const fs = require("fs");
+            const data = JSON.parse(fs.readFileSync(".aegis/benchmark-telemetry.json", "utf8"));
+            console.log("Validating benchmark telemetry invariants...");
+            
+            if (data.latency.p95 > 2.0) {
+              console.error(`❌ INVARIANT VIOLATION: P95 latency is ${data.latency.p95}ms (exceeds 2.0ms threshold)`);
+              process.exit(1);
+            }
+            if (data.accuracy.f1Score < 0.95) {
+              console.error(`❌ INVARIANT VIOLATION: F1 score is ${(data.accuracy.f1Score*100).toFixed(1)}% (below 95% threshold)`);
+              process.exit(1);
+            }
+            console.log("✅ All latency and accuracy invariants satisfied!");
+          '

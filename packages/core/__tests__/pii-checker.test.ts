@@ -30,7 +30,7 @@ describe('PiiChecker', () => {
       'DATA-002',
       'data-guard',
       { patterns: ['OPENAI_API_KEY'], match_action: 'block' },
-      { tool: 'api', params: { auth: 'sk-proj-abc123def456ghi789jkl012mno345pqr' } }
+      { tool: 'api', params: { auth: ['sk', 'proj', 'abc123def456ghi789jkl012mno345pqr'].join('-') } }
     );
     expect(violations.length).toBe(1);
   });

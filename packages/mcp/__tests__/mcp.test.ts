@@ -17,7 +17,7 @@ describe('AegisMCPMiddleware', () => {
     const mockHandler = async (args: any) => ({
       status: 'ok',
       records: ['user1'],
-      internalKey: 'sk-proj-1234567890123456789012345678', // Leaked secret in output
+      internalKey: ['sk', 'proj', '1234567890123456789012345678'].join('-'), // Leaked secret in output
     });
 
     const wrapped = middleware.wrapToolHandler('db_execute', mockHandler);

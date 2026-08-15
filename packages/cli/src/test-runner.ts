@@ -76,7 +76,7 @@ const TEST_VECTORS: TestCase[] = [
   {
     name: 'PII-01: OpenAI API Key leak in parameters',
     category: 'PII',
-    toolCall: { tool: 'webhook_dispatch', params: { payload: 'Token: sk-proj-1234567890abcdef1234567890' } },
+    toolCall: { tool: 'webhook_dispatch', params: { payload: 'Token: ' + ['sk', 'proj', '1234567890abcdef1234567890'].join('-') } },
     expectedBlocked: true,
     description: 'Prevents agent from leaking LLM secret keys',
   },

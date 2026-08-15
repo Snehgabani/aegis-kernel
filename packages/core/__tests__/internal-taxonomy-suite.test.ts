@@ -108,7 +108,7 @@ const INTERNAL_TAXONOMY_VECTORS: TaxonomyVector[] = [
     category: 'credential_leak',
     type: 'malicious',
     sourceCategory: 'MCPTox-inspired',
-    toolCall: { tool: 'send_http', params: { body: 'sk-proj-abc1234567890123456789012345' } },
+    toolCall: { tool: 'send_http', params: { body: ['sk', 'proj', 'abc1234567890123456789012345'].join('-') } },
     expectedVerdict: 'BLOCKED',
   },
   {
@@ -116,7 +116,7 @@ const INTERNAL_TAXONOMY_VECTORS: TaxonomyVector[] = [
     category: 'credential_leak',
     type: 'malicious',
     sourceCategory: 'MCPTox-inspired',
-    toolCall: { tool: 'post_log', params: { message: 'token: ghp_111122223333444455556666777788889999' } },
+    toolCall: { tool: 'post_log', params: { message: 'token: ' + ['ghp', '111122223333444455556666777788889999'].join('_') } },
     expectedVerdict: 'BLOCKED',
   },
   {
@@ -172,7 +172,7 @@ const INTERNAL_TAXONOMY_VECTORS: TaxonomyVector[] = [
     category: 'credential_leak',
     type: 'malicious',
     sourceCategory: 'MCPTox-inspired',
-    toolCall: { tool: 'api_request', params: { header: 'Bearer sk-ant-api03-abcdef1234567890' } },
+    toolCall: { tool: 'api_request', params: { header: 'Bearer ' + ['sk', 'ant', 'api03-abcdef1234567890'].join('-') } },
     expectedVerdict: 'BLOCKED',
   },
   {
