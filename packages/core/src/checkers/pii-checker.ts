@@ -27,6 +27,12 @@ export const DEFAULT_PII_PATTERNS = {
   UK_NINO: /\b[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D]{1}\b/i,
   INDIAN_PAN: /\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b/,
   SENSITIVE_FILE_PATH: /(?:\/etc\/(?:shadow|passwd|sudoers)|\.ssh\/(?:id_rsa|authorized_keys)|\.env(?:\.[a-zA-Z0-9_-]+)?|\/proc\/self\/environ)/, // System traversal
+
+  // OWASP LLM02 & LLM07: Conversational Prompt Leakage & Data Exfiltration
+  SYSTEM_PROMPT_LEAKAGE: /(?:<\|im_start\|>system|<\|begin_of_text\|>|You are an AI assistant who must always|Internal system instructions:|=== SYSTEM INSTRUCTIONS ===)/i,
+  MARKDOWN_EXFILTRATION: /\[.*?\]\((?:https?:\/\/[^\s)]+\?(?:leak|exfil|data|key|token|cookie)=[^\s)]+)\)/i,
+  PRIVATE_KEY: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/,
+  CANARY_TOKEN: /\b(?:CANARY-[A-Za-z0-9_-]{12,}|FLAG\{[A-Za-z0-9_-]{8,}\})\b/,
 };
 
 export class PiiChecker {

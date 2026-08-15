@@ -20,3 +20,6 @@ export * from './threat-feed.js';
 export * from './adapters/llamaindex.js';
 export * from './adapters/crewai.js';
 export * from './sanitizer.js';
+export * from './telemetry/siem.js';
+export * from './compliance/grc-exporter.js';
+export * from './explainability.js';

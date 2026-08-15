@@ -15,14 +15,21 @@
     "url": "https://github.com/Snehgabani/aegis-kernel/issues"
   },
   "keywords": [
+    "ai-guardrails",
     "ai-safety",
-    "guardrails",
+    "agent-firewall",
+    "zero-trust-ai",
+    "mcp-security",
+    "model-context-protocol",
     "tool-call-security",
-    "mcp",
     "llm-security",
-    "prompt-injection",
-    "invariants",
-    "agent-firewall"
+    "prompt-injection-defense",
+    "ast-invariants",
+    "eu-ai-act",
+    "soc2-compliance",
+    "langchain",
+    "anthropic",
+    "openai"
   ],
   "engines": {
     "node": ">=18.0.0"

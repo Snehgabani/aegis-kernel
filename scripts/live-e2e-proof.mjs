@@ -225,12 +225,75 @@ assert(feedStatus.totalBlockedDomains === 2, 'Feed status shows 2 blocked domain
 console.log('');
 
 // ═══════════════════════════════════════════════════════════
+// 8. ENTERPRISE SIEM & STIX 2.1 THREAT INTEL TELEMETRY
+// ═══════════════════════════════════════════════════════════
+console.log('8️⃣ [SIEM & STIX] Enterprise SIEM Telemetry & STIX 2.1 CTI Threat Sharing');
+const { formatCefEvent, formatSyslogRfc5424, formatSplunkHecPayload, formatStixTaxiiIndicator, generateComplianceDossier, computeEventChainMerkleRoot, generateHumanExplanation } = await import('../packages/core/dist/index.js');
+
+const sampleEvent = {
+  id: 'evt-live-proof-001',
+  timestamp: new Date().toISOString(),
+  version: '1.0.0',
+  framework: 'raw',
+  toolName: 'execute_sql',
+  toolCallFingerprint: 'fp_live_sql_001',
+  mode: 'enforce',
+  verdict: 'BLOCKED',
+  rulesEvaluated: 8,
+  rulesFired: [{ ruleId: 'SQL-NO-DROP', packId: '@aegis/sql-guard', severity: 'critical', message: 'DROP TABLE statement prohibited by invariant policy' }],
+  latencyMs: 0.28,
+  proofHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  policyCommitmentHash: 'pol_hash_live_001',
+  userOverride: false
+};
+
+const cefStr = formatCefEvent(sampleEvent);
+assert(cefStr.startsWith('CEF:0|Aegis|Aegis-Invariant-Kernel'), 'CEF event format generated correctly');
+assert(cefStr.includes('dhost=execute_sql'), 'CEF includes target tool');
+
+const syslogStr = formatSyslogRfc5424(sampleEvent);
+assert(syslogStr.includes('aegis-kernel'), 'RFC 5424 Syslog includes app name');
+
+const splunkHec = formatSplunkHecPayload(sampleEvent);
+assert(splunkHec.sourcetype === '_json', 'Splunk HEC sourcetype is _json');
+
+const stixBundle = formatStixTaxiiIndicator(sampleEvent);
+assert(stixBundle !== null && stixBundle.type === 'bundle', 'STIX 2.1 CTI threat bundle generated');
+assert(stixBundle.objects[0].type === 'indicator', 'STIX observable is indicator');
+console.log('');
+
+// ═══════════════════════════════════════════════════════════
+// 9. WORM TAMPER-EVIDENT GRC COMPLIANCE DOSSIER & MERKLE ROOT
+// ═══════════════════════════════════════════════════════════
+console.log('9️⃣ [GRC DOSSIER] SOC 2, ISO 42001 & EU AI Act Tamper-Proof Merkle Dossier');
+const dossier = generateComplianceDossier([sampleEvent]);
+assert(dossier.totalEventsAudited === 1, 'Compliance dossier audited 1 event');
+assert(dossier.merkleRootHash.length === 64, 'SHA-256 Merkle root hash is 64 hex characters');
+assert(dossier.tamperProofSummary.integrityVerified === true, 'Merkle chain integrity verified');
+assert(dossier.frameworkMappings.some(m => m.framework === 'EU_AI_ACT'), 'EU AI Act framework mapping present');
+assert(dossier.frameworkMappings.some(m => m.framework === 'SOC2_TYPE_II'), 'SOC 2 Type II framework mapping present');
+console.log('');
+
+// ═══════════════════════════════════════════════════════════
+// 10. EU AI ACT ART. 13 & NIST EXPLAINABILITY ENGINE
+// ═══════════════════════════════════════════════════════════
+console.log('🔟 [EXPLAINABILITY] EU AI Act Art. 13 Transparent Plain-English Explanations');
+const blockedToolCall = { tool: 'execute_sql', params: { query: 'DROP TABLE core_accounts' } };
+const blockedVerdict = engine.evaluate(blockedToolCall);
+const explanation = generateHumanExplanation(blockedToolCall, blockedVerdict);
+assert(explanation.allowed === false, 'Blocked tool returns non-allowed explanation');
+assert(explanation.explanations.length > 0, 'Plain-English explanation items generated');
+assert(typeof explanation.explanations[0].plainEnglishSummary === 'string', 'Summary is string');
+assert(explanation.explanations[0].riskCategory === 'Catastrophic Data Destruction', 'Risk category is Catastrophic Data Destruction');
+console.log('');
+
+// ═══════════════════════════════════════════════════════════
 // FINAL SCORECARD
 // ═══════════════════════════════════════════════════════════
 console.log('═══════════════════════════════════════════════════════════════════════════');
 console.log(`  🎯 FINAL SCORECARD: ${passCount} PASSED / ${failCount} FAILED / ${passCount + failCount} TOTAL`);
 if (failCount === 0) {
-  console.log('  ✅ ALL SUBSYSTEMS OPERATING 100% LIVE END-TO-END WITH ZERO STUBS');
+  console.log('  ✅ ALL 10 ENTERPRISE SUBSYSTEMS OPERATING 100% LIVE WITH ZERO STUBS');
 } else {
   console.log('  ⚠️  SOME TESTS FAILED — REVIEW REQUIRED');
 }
