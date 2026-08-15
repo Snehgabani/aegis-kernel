@@ -39,15 +39,50 @@ Test real-world adversarial attacks (SQL comment evasion, zero-width token leaks
 
 ```mermaid
 flowchart LR
-    A[AI Agent / LLM] -->|Tool Call Proposal| B[🛡️ Aegis Invariant Kernel]
-    subgraph Aegis In-Process Clearance [<1.5ms, Zero Egress]
-        B --> C[SQL AST Parser]
-        B --> D[Numeric Risk Bounds]
-        B --> E[PII / Secret Masker]
-        B --> F[State Machine Guard]
+    subgraph INGRESS["🤖 Autonomous AI Agents & Frameworks"]
+        direction TB
+        A1["LangChain / CrewAI / AutoGen"]
+        A2["OpenAI Function Calling / Swarm"]
+        A3["Anthropic Claude Tool Use"]
+        A4["Model Context Protocol (MCP)"]
     end
-    C & D & E & F -->|Verdict: ALLOWED| G[(Production DB / API)]
-    C & D & E & F -->|Verdict: BLOCKED| H[💥 Rejection + Feedback Fix]
+
+    INGRESS -->|Tool-Call Proposal| PIPELINE
+
+    subgraph PIPELINE["🛡️ Aegis In-Process Clearance Pipeline (<1.5ms, Zero Network Egress)"]
+        direction TB
+        
+        subgraph T1["1. Lexical & Ingress Guard"]
+            L1["Aho-Corasick Streaming Interceptor"]
+            L2["Unicode NFKD / Confusable Sanitizer"]
+            L3["Zero-Egress Prompt Injection Classifier"]
+        end
+
+        subgraph T2["2. Structural AST & Semantic Engine"]
+            S1["Multi-Dialect SQL AST Parser<br/>(Postgres, MySQL, SQLite, T-SQL)"]
+            S2["Numeric Risk Bounds & Safe BigInts"]
+            S3["PII Token Vault (16-Byte Salt Anonymizer)"]
+            S4["Policy-as-Code Engine (Cedar / Rego AST)"]
+        end
+
+        subgraph T3["3. Temporal & Identity Topology"]
+            C1["Agent Identity & RBAC Policy Manager"]
+            C2["Ed25519 Biscuit Monotonic Attenuation"]
+            C3["Causal Execution DAG (Anti-Exfiltration)"]
+            C4["Crescendo Multi-Turn Drift Tracker"]
+        end
+
+        subgraph T4["4. Cryptographic Proofs & Decision Hub"]
+            D1["SHA-256 ProofHash & Merkle GRC Ledger"]
+            D2["EU AI Act Plain-English Explainer"]
+            D3["Self-Healing AST Auto-Fix Generator"]
+        end
+
+        T1 --> T2 --> T3 --> T4
+    end
+
+    T4 -->|Verdict: ALLOWED| OUT_ALLOW[("🎯 Production DB / APIs<br/>+ SHA-256 Proof Hash")]
+    T4 -->|Verdict: BLOCKED / REASK| OUT_BLOCK["💥 LLM Auto-Fix Re-Ask Feedback<br/>+ SIEM Alert & Quarantine"]
 ```
 
 ### Why Aegis?
