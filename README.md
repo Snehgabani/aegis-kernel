@@ -155,6 +155,7 @@ npx aegis pack validate custom-pack.yaml
 - **Auditor Console:** [`site/dashboard/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/dashboard/index.html) — Live audit stream & one-click CSV export.
 - **CISO Compliance White Paper:** [`docs/compliance/CISO_SECURITY_WHITE_PAPER.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/CISO_SECURITY_WHITE_PAPER.md) (SOC 2, HIPAA, PCI-DSS).
 - **EU AI Act & GDPR Mapping:** [`docs/compliance/EU_AI_ACT_MAPPING.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/EU_AI_ACT_MAPPING.md) (Articles 9–15).
+- **Honest Boundaries & Limitations:** [`docs/LIMITATIONS_AND_BOUNDARIES.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/LIMITATIONS_AND_BOUNDARIES.md) — Unbiased scope and threat boundary map.
 - **Legal & Ethical Disclaimers:** [`DISCLAIMER.md`](./DISCLAIMER.md).
 
 ---
