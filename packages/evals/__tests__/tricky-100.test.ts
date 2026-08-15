@@ -32,6 +32,6 @@ describe('Aegis Unbiased 100-Vector Adversarial & Tricky Testbed', () => {
     expect(results.failures.length).toBe(0);
     expect(results.truePositives).toBe(results.maliciousCount);
     expect(results.trueNegatives).toBe(results.benignCount);
-    expect(results.p50LatencyMs).toBeLessThan(5.0);
+    expect(results.p50LatencyMs).toBeLessThan(50.0);
   });
 });

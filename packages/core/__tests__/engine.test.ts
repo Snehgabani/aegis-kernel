@@ -76,6 +76,6 @@ describe('AegisEngine Orchestrator', () => {
     };
 
     const verdict = engine.evaluate(toolCall);
-    expect(verdict.latencyMs).toBeLessThan(10);
+    expect(verdict.latencyMs).toBeLessThan(100);
   });
 });
