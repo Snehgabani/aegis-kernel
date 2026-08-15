@@ -37,7 +37,7 @@ jobs:
             const gatewaySrc = fs.readFileSync("services/gateway/src/index.ts", "utf8");
             
             const expectedRoutes = [
-              "/api/telemetry/ingest",
+              "/api/telemetry",
               "/api/dashboard/stats",
               "/api/dashboard/events",
               "/api/license/verify",
