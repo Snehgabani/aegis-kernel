@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import pc from 'picocolors';
 import yaml from 'js-yaml';
 import { RulePackLoader, AegisLicenseManager } from '@aegis-kernel/core';
-
 
 export function runPackList(): void {
   const manager = new AegisLicenseManager();
@@ -31,7 +31,65 @@ export function runPackList(): void {
 
   console.log('\n' + pc.gray('═'.repeat(70)));
   console.log(pc.dim(`  Active License: ${pc.bold(license.tier.toUpperCase())} (${license.active ? 'ACTIVE' : 'INACTIVE'})`));
-  console.log(pc.dim('  Run `aegis pack validate <file.yaml>` to verify custom proprietary packs.\n'));
+  console.log(pc.dim('  Run `aegis pack create <name>` to scaffold a new proprietary rule pack.'));
+  console.log(pc.dim('  Run `aegis pack validate <file.yaml>` to verify custom packs.\n'));
+}
+
+export function runPackCreate(name: string): void {
+  if (!name) {
+    console.log(pc.red('❌ Error: Pack name is required. Example: npx aegis pack create custom-sec-guard'));
+    return;
+  }
+
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  const fileName = cleanName.endsWith('.yaml') || cleanName.endsWith('.yml') ? cleanName : `${cleanName}.yaml`;
+  const targetDir = path.resolve(process.cwd(), '.aegis/packs');
+  const targetPath = path.join(targetDir, fileName);
+
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+
+  if (fs.existsSync(targetPath)) {
+    console.log(pc.yellow(`⚠️  Rule pack already exists at ${targetPath}`));
+    return;
+  }
+
+  const packTemplate = `id: custom/${cleanName}
+name: ${name.charAt(0).toUpperCase() + name.slice(1)} Invariant Security Guard
+version: 1.0.0
+description: Proprietary enterprise invariant rule pack for ${cleanName}
+rules:
+  - id: ${cleanName.toUpperCase()}-001
+    name: Prohibit Unauthorized High-Risk Actions
+    description: Enforces parameter constraints and blocks unsafe tool executions
+    severity: critical
+    condition:
+      type: numeric
+      params:
+        target_field: params.amount
+        operator: "<="
+        max: 5000
+    suggested_fix: "Ensure amount is less than or equal to 5000."
+
+  - id: ${cleanName.toUpperCase()}-002
+    name: Restrict Production Tenant Scope
+    description: Verifies session tenant matches destination parameters
+    severity: critical
+    condition:
+      type: state
+      params:
+        assertion: "state.tenantId == params.tenantId"
+        tenant_field: "tenantId"
+    suggested_fix: "Restrict tool calls strictly to authenticated tenant context."
+`;
+
+  fs.writeFileSync(targetPath, packTemplate, 'utf8');
+  console.log(pc.green(`\n✅ Created new rule pack at: ${pc.bold(targetPath)}`));
+  console.log(pc.dim(`\nNext steps:`));
+  console.log(`  1. Edit rule definitions in ${targetPath}`);
+  console.log(`  2. Validate pack syntax: ${pc.cyan(`npx aegis pack validate ${targetPath}`)}`);
+  console.log(`  3. Test with live engine: ${pc.cyan('npx aegis test')}\n`);
 }
 
 export function runPackValidate(filePath: string): void {

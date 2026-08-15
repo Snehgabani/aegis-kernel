@@ -4,7 +4,7 @@ import { runTests } from './test-runner.js';
 import { runReport } from './report.js';
 import { runLicenseActivate, runLicenseStatus } from './license-cli.js';
 import { runPricing } from './pricing-cli.js';
-import { runPackList, runPackValidate } from './registry-cli.js';
+import { runPackList, runPackValidate, runPackCreate } from './registry-cli.js';
 import { runRepl } from './repl-cli.js';
 import { runBenchmark } from './benchmark-cli.js';
 
@@ -58,6 +58,13 @@ packCmd
   .description('List available community and enterprise rule packs')
   .action(() => {
     runPackList();
+  });
+
+packCmd
+  .command('create <name>')
+  .description('Scaffold a new YAML invariant rule pack in .aegis/packs/')
+  .action((name: string) => {
+    runPackCreate(name);
   });
 
 packCmd
