@@ -1,31 +1,38 @@
 # Aegis Invariant Kernel: Enterprise System Architecture
 
-## 1. Zero-Trust Invariant Model
+> For the publication-grade mathematical specification, latency budgets, and formalisms, see the [Comprehensive System Architecture Deep Dive](./docs/architecture/SYSTEM_ARCHITECTURE_DEEP_DIVE.md).
+
+## 1. 4-Tier Zero-Egress Invariant Pipeline
 
 ```
-                               ┌────────────────────────────────────────┐
-                               │       AI Agent / LLM Orchestrator      │
-                               └───────────────────┬────────────────────┘
-                                                   │ ToolCall (JSON-RPC)
-                                                   ▼
+                                ┌────────────────────────────────────────┐
+                                │       AI Agent / LLM Orchestrator      │
+                                └───────────────────┬────────────────────┘
+                                                    │ ToolCall (JSON-RPC)
+                                                    ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                 AEGIS DETERMINISTIC INVARIANT KERNEL                             │
+│                                      (P50 < 0.25ms, Zero Egress)                                 │
 │                                                                                                  │
 │  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌──────────────────────────────────┐  │
-│  │   Agent Identity & RBAC │  │   SQL AST Parser        │  │   PII Anonymization Vault        │  │
-│  │   Ed25519 Biscuit Tokens│  │   Postgres/MySQL/SQLite │  │   16-byte HMAC Salt Tokenizer    │  │
+│  │ Tier 1: Lexical Guard   │  │ Tier 2: Structural AST  │  │ Tier 3: Context & Topology       │  │
+│  │ • Aho-Corasick Streams  │  │ • Multi-Dialect SQL AST │  │ • Agent Identity & RBAC          │  │
+│  │ • Unicode Normalization │  │ • Numeric Risk Bounds   │  │ • Ed25519 Biscuit Tokens         │  │
+│  │ • Secret Masking        │  │ • Policy-as-Code Engine │  │ • Causal Execution DAG           │  │
+│  │ • Prompt Injection Scan │  │ • WASM Sandbox Plugins  │  │ • Crescendo Multi-Turn Tracker   │  │
 │  └────────────┬────────────┘  └────────────┬────────────┘  └────────────────┬─────────────────┘  │
 │               │                            │                                │                    │
 │               ▼                            ▼                                ▼                    │
 │  ┌────────────────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                       Zero-Egress Deterministic Evaluation Engine                          │  │
-│  │                                 (<0.5ms Execution Latency)                                 │  │
+│  │ Tier 4: Cryptographic Proofs, Self-Healing AST Fixes & Enterprise GRC Dossier             │  │
+│  │ • SHA-256 ProofHash Commitments       • Tamper-Proof Merkle Chains                         │  │
+│  │ • Plain-English EU AI Act Explanations • SIEM CEF/Syslog & STIX 2.1 CTI Threat Sharing    │  │
 │  └─────────────────────────────────────────┬──────────────────────────────────────────────────┘  │
 │                                            │                                                     │
 │                    ┌───────────────────────┴───────────────────────┐                             │
 │                    ▼                                               ▼                             │
 │       ┌────────────────────────┐                      ┌────────────────────────┐                 │
-│       │   ALLOW: Proof Hash    │                      │   BLOCK: Violation     │                 │
+│       │   ALLOW: Proof Hash    │                      │   BLOCK / REASK        │                 │
 │       │   SHA-256 State Tree   │                      │   Self-Healing AST Fix │                 │
 │       └────────────┬───────────┘                      └────────────┬───────────┘                 │
 └────────────────────┼───────────────────────────────────────────────┼─────────────────────────────┘
@@ -36,6 +43,7 @@
         │ Clean Execution Payload │                     │ STIX 2.1 CTI Sharing    │
         └─────────────────────────┘                     └─────────────────────────┘
 ```
+
 
 ---
 
