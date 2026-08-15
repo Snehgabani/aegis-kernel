@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis vs Lakera Guard: In-Process Invariants vs. SaaS API Guardrails</title>
+  <meta name="description" content="Technical comparison between Aegis Invariant Kernel and Lakera Guard. Why local sub-2ms tool clearance outperforms cloud SaaS guardrail APIs for AI agents.">
+  <link rel="canonical" href="https://aegis-kernel.dev/compare/aegis-vs-lakera.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --border: #334155;
+      --primary: #3b82f6;
+      --danger: #ef4444;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; }
+    header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .brand { font-size: 1.15rem; font-weight: 700; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+    h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
+    .verdict-banner { background: rgba(59, 130, 246, 0.1); border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: 6px; margin: 24px 0 36px; }
+    table { width: 100%; border-collapse: collapse; margin: 32px 0; font-size: 0.9rem; }
+    th, td { padding: 14px 16px; text-align: left; border: 1px solid var(--border); }
+    th { background: var(--surface); font-weight: 700; }
+    tr:nth-child(even) { background: rgba(30, 41, 59, 0.4); }
+    .btn { display: inline-block; background: var(--primary); color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 700; margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="brand">🛡️ Aegis Invariant Kernel</a>
+    <a href="../playground/index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem;">Live Playground &rarr;</a>
+  </header>
+
+  <div class="container">
+    <h1>Aegis vs Lakera Guard: Local Deterministic Invariants vs. Cloud API Guardrails</h1>
+
+    <div class="verdict-banner">
+      <strong>⚡ Quick Executive Verdict:</strong> <strong>Aegis</strong> runs 100% locally in-process in <strong>&lt;2ms</strong> with <strong>zero network egress</strong> and <strong>$0 API fees</strong>. <strong>Lakera Guard</strong> is a cloud SaaS API suited for text prompt injection scanning where paying per API call and incurring 150ms+ external latency is acceptable.
+    </div>
+
+    <h2>Comparison Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric / Architecture</th>
+          <th>Aegis Invariant Kernel</th>
+          <th>Lakera Guard</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Deployment Model</strong></td>
+          <td>100% In-Process / Local VPC (Node & Python)</td>
+          <td>Cloud SaaS REST API (External Egress)</td>
+        </tr>
+        <tr>
+          <td><strong>Evaluation Latency</strong></td>
+          <td><strong style="color: var(--success);">1.14 ms</strong> (P50)</td>
+          <td><strong style="color: var(--danger);">120 – 350 ms</strong> (Cloud network RTT)</td>
+        </tr>
+        <tr>
+          <td><strong>Data Privacy & Residency</strong></td>
+          <td><strong>Zero Data Leaves Your Process</strong></td>
+          <td>Payload sent to third-party cloud API</td>
+        </tr>
+        <tr>
+          <td><strong>Tool Execution Boundary</strong></td>
+          <td>Evaluates parsed ASTs, JSON schemas, & numerical invariants</td>
+          <td>Text embedding and classifier scoring</td>
+        </tr>
+        <tr>
+          <td><strong>Pricing</strong></td>
+          <td><strong>MIT Open Source ($0 Core)</strong></td>
+          <td>Metered SaaS usage ($/1,000 API calls)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <a href="../playground/index.html" class="btn">⚡ Launch Invariant Playground</a>
+  </div>
+
+</body>
+</html>

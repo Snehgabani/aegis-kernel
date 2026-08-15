@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis vs NeMo Guardrails: Deterministic Invariants vs. LLM-as-a-Judge (2026 Comparison)</title>
+  <meta name="description" content="Technical comparison between Aegis Invariant Kernel and NeMo Guardrails. Discover why sub-2ms in-process AST invariants beat 250ms+ probabilistic LLM guardrails for AI agent tool safety.">
+  <link rel="canonical" href="https://aegis-kernel.dev/compare/aegis-vs-nemo-guardrails.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --surface-elevated: #1e293b;
+      --border: #334155;
+      --primary: #3b82f6;
+      --danger: #ef4444;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; }
+    header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .brand { font-size: 1.15rem; font-weight: 700; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+    h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
+    .verdict-banner { background: rgba(59, 130, 246, 0.1); border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: 6px; margin: 24px 0 36px; }
+    table { width: 100%; border-collapse: collapse; margin: 32px 0; font-size: 0.9rem; }
+    th, td { padding: 14px 16px; text-align: left; border: 1px solid var(--border); }
+    th { background: var(--surface); font-weight: 700; }
+    tr:nth-child(even) { background: rgba(30, 41, 59, 0.4); }
+    pre { background: #020617; border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: var(--mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; }
+    .btn { display: inline-block; background: var(--primary); color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 700; margin-top: 16px; }
+  </style>
+
+  <!-- Schema.org JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Aegis vs NeMo Guardrails: Technical Invariant Comparison",
+    "description": "Comprehensive architectural and performance comparison between Aegis Invariant Kernel and NVIDIA NeMo Guardrails.",
+    "author": { "@type": "Person", "name": "Sneh Gabani" },
+    "datePublished": "2026-08-15"
+  }
+  </script>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="brand">🛡️ Aegis Invariant Kernel</a>
+    <a href="../playground/index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem;">Live Playground &rarr;</a>
+  </header>
+
+  <div class="container">
+    <h1>Aegis vs NeMo Guardrails: Deterministic Invariants vs. Probabilistic LLM Guardrails</h1>
+
+    <div class="verdict-banner">
+      <strong>⚡ Quick Executive Verdict:</strong> Use <strong>Aegis</strong> when your AI agent executes high-consequence tools (SQL queries, financial transfers, file updates) where latency must stay under <strong>2ms</strong> with <strong>0% prompt injection bypasses</strong>. Use <strong>NeMo Guardrails</strong> for conversational chatbot topic-steering and natural language moderation where 250ms+ latency is acceptable.
+    </div>
+
+    <h2>Side-by-Side Architectural Comparison</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Capability / Metric</th>
+          <th>Aegis Invariant Kernel</th>
+          <th>NVIDIA NeMo Guardrails</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Core Mechanism</strong></td>
+          <td>Deterministic AST Constant Folding & State Invariants</td>
+          <td>Colang Dialog Rails & LLM-as-a-Judge Calls</td>
+        </tr>
+        <tr>
+          <td><strong>Clearance Latency (P50)</strong></td>
+          <td><strong style="color: var(--success);">&lt; 1.5 ms</strong> (In-Process Hot Path)</td>
+          <td><strong style="color: var(--danger);">180 – 600 ms</strong> (Secondary LLM invocation)</td>
+        </tr>
+        <tr>
+          <td><strong>Network Egress</strong></td>
+          <td><strong>0 ms</strong> (Runs 100% inside your VPC/Process)</td>
+          <td>Requires external LLM inference endpoint</td>
+        </tr>
+        <tr>
+          <td><strong>SQL Tautology Defense</strong></td>
+          <td>Mathematical AST verification (Catches <code>WHERE 1=1</code>, <code>id=id</code>)</td>
+          <td>Probabilistic prompt text classification (Can hallucinate)</td>
+        </tr>
+        <tr>
+          <td><strong>Tamper-Evident Audit Trails</strong></td>
+          <td>SHA-256 <code>proofHash</code> cryptographically bound to policy hash</td>
+          <td>Standard unhashed JSON execution logs</td>
+        </tr>
+        <tr>
+          <td><strong>Framework Ecosystem</strong></td>
+          <td>MCP, LangChain, CrewAI, AutoGen, OpenAI, Claude, Python, TS</td>
+          <td>LangChain, LlamaIndex, NeMo Toolkit</td>
+        </tr>
+        <tr>
+          <td><strong>License / Cost</strong></td>
+          <td><strong>MIT Open Source ($0 Core)</strong></td>
+          <td>Apache 2.0 (High LLM inference cost)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Code Comparison: Protecting an SQL Tool</h2>
+    <h3>Aegis (Python Decorator — 0ms Network Delay):</h3>
+    <pre><code>from aegis_kernel import aegis_guard
+
+@aegis_guard(tool_name="database_exec")
+def execute_sql(query: str):
+    # Evaluates SQL AST in 1.14ms; blocks mass DELETE & DROP TABLE deterministically
+    return db.execute(query)</code></pre>
+
+    <a href="../playground/index.html" class="btn">⚡ Test Aegis in Live Browser Playground</a>
+  </div>
+
+</body>
+</html>
