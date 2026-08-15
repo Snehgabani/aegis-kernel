@@ -19,6 +19,15 @@ describe('Aegis Cloud Gateway Service', () => {
     expect(data.service).toBe('aegis-gateway');
   });
 
+  it('GET /metrics should expose Prometheus formatted golden signals', async () => {
+    const res = await app.request('/metrics');
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain('aegis_tool_calls_total');
+    expect(text).toContain('aegis_clearance_latency_ms');
+    expect(text).toContain('aegis_active_policy_info');
+  });
+
   it('POST /api/telemetry should reject unauthenticated requests and accept valid batches', async () => {
     // 1. Unauthenticated
     const unauthRes = await app.request('/api/telemetry', {

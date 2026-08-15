@@ -8,6 +8,7 @@ import { runPackList, runPackValidate, runPackCreate } from './registry-cli.js';
 import { runHubList, runHubSearch, runHubInstall } from './hub-cli.js';
 import { runRepl } from './repl-cli.js';
 import { runBenchmark } from './benchmark-cli.js';
+import { runMatrix } from './matrix-cli.js';
 
 const program = new Command();
 
@@ -28,6 +29,13 @@ program
   .description('Run synthetic attack vectors to verify security bounds and compute Agent Safety Scorecard')
   .action(() => {
     runTests();
+  });
+
+program
+  .command('matrix')
+  .description('Display threat coverage cross-walk against OWASP GenAI Top 10 (2026) and MITRE ATLAS')
+  .action(() => {
+    runMatrix();
   });
 
 program

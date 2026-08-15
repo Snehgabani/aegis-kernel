@@ -20,6 +20,7 @@ import {
 import { AegisEventLogger } from './event.js';
 import { LearningLedgerManager } from './ledger.js';
 import { RulePackLoader } from './rule-loader.js';
+import { AegisSanitizer } from './sanitizer.js';
 import {
   CustomChecker,
   NumericChecker,
@@ -331,7 +332,12 @@ export class AegisEngine {
     return this.ledger.getSummary();
   }
 
+  public sanitize(toolCall: ToolCall) {
+    return AegisSanitizer.sanitize(toolCall);
+  }
+
   public getRecentEvents(limit?: number) {
     return this.logger.readRecentEvents(limit);
   }
 }
+

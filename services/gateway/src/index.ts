@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { AegisLicenseManager, type AegisEvent, type LicensePayload } from '@aegis-kernel/core';
+import { renderPrometheusMetrics } from './metrics.js';
 
 export interface GatewayEnv {
   AEGIS_LICENSE_SECRET?: string;
@@ -19,6 +20,13 @@ export function createGatewayApp(env?: GatewayEnv) {
 
   // Health check
   app.get('/health', (c) => c.json({ status: 'ok', service: 'aegis-gateway', timestamp: new Date().toISOString() }));
+
+  // Prometheus Golden Signals metrics exporter
+  app.get('/metrics', (c) => {
+    return c.text(renderPrometheusMetrics(), 200, {
+      'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+    });
+  });
 
   // 1. Ingest telemetry proofs from client engines
   app.post('/api/telemetry', async (c) => {
