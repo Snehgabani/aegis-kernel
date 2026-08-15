@@ -15,8 +15,8 @@ export interface SanitizationResult {
 }
 
 export class AegisSanitizer {
-  // Common PII and Secret patterns
-  private static readonly CC_REGEX = /\b(?:\d{4}[ -]?){3}\d{4}\b/g;
+  // Non-backtracking, linear O(n) PII and Secret patterns
+  private static readonly CC_REGEX = /\b\d{4}(?:[ -]\d{4}){3}\b|\b\d{16}\b/g;
   private static readonly SSN_REGEX = /\b\d{3}-\d{2}-\d{4}\b/g;
   private static readonly ZERO_WIDTH_REGEX = /[\u200B-\u200D\uFEFF\u202A-\u202E]/g;
 
@@ -27,20 +27,22 @@ export class AegisSanitizer {
     const modifications: string[] = [];
     const sanitizedParams = this.deepCloneAndSanitize(toolCall.params, modifications);
 
-    // SQL Specific Auto-Limit Injection
+    // SQL Specific Auto-Limit Injection without regex backtracking
     if (typeof sanitizedParams === 'object' && sanitizedParams !== null) {
       const p = sanitizedParams as Record<string, any>;
       if (p.query && typeof p.query === 'string') {
         const trimmed = p.query.trim();
         if (/^SELECT\b/i.test(trimmed) && !/\bLIMIT\s+\d+/i.test(trimmed)) {
-          p.query = `${trimmed.replace(/;+$/, '')} LIMIT 100;`;
+          const stripped = trimmed.endsWith(';') ? trimmed.slice(0, -1).trimEnd() : trimmed;
+          p.query = `${stripped} LIMIT 100;`;
           modifications.push('Injected mandatory LIMIT 100 into unbound SELECT query');
         }
       }
       if (p.sql && typeof p.sql === 'string') {
         const trimmed = p.sql.trim();
         if (/^SELECT\b/i.test(trimmed) && !/\bLIMIT\s+\d+/i.test(trimmed)) {
-          p.sql = `${trimmed.replace(/;+$/, '')} LIMIT 100;`;
+          const stripped = trimmed.endsWith(';') ? trimmed.slice(0, -1).trimEnd() : trimmed;
+          p.sql = `${stripped} LIMIT 100;`;
           modifications.push('Injected mandatory LIMIT 100 into unbound SELECT query');
         }
       }
@@ -67,7 +69,7 @@ export class AegisSanitizer {
         mods.push('Stripped hidden zero-width unicode evasion characters');
       }
 
-      // 2. Redact Credit Cards
+      // 2. Redact Credit Cards (O(n) linear non-backtracking regex)
       if (this.CC_REGEX.test(result)) {
         result = result.replace(this.CC_REGEX, '[REDACTED_CREDIT_CARD]');
         mods.push('Masked plaintext Primary Account Number (PAN)');
