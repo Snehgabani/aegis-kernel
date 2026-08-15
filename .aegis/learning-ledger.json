@@ -1,7 +1,7 @@
 {
-  "totalEventsProcessed": 37,
-  "totalBlocked": 8,
-  "totalAllowed": 29,
+  "totalEventsProcessed": 39,
+  "totalBlocked": 9,
+  "totalAllowed": 30,
   "totalOverrides": 0,
   "rulePerformance": {
     "SQL-001": {
@@ -51,14 +51,14 @@
     },
     "DATA-001": {
       "timesEvaluated": 0,
-      "timesFired": 2,
+      "timesFired": 3,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 0.023,
+      "averageLatencyMs": 4.4435,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T19:08:00.600Z"
+      "lastFired": "2026-08-15T19:51:10.087Z"
     }
   },
   "uncoveredTools": {},
-  "lastUpdated": "2026-08-15T19:50:54.299Z"
+  "lastUpdated": "2026-08-15T19:51:10.094Z"
 }
