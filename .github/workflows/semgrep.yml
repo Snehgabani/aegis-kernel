@@ -1,0 +1,28 @@
+name: Semgrep OSS Security & Code Standard Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 2' # Weekly on Tuesday at 06:00 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  semgrep:
+    name: Semgrep Multi-Language SAST Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      image: returntocorp/semgrep
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep Security Rulesets
+        run: semgrep scan --config auto --error

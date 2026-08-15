@@ -1,0 +1,30 @@
+name: Hadolint Container Image Dockerfile Linting
+
+on:
+  push:
+    paths:
+      - '**/Dockerfile*'
+      - '.github/workflows/hadolint.yml'
+  pull_request:
+    paths:
+      - '**/Dockerfile*'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  hadolint:
+    name: Hadolint Best Practice & Security Linter
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Lint Gateway Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: 'services/gateway/Dockerfile'
+          ignore: 'DL3018,DL3008'

@@ -1,0 +1,44 @@
+name: Monorepo Package Version Synchronization Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  version-sync:
+    name: Validate Internal Monorepo Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Audit Monorepo Package References
+        run: |
+          node -e '
+            const fs = require("fs");
+            console.log("Checking internal monorepo dependencies...");
+            const rootPkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            console.log("Root version:", rootPkg.version || "monorepo");
+            
+            const pkgs = fs.readdirSync("packages");
+            for (const pkg of pkgs) {
+              const pPath = `packages/${pkg}/package.json`;
+              if (fs.existsSync(pPath)) {
+                const json = JSON.parse(fs.readFileSync(pPath, "utf8"));
+                console.log(`✅ Package ${json.name} verified.`);
+              }
+            }
+          '

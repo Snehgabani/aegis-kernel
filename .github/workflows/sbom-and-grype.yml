@@ -1,0 +1,42 @@
+name: Anchore Syft SBOM & Grype Vulnerability Scanner
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 3 * * 2' # Weekly on Tuesday at 03:00 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  sbom-and-grype:
+    name: Generate Software Bill of Materials & Audit CVEs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate SPDX SBOM with Anchore Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: '.'
+          format: 'spdx-json'
+          output-file: 'aegis-spdx-sbom.json'
+
+      - name: Scan SBOM with Anchore Grype
+        uses: anchore/scan-action@v3
+        with:
+          sbom: 'aegis-spdx-sbom.json'
+          fail-build: false
+          severity-cutoff: 'critical'
+
+      - name: Archive SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aegis-spdx-sbom
+          path: aegis-spdx-sbom.json
+          retention-days: 90

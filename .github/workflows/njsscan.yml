@@ -1,0 +1,28 @@
+name: Node.js Static Security Scanner (njsscan)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 2' # Weekly on Tuesday at 02:00 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  njsscan:
+    name: njsscan Node.js Insecure Pattern Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run njsscan Security Audit
+        uses: ajinabraham/njsscan-action@master
+        with:
+          args: '.'
