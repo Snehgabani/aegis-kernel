@@ -31,7 +31,6 @@ COPY --from=builder /app/services/gateway/package.json ./services/gateway/packag
 
 EXPOSE 8787
 
-HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1
+USER node
 
 CMD ["node", "services/gateway/dist/index.cjs"]

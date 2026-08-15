@@ -26,4 +26,5 @@ jobs:
         uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
         with:
           scan-args: |-
+            --fail-on=high
             --lockfile=package-lock.json
