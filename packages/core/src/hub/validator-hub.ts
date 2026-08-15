@@ -121,7 +121,7 @@ export class CodeInjectionValidator implements CommunityValidator {
   id = 'community.code-injection';
   description = 'Detects potential code injection payloads.';
 
-  private patterns = [/eval\s*\(/i, /exec\s*\(/i, /system\s*\(/i, /<script[^>]*>/i];
+  private patterns = [/\beval\s*\(/i, /\bexec\s*\(/i, /\bsystem\s*\(/i, /<script\b/i];
 
   validate(input: string): ValidatorVerdict {
     for (const pattern of this.patterns) {

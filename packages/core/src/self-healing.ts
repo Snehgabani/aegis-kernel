@@ -27,13 +27,65 @@ export interface NumericFixProposal {
   explanation: string;
 }
 
+function stripSqlComments(sql: string): string {
+  let result = '';
+  let inLineComment = false;
+  let inBlockComment = false;
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+
+  for (let i = 0; i < sql.length; i++) {
+    const char = sql[i];
+    const nextChar = sql[i + 1];
+
+    if (inLineComment) {
+      if (char === '\n') {
+        inLineComment = false;
+        result += char;
+      }
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (char === '*' && nextChar === '/') {
+        inBlockComment = false;
+        i++; // skip '/'
+      }
+      continue;
+    }
+
+    if (!inSingleQuote && !inDoubleQuote) {
+      if (char === '-' && nextChar === '-') {
+        inLineComment = true;
+        i++;
+        continue;
+      }
+      if (char === '/' && nextChar === '*') {
+        inBlockComment = true;
+        i++;
+        continue;
+      }
+    }
+
+    if (char === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote;
+    } else if (char === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+    }
+
+    result += char;
+  }
+
+  return result;
+}
+
 export class SelfHealingProposalSynthesizer {
   /**
    * Analyzes an invalid SQL tool proposal and synthesizes a safe, canonical mutation.
    */
   public synthesizeSqlFix(request: SqlFixRequest): SqlFixProposal {
-    // 1. Strip comments
-    let normalized = request.rawQuery.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    // 1. Strip comments using linear O(N) state machine (ReDoS immune)
+    let normalized = stripSqlComments(request.rawQuery);
     
     // 2. Whitespace normalization
     normalized = normalized.replace(/\s+/g, ' ').trim();

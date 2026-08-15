@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Node.js 22.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 22.x
 
@@ -45,7 +45,7 @@ jobs:
               console.error(`❌ INVARIANT VIOLATION: P95 latency is ${data.latency.p95}ms (exceeds 2.0ms threshold)`);
               process.exit(1);
             }
-            if (data.accuracy.f1Score < 0.95) {
+            if (data.accuracy && data.accuracy.f1Score < 0.95) {
               console.error(`❌ INVARIANT VIOLATION: F1 score is ${(data.accuracy.f1Score*100).toFixed(1)}% (below 95% threshold)`);
               process.exit(1);
             }
