@@ -1,0 +1,53 @@
+header:
+  schema-version: "2.1.0"
+  last-updated: "2026-08-16"
+  last-reviewed: "2026-08-16"
+  url: "https://github.com/Snehgabani/aegis-kernel"
+
+project:
+  name: "Aegis Invariant Kernel"
+  description: "Deterministic Tool-Call Safety Clearance Gateway for Autonomous AI Agents"
+  homepage: "https://aegis-kernel.dev"
+  license: "MIT"
+  documentation:
+    general: "https://github.com/Snehgabani/aegis-kernel/tree/main/docs"
+    architecture: "https://github.com/Snehgabani/aegis-kernel/blob/main/ARCHITECTURE.md"
+    governance: "https://github.com/Snehgabani/aegis-kernel/blob/main/GOVERNANCE.md"
+    security: "https://github.com/Snehgabani/aegis-kernel/blob/main/SECURITY.md"
+  vulnerability-reporting:
+    accepts-reports: true
+    email-contact: "security@aegis-kernel.dev"
+    security-policy-url: "https://github.com/Snehgabani/aegis-kernel/blob/main/SECURITY.md"
+    bug-bounty-program: false
+
+repository:
+  url: "https://github.com/Snehgabani/aegis-kernel"
+  status: "active"
+  contribution-policy: "https://github.com/Snehgabani/aegis-kernel/blob/main/CONTRIBUTING.md"
+  code-of-conduct: "https://github.com/Snehgabani/aegis-kernel/blob/main/CODE_OF_CONDUCT.md"
+  security-testing:
+    static-analysis:
+      - tool: "CodeQL"
+        enforced-in-ci: true
+      - tool: "Semgrep"
+        enforced-in-ci: true
+      - tool: "Bandit"
+        enforced-in-ci: true
+    secret-scanning:
+      - tool: "Gitleaks"
+        enforced-in-ci: true
+    dependency-scanning:
+      - tool: "OSV-Scanner"
+        enforced-in-ci: true
+      - tool: "Trivy"
+        enforced-in-ci: true
+    dynamic-analysis:
+      - tool: "Nightly Fuzzing Suite (AFL/Property Testing)"
+        enforced-in-ci: true
+    supply-chain:
+      - tool: "SLSA Level 3 Provenance"
+        enforced-in-ci: true
+      - tool: "Syft/Grype SBOM (SPDX 2.3)"
+        enforced-in-ci: true
+      - tool: "OpenSSF Scorecard"
+        enforced-in-ci: true

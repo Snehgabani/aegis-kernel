@@ -1,18 +1,20 @@
 # Standardize line endings across Windows, Linux, and macOS
 * text=auto eol=lf
 
-# Force specific file types to LF
-*.js text eol=lf
-*.ts text eol=lf
-*.json text eol=lf
-*.py text eol=lf
-*.go text eol=lf
+# Explicit LF normalization for code & scripts
+*.ts text eol=lf diff=typescript
+*.tsx text eol=lf diff=typescript
+*.js text eol=lf diff=javascript
+*.jsx text eol=lf diff=javascript
+*.json text eol=lf diff=json
+*.py text eol=lf diff=python
+*.go text eol=lf diff=golang
 *.md text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
+*.yml text eol=lf diff=yaml
+*.yaml text eol=lf diff=yaml
 *.sh text eol=lf
 
-# Binary files
+# Binary Assets
 *.png binary
 *.jpg binary
 *.jpeg binary
@@ -23,10 +25,23 @@
 *.tar.gz binary
 *.tgz binary
 *.zip binary
+*.parquet binary
+*.onnx binary
 
-# GitHub Linguist language overrides & generated files
+# Release Archive Hygiene (Excluded from source tarballs)
+.github export-ignore
+.devcontainer export-ignore
+.githooks export-ignore
+.editorconfig export-ignore
+.semgrepignore export-ignore
+.turbo export-ignore
+tests export-ignore
+benchmarks export-ignore
+
+# GitHub Linguist Overrides & Generated Files
 site/* linguist-documentation
 docs/* linguist-documentation
+examples/* linguist-documentation
 Formula/* linguist-vendored
 packages/*/dist/* linguist-generated=true
 services/*/dist/* linguist-generated=true

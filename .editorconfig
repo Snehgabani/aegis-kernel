@@ -10,22 +10,29 @@ indent_style = space
 indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
+max_line_length = 120
 
-[*.{js,jsx,ts,tsx,mjs,cjs,json,yaml,yml,md,html,css}]
+[*.{js,jsx,ts,tsx,mjs,cjs,json,json5,yaml,yml,md,html,css,scss}]
+indent_style = space
+indent_size = 2
+
+[*.{sh,bash,zsh}]
 indent_style = space
 indent_size = 2
 
 [*.py]
 indent_style = space
 indent_size = 4
+max_line_length = 100
 
-[*.go]
+[*.{go,Makefile,mk}]
 indent_style = tab
 indent_size = 4
 
-[Makefile]
-indent_style = tab
+[*.toml]
+indent_style = space
+indent_size = 2
 
-[*.{wasm,png,jpg,jpeg,gif,webp,ico,pdf}]
+[*.{wasm,png,jpg,jpeg,gif,webp,ico,pdf,lock}]
 insert_final_newline = false
 trim_trailing_whitespace = false
