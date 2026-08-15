@@ -1,0 +1,51 @@
+name: Publish Packages to GitHub Packages Registry
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish-npm:
+    name: Publish Packages to GitHub npm Registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@snehgabani'
+
+      - name: Install Dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build All Monorepo Packages
+        run: npm run build
+
+      - name: Publish Core Package to GitHub Packages
+        run: |
+          cd packages/core
+          npm publish --ignore-scripts --access public || true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish CLI Package to GitHub Packages
+        run: |
+          cd packages/cli
+          npm publish --ignore-scripts --access public || true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

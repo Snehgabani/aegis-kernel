@@ -2,11 +2,21 @@ name: Build & Publish Gateway Docker Image to GHCR
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
+    paths:
+      - 'services/gateway/**'
+      - 'packages/core/**'
+      - 'Dockerfile'
+      - '.github/workflows/docker-publish.yml'
   workflow_dispatch:
 
 permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-push:
@@ -34,10 +44,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}-gateway
+          images: ghcr.io/${{ github.repository_owner }}/aegis-gateway
+          flavor: |
+            latest=auto
           tags: |
             type=semver,pattern={{version}}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
