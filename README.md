@@ -8,8 +8,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
+[![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8.svg?logo=go)](./packages/go)
+[![Rust](https://img.shields.io/badge/Rust-1.75%2B-dea584.svg?logo=rust)](./packages/rust)
 [![GitHub Action](https://img.shields.io/badge/GitHub%20Action-v1-blue.svg?logo=github)](./docs/MARKETPLACE_ACTION_GUIDE.md)
-[![Tests](https://img.shields.io/badge/tests-143%2F143%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-248%2F248%20passing-brightgreen.svg)](#)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
 [![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Audit%20Ready-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)
@@ -180,6 +182,58 @@ npx aegis pack validate custom-pack.yaml
 - **Honest Boundaries & Limitations:** [`docs/LIMITATIONS_AND_BOUNDARIES.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/LIMITATIONS_AND_BOUNDARIES.md) — Unbiased scope and threat boundary map.
 - **Responsible AI & Ethics Charter:** [`ETHICS_AND_RESPONSIBLE_AI.md`](./ETHICS_AND_RESPONSIBLE_AI.md) — Dual-use policy, civil safety & ISO/IEC 29147 Safe Harbor.
 - **Legal & Ethical Disclaimers:** [`DISCLAIMER.md`](./DISCLAIMER.md).
+
+---
+
+## 🛡️ Frontier Capabilities & Ecosystem Architecture
+
+### 1. Streaming Token Interceptor & Early Abort Engine
+Real-time Server-Sent Events (SSE) token filtering with an Aho-Corasick trie sliding window:
+```typescript
+import { AegisStreamInterceptor } from '@aegis-kernel/core';
+
+const interceptor = new AegisStreamInterceptor(engine, { windowSize: 32, abortOnMatch: true });
+for await (const chunk of interceptor.intercept(llmTokenStream)) {
+  if (chunk.action === 'ABORT') break; // Early abort on secret/PII detection
+  process.stdout.write(chunk.text);
+}
+```
+
+### 2. Multi-Turn Conversation State Tracker (Crescendo Defense)
+Exponential decay risk scoring detecting slow-burn privilege escalations and multi-turn intent drift:
+```typescript
+import { ConversationTracker } from '@aegis-kernel/core';
+
+const tracker = new ConversationTracker({ driftThreshold: 0.75, riskDecayFactor: 0.85 });
+const verdict = tracker.addTurn({ turnIndex: 1, toolName: 'exec_cmd', params: {}, riskContribution: 0.3, timestamp: Date.now() });
+```
+
+### 3. Causal Execution DAG & Multi-Agent Exfiltration Detection
+Tracks data flows across multi-step agent trajectories to discover exfiltration chains (`read_file` → `format` → `send_email`) and circular delegation loops (OWASP Agentic ASI08):
+```typescript
+import { ExecutionDAG } from '@aegis-kernel/core';
+
+const dag = new ExecutionDAG();
+dag.addAction({ id: 'act_1', toolName: 'read_file', params: { path: '/etc/passwd' }, dataDependencies: [] });
+const anomalies = dag.detectAnomalousPatterns();
+```
+
+### 4. Declarative Policy-as-Code Engine (Cedar / Rego AST)
+```typescript
+import { PolicyEngine } from '@aegis-kernel/core';
+
+const policyEngine = new PolicyEngine();
+policyEngine.addPolicy({
+  id: 'pol_1',
+  statements: [{
+    effect: 'permit',
+    principal: 'support_agent',
+    action: 'query_db',
+    resource: 'users_table',
+    condition: 'row_limit <= 100 && operation == "SELECT"'
+  }]
+});
+```
 
 ---
 
