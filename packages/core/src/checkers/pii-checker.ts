@@ -41,7 +41,9 @@ export class PiiChecker {
         if (patternStr in DEFAULT_PII_PATTERNS) {
           regex = DEFAULT_PII_PATTERNS[patternStr as keyof typeof DEFAULT_PII_PATTERNS];
         } else {
-          regex = new RegExp(patternStr, 'i');
+          // Normalize pattern: strip any leading (?i) flag since 'i' is already applied
+          const cleanPattern = patternStr.replace(/^\(\?i\)/, '');
+          regex = new RegExp(cleanPattern, 'i');
         }
         this.compiledPatterns.set(patternStr, regex);
       }
@@ -90,7 +92,12 @@ export class PiiChecker {
         this.collectStringValues(item, collected);
       }
     } else if (obj !== null && typeof obj === 'object') {
-      for (const val of Object.values(obj as Record<string, unknown>)) {
+      for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
+        collected.push(key);
+        const normKey = this.normalizeString(key);
+        if (normKey !== key) {
+          collected.push(normKey);
+        }
         this.collectStringValues(val, collected);
       }
     }

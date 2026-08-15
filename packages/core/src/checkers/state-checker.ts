@@ -31,24 +31,30 @@ export class StateChecker {
     const violations: AegisViolation[] = [];
 
     // If this state rule targets a specific field (e.g. 'amount') and the tool call doesn't have it, skip
-    if (params.target_field && !(params.target_field in toolCall.params)) {
+    if (params.target_field && !(params.target_field in toolCall.params) && this.findNestedValue(toolCall.params, params.target_field) === undefined) {
       return violations;
     }
 
     // Tenant isolation verification: parameters must match the authenticated tenant in state
-    if (params.tenant_field && stateContext && params.tenant_field in toolCall.params) {
-      const toolTenant = toolCall.params[params.tenant_field];
-      const stateTenant = stateContext[params.tenant_field];
-      if (stateTenant !== undefined && toolTenant !== stateTenant) {
-        violations.push({
-          ruleId,
-          packId,
-          severity: 'critical',
-          message: `Cross-tenant isolation violation: Tool requested tenant '${toolTenant}' does not match authenticated session tenant '${stateTenant}'.`,
-          suggestedFix: `Restrict tool call parameters to the caller's active tenant '${stateTenant}'.`,
-          context: { toolTenant, stateTenant },
-        });
+    if (params.tenant_field) {
+      const toolTenant = toolCall.params[params.tenant_field] ?? this.findNestedTenant(toolCall.params, params.tenant_field);
+      // If neither toolCall nor state specifies this tenant_field, skip tenant isolation check
+      if (toolTenant === undefined && (!stateContext || !(params.tenant_field in stateContext))) {
         return violations;
+      }
+      if (stateContext) {
+        const stateTenant = (stateContext as any)[params.tenant_field];
+        if (toolTenant !== undefined && stateTenant !== undefined && toolTenant !== stateTenant) {
+          violations.push({
+            ruleId,
+            packId,
+            severity: 'critical',
+            message: `Cross-tenant isolation violation: Tool requested tenant '${toolTenant}' does not match authenticated session tenant '${stateTenant}'.`,
+            suggestedFix: `Restrict tool call parameters to the caller's active tenant '${stateTenant}'.`,
+            context: { toolTenant, stateTenant },
+          });
+          return violations;
+        }
       }
     }
 
@@ -113,4 +119,27 @@ export class StateChecker {
 
     return violations;
   }
+
+  private findNestedTenant(params: Record<string, unknown>, tenantField: string): unknown {
+    return this.findNestedValue(params, tenantField);
+  }
+
+  private findNestedValue(obj: unknown, key: string): unknown {
+    if (!obj || typeof obj !== 'object') return undefined;
+    const record = obj as Record<string, unknown>;
+
+    if (key in record && record[key] !== undefined) {
+      return record[key];
+    }
+
+    for (const val of Object.values(record)) {
+      if (val && typeof val === 'object') {
+        const found = this.findNestedValue(val, key);
+        if (found !== undefined) return found;
+      }
+    }
+
+    return undefined;
+  }
 }
+

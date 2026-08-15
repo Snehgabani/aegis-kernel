@@ -1,0 +1,16 @@
+# Aegis Invariant Kernel: Isolated Unbiased 100-Vector Benchmark Container
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy repository
+COPY package.json turbo.json tsconfig.json vitest.config.ts ./
+COPY packages ./packages
+COPY services ./services
+
+# Clean install and build without host caching
+RUN npm install
+RUN npm run build
+
+# Run Vitest test matrix and Tricky 100-Vector benchmark harness
+CMD ["npx", "vitest", "run", "packages/evals/__tests__/tricky-100.test.ts"]

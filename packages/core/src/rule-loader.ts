@@ -127,8 +127,7 @@ export const BUILTIN_PACKS: Record<string, RulePack> = {
       {
         id: 'FIN-STATE-001',
         severity: 'critical',
-        description: 'Daily cumulative spending invariant: current_daily_spent + amount <= daily_budget',
-        suggestedFix: 'Cumulative daily spending limit exceeded.',
+        description: 'Cumulative daily spend cannot exceed daily budget',
         condition: {
           type: 'state_invariant',
           params: {
@@ -138,13 +137,25 @@ export const BUILTIN_PACKS: Record<string, RulePack> = {
           },
         },
       },
+      {
+        id: 'FIN-STATE-002',
+        severity: 'critical',
+        description: 'Hourly API request limit',
+        condition: {
+          type: 'state_invariant',
+          params: {
+            target_field: 'request_count',
+            assertion: 'params.request_count <= state.max_requests',
+          },
+        },
+      },
     ],
   },
   '@aegis/data-guard': {
     id: 'data-guard',
-    name: 'Aegis PII & Credential Leak Guard',
+    name: 'Aegis Data Leakage & Secret Protection Guard',
     version: '1.0.0',
-    description: 'Detects and blocks leakage of credit cards, SSNs, and API keys',
+    description: 'Scans and blocks API keys, credentials, and PII from leaving the system boundary',
     rules: [
       {
         id: 'DATA-001',
@@ -310,6 +321,99 @@ export const BUILTIN_PACKS: Record<string, RulePack> = {
           params: {
             statements: ['DELETE', 'UPDATE'],
             require: 'WHERE_CLAUSE',
+          },
+        },
+      },
+      {
+        id: 'SOC2-004',
+        severity: 'critical',
+        description: 'Enforce multi-tenant data isolation and prevent cross-tenant parameter spoofing',
+        condition: {
+          type: 'state_invariant',
+          params: {
+            tenant_field: 'tenantId',
+            assertion: 'state.tenantId != null',
+          },
+        },
+      },
+      {
+        id: 'SOC2-005',
+        severity: 'critical',
+        description: 'Prohibit order shipping or processing when order is cancelled',
+        condition: {
+          type: 'state_invariant',
+          params: {
+            target_field: 'order_id',
+            assertion: "state.order_status == null || state.order_status != 'cancelled'",
+          },
+        },
+      },
+    ],
+  },
+  '@aegis/eu-ai-act-guard': {
+    id: 'eu-ai-act-guard',
+    name: 'Aegis EU AI Act High-Risk Safety & Governance Guard',
+    version: '1.0.0',
+    description: 'Enforces Article 9 and Article 14 risk management constraints on AI agents',
+    rules: [
+      {
+        id: 'EU-AI-001',
+        severity: 'critical',
+        description: 'Prohibit automated high-risk social scoring or biometric identification',
+        condition: {
+          type: 'regex',
+          params: {
+            patterns: ['\\b(?:social_scoring|social_credit_score|social_score|subliminal_manipulation|vulnerability_exploit|realtime_biometric_id)\\b'],
+            match_action: 'block',
+          },
+        },
+      },
+    ],
+  },
+  '@aegis/gdpr-guard': {
+    id: 'gdpr-guard',
+    name: 'Aegis GDPR Data Protection & Special Category Invariant Guard',
+    version: '1.0.0',
+    description: 'Protects Article 9 special categories of personal data',
+    rules: [
+      {
+        id: 'GDPR-001',
+        severity: 'critical',
+        description: 'Block unconsented biometric, genetic, or health data exfiltration',
+        condition: {
+          type: 'regex',
+          params: {
+            patterns: ['\\b(?:biometric_template|dna_sequence|health_record_unconsented)\\b'],
+            match_action: 'block',
+          },
+        },
+      },
+    ],
+  },
+  '@aegis/fintech-trade-guard': {
+    id: 'fintech-trade-guard',
+    name: 'Aegis FinTech Algorithmic Trading & Execution Safety Guard',
+    version: '1.0.0',
+    description: 'Enforces order ceilings, price slippage bounds, and market order limits',
+    rules: [
+      {
+        id: 'TRADE-001',
+        severity: 'critical',
+        description: 'Maximum single trade notional order value cannot exceed $100,000',
+        condition: {
+          type: 'numeric',
+          params: { field: 'notional_value', max: 100000 },
+        },
+      },
+      {
+        id: 'TRADE-004',
+        severity: 'critical',
+        description: 'Prohibit trading on frozen wallets and enforce slippage limits',
+        condition: {
+          type: 'state_invariant',
+          params: {
+            precondition: 'state.wallet_frozen != true',
+            assertion: 'state.max_slippage == null || params.slippage <= state.max_slippage',
           },
         },
       },

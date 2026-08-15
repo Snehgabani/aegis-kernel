@@ -24,3 +24,23 @@ rules:
         field: amount
         rate_limit:
           max_per_minute: 10
+
+  - id: FIN-STATE-001
+    severity: critical
+    description: Cumulative daily spend cannot exceed daily budget
+    condition:
+      type: state_invariant
+      params:
+        target_field: amount
+        precondition: "state.account_status == 'active'"
+        assertion: "state.spent_today + params.amount <= state.daily_budget"
+
+  - id: FIN-STATE-002
+    severity: critical
+    description: Hourly API request limit
+    condition:
+      type: state_invariant
+      params:
+        target_field: request_count
+        assertion: "params.request_count <= state.max_requests"
+

@@ -11,7 +11,7 @@ rules:
       type: regex
       params:
         patterns:
-          - '(?i)\b(?:SOCIAL_SCORING|SUBLIMINAL_MANIPULATION|VULNERABILITY_EXPLOIT|REALTIME_BIOMETRIC_ID)\b'
+          - '(?i)\b(?:social_scoring|social_credit_score|social_score|subliminal_manipulation|vulnerability_exploit|realtime_biometric_id)\b'
         match_action: block
 
   - id: EU-AI-002

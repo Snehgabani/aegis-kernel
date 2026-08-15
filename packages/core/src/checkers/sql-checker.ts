@@ -260,14 +260,62 @@ export class SqlChecker {
   }
 
   private extractSqlString(toolCall: ToolCall, customField?: string): string | null {
+    let rawSql: string | null = null;
+
     if (customField && typeof toolCall.params[customField] === 'string') {
-      return toolCall.params[customField] as string;
+      rawSql = toolCall.params[customField] as string;
     }
 
-    // Common SQL parameter field names
+    if (!rawSql) {
+      // Common SQL parameter field names
+      for (const key of ['sql', 'query', 'statement', 'command', 'q']) {
+        if (typeof toolCall.params[key] === 'string') {
+          rawSql = toolCall.params[key] as string;
+          break;
+        }
+      }
+    }
+
+    // If not found at top level, search recursively in nested objects
+    if (!rawSql) {
+      rawSql = this.findNestedSql(toolCall.params);
+    }
+
+    if (!rawSql || typeof rawSql !== 'string') {
+      return null;
+    }
+
+    // Strip inline C-style comments (e.g. /*comment*/ or DEL/**/ETE) and SQL line comments (-- ...)
+    let decommented = rawSql
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/--.*$/gm, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Reassemble keywords split by comments (e.g. 'DEL ETE' -> 'DELETE')
+    decommented = decommented
+      .replace(/\bDEL\s+ETE\b/gi, 'DELETE')
+      .replace(/\bUP\s+DATE\b/gi, 'UPDATE')
+      .replace(/\bDR\s+OP\b/gi, 'DROP')
+      .replace(/\bTRUN\s+CATE\b/gi, 'TRUNCATE');
+
+    return decommented.length > 0 ? decommented : rawSql.trim();
+  }
+
+  private findNestedSql(obj: unknown): string | null {
+    if (!obj || typeof obj !== 'object') return null;
+    const record = obj as Record<string, unknown>;
+
     for (const key of ['sql', 'query', 'statement', 'command', 'q']) {
-      if (typeof toolCall.params[key] === 'string') {
-        return toolCall.params[key] as string;
+      if (typeof record[key] === 'string') {
+        return record[key] as string;
+      }
+    }
+
+    for (const val of Object.values(record)) {
+      if (val && typeof val === 'object') {
+        const found = this.findNestedSql(val);
+        if (found) return found;
       }
     }
 

@@ -32,3 +32,13 @@ rules:
         patterns:
           - '\b(?:PENNY|OTC|ILLIQUID)_[A-Z0-9]+\b'
         match_action: block
+
+  - id: TRADE-004
+    severity: critical
+    description: Prohibit trading on frozen wallets and enforce slippage limits
+    condition:
+      type: state_invariant
+      params:
+        precondition: "state.wallet_frozen != true"
+        assertion: "state.max_slippage == null || params.slippage <= state.max_slippage"
+

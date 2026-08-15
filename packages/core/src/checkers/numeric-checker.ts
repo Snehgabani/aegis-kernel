@@ -74,16 +74,49 @@ export class NumericChecker {
 
   private extractNestedNumber(params: Record<string, unknown>, pathStr: string): number | null {
     if (!params || typeof params !== 'object') return null;
-    const parts = pathStr.replace(/^params\./, '').split('.');
+    const cleanPath = pathStr.replace(/^params\./, '');
+    const parts = cleanPath.split('.');
     let current: any = params;
 
+    let directFound = true;
     for (const part of parts) {
       if (current === null || current === undefined || typeof current !== 'object') {
-        return null;
+        directFound = false;
+        break;
       }
       current = current[part];
     }
 
-    return typeof current === 'number' ? current : null;
+    if (directFound && current !== null && current !== undefined) {
+      const num = Number(current);
+      if (!isNaN(num) && typeof current !== 'boolean') {
+        return num;
+      }
+    }
+
+    // Fallback: search recursively for target field name in nested objects
+    const targetField = parts[parts.length - 1];
+    return this.findNestedNumber(params, targetField);
+  }
+
+  private findNestedNumber(obj: unknown, fieldName: string): number | null {
+    if (!obj || typeof obj !== 'object') return null;
+    const record = obj as Record<string, unknown>;
+
+    if (fieldName in record && record[fieldName] !== null && record[fieldName] !== undefined) {
+      const num = Number(record[fieldName]);
+      if (!isNaN(num) && typeof record[fieldName] !== 'boolean') {
+        return num;
+      }
+    }
+
+    for (const val of Object.values(record)) {
+      if (val && typeof val === 'object') {
+        const found = this.findNestedNumber(val, fieldName);
+        if (found !== null) return found;
+      }
+    }
+
+    return null;
   }
 }

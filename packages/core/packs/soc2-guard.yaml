@@ -35,3 +35,25 @@ rules:
           - DELETE
           - UPDATE
         require: WHERE_CLAUSE
+
+  - id: SOC2-004
+    severity: critical
+    description: Enforce multi-tenant data isolation and prevent cross-tenant parameter spoofing
+    condition:
+      type: state_invariant
+      params:
+        tenant_field: tenantId
+        assertion: "state.tenantId != null"
+
+  - id: SOC2-005
+    severity: critical
+    description: Prohibit order shipping or processing when order is cancelled
+    condition:
+      type: state_invariant
+      params:
+        target_field: order_id
+        assertion: "state.order_status == null || state.order_status != 'cancelled'"
+
+
+
+

@@ -1,7 +1,43 @@
 import pc from 'picocolors';
-import { ExternalBenchmarkRunner, type BenchmarkVector } from '@aegis-kernel/evals';
+import { ExternalBenchmarkRunner, TrickyBenchmarkRunner, type BenchmarkVector } from '@aegis-kernel/evals';
 
-export function runBenchmark(): void {
+export function runBenchmark(options?: { tricky?: boolean }): void {
+  if (options?.tricky) {
+    console.log(pc.bold(pc.cyan('\n🛡️   Aegis 100-Vector Adversarial & Tricky Testbed')));
+    console.log(pc.gray('═'.repeat(70)));
+    console.log(pc.dim('Executing unbiased 100-vector stress test across 10 threat domains...\n'));
+
+    const results = TrickyBenchmarkRunner.run();
+
+    console.log(pc.bold(pc.white('═══════════════════════════════════════════════════════════════')));
+    console.log(pc.bold(pc.cyan('             100-VECTOR ADVERSARIAL STRESS REPORT             ')));
+    console.log(pc.bold(pc.white('═══════════════════════════════════════════════════════════════')));
+    console.log(`  Total Vectors:        ${pc.bold(results.totalVectors)}`);
+    console.log(`  Malicious Evaluated:  ${pc.bold(results.maliciousCount)}`);
+    console.log(`  Benign Evaluated:     ${pc.bold(results.benignCount)}`);
+    console.log(`  Malicious Block Rate: ${pc.green(results.maliciousBlockRate)} (${results.truePositives}/${results.maliciousCount} blocked)`);
+    console.log(`  Benign Pass Rate:     ${pc.green(results.benignPassRate)} (${results.trueNegatives}/${results.benignCount} passed)`);
+    console.log(`  Precision:            ${pc.green(results.precision)}`);
+    console.log(`  Recall:               ${pc.green(results.recall)}`);
+    console.log(`  Empirical F1 Score:   ${pc.green(results.f1Score)}`);
+    console.log(`  Average Latency:      ${pc.cyan(results.averageLatencyMs + ' ms')}`);
+    console.log(`  P50 Latency:          ${pc.cyan(results.p50LatencyMs + ' ms')}`);
+    console.log(`  P95 Latency:          ${pc.cyan(results.p95LatencyMs + ' ms')}`);
+    console.log(`  P99 Latency:          ${pc.cyan(results.p99LatencyMs + ' ms')}`);
+    console.log(pc.bold(pc.white('═══════════════════════════════════════════════════════════════\n')));
+
+    if (results.failures.length > 0) {
+      console.log(pc.bold(pc.red('  Discrepancies / Edge Case Failures:')));
+      for (const f of results.failures) {
+        console.log(`   ${pc.yellow(`[${f.id}]`)} ${f.name} (${f.category}) -> Expected: ${f.expected}, Got: ${f.actual}`);
+      }
+      console.log();
+    } else {
+      console.log(pc.bold(pc.green('  ✅ ALL 100 VECTORS PASSED WITH ZERO DISCREPANCIES!\n')));
+    }
+    return;
+  }
+
   console.log(pc.bold(pc.cyan('\n🔬  Aegis External Benchmark Evaluation Harness')));
   console.log(pc.gray('═'.repeat(70)));
   console.log(pc.dim('Evaluating public prompt-injection and agent tool safety datasets...'));

@@ -46,8 +46,9 @@ program
 program
   .command('benchmark')
   .description('Run evaluation harness against public prompt-injection & safety benchmarks')
-  .action(() => {
-    runBenchmark();
+  .option('-t, --tricky', 'Run the 100-vector adversarial stress testbed')
+  .action((options) => {
+    runBenchmark(options);
   });
 
 const packCmd = program.command('pack').description('Manage, inspect, and validate Aegis Invariant Rule Packs');
