@@ -1,0 +1,16 @@
+apiVersion: v2
+name: aegis-gateway
+description: Enterprise Invariant Clearance Gateway & Sidecar Proxy for Autonomous AI Agents
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai-safety
+  - agent-firewall
+  - llm-security
+  - invariant-kernel
+  - mcp-gateway
+home: https://github.com/Snehgabani/aegis-kernel
+maintainers:
+  - name: Sneh Gabani
+    email: sneh@aegis-kernel.dev

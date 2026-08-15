@@ -1,0 +1,44 @@
+replicaCount: 3
+
+image:
+  repository: ghcr.io/snehgabani/aegis-gateway
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"
+
+service:
+  type: ClusterIP
+  port: 8787
+  targetPort: 8787
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 75
+
+env:
+  NODE_ENV: production
+  PORT: "8787"
+  LOG_LEVEL: info
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  capabilities:
+    drop:
+      - ALL
+
+monitoring:
+  openTelemetry:
+    enabled: true
+    collectorEndpoint: "http://otel-collector.monitoring.svc.cluster.local:4318"

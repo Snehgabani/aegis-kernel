@@ -9,6 +9,8 @@ export * from './license.js';
 export * from './cloud-telemetry.js';
 export * from './dynamic-sync.js';
 export * from './checkers/index.js';
+export * from './telemetry/otel.js';
+
 
 
 
