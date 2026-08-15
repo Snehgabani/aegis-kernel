@@ -3,18 +3,29 @@ import type { AegisViolation, RegexConditionParams, ToolCall } from '../types.js
 // Pre-compiled high-recall regex patterns for PII, Secrets, and Compliance Invariants
 export const DEFAULT_PII_PATTERNS = {
   CREDIT_CARD:
-    /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12}|(?:2131|1800|35\d{3})\d{11})\b/,
+    /\b(?:4[0-9]{3}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}|5[1-5][0-9]{2}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}|3[47][0-9]{2}[ -]?[0-9]{6}[ -]?[0-9]{5}|6(?:011|5[0-9]{2})[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4})\b/,
   US_SSN: /\b\d{3}-\d{2}-\d{4}\b/,
   OPENAI_API_KEY: /\b(?:sk-ant-api[0-9a-zA-Z_-]{15,}|sk-(?:proj-|live-)?[a-zA-Z0-9_-]{20,})\b/,
-  GITHUB_TOKEN: /\b(?:ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{20,}\b/,
-  AWS_ACCESS_KEY: /\bAKIA[0-9A-Z]{16}\b/,
+  GITHUB_TOKEN: /\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{20,}\b/,
+  AWS_ACCESS_KEY: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/,
   STRIPE_KEY: /\b(?:sk|pk|rk)_(?:live|test)_[0-9a-zA-Z]{20,}\b/,
   GENERIC_BEARER: /\bBearer\s+[A-Za-z0-9\-_.]{15,}\b/,
-  // Enterprise & Compliance Patterns (HIPAA, PCI-DSS, SOC 2)
+  
+  // Enterprise Cloud Secrets & Tokens
+  JWT_TOKEN: /\beyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*\b/,
+  GCP_SERVICE_ACCOUNT: /"type":\s*"service_account"/,
+  DATABASE_URI_SECRET: /\b(?:postgres|postgresql|mysql|mongodb|redis):\/\/[^:\s]+:[^@\s]+@[^\s]+\b/,
+  SLACK_TOKEN: /\bxox[baprs]-[0-9a-zA-Z]{10,48}\b/,
+
+  // Global & Compliance Patterns (HIPAA, PCI-DSS, GDPR)
+  INTERNATIONAL_PHONE: /\+(?:[0-9][ -]?){6,14}[0-9]/,
+  IBAN: /\b[A-Z]{2}[0-9]{2}[ -]?(?:[A-Z0-9]{4}[ -]?){1,7}[A-Z0-9]{1,4}\b/,
   US_NPI: /\b[12]\d{9}\b/, // National Provider Identifier (10 digits starting with 1 or 2)
   US_DEA: /\b[A-Z]{2}\d{7}\b/, // Drug Enforcement Administration registration number
   ICD10_CODE: /\b[A-TV-Z][0-9][0-9AB](?:\.[0-9A-TV-Z]{1,4})?\b/, // Medical diagnostic code
   CREDIT_CARD_CVV: /\b(?:cvv|cvc|cvn|cid)\s*[:=]\s*\d{3,4}\b/i, // Card security code
+  UK_NINO: /\b[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D]{1}\b/i,
+  INDIAN_PAN: /\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b/,
   SENSITIVE_FILE_PATH: /(?:\/etc\/(?:shadow|passwd|sudoers)|\.ssh\/(?:id_rsa|authorized_keys)|\.env(?:\.[a-zA-Z0-9_-]+)?|\/proc\/self\/environ)/, // System traversal
 };
 
@@ -91,6 +102,8 @@ export class PiiChecker {
       if (normalized !== obj) {
         collected.push(normalized);
       }
+    } else if (typeof obj === 'number' || typeof obj === 'boolean') {
+      collected.push(String(obj));
     } else if (Array.isArray(obj)) {
       if (visited.has(obj)) return collected;
       visited.add(obj);
@@ -102,13 +115,14 @@ export class PiiChecker {
       visited.add(obj);
       for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
         collected.push(key);
-        const normKey = this.normalizeString(key);
-        if (normKey !== key) {
-          collected.push(normKey);
+        const normalizedKey = this.normalizeString(key);
+        if (normalizedKey !== key) {
+          collected.push(normalizedKey);
         }
         this.collectStringValues(val, collected, visited);
       }
     }
+
     return collected;
   }
 }

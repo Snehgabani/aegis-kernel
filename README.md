@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
-[![Tests](https://img.shields.io/badge/tests-127%2F127%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-143%2F143%20passing-brightgreen.svg)](#)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
 [![Compliance](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Certified-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)

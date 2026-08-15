@@ -14,12 +14,27 @@ export class NumericChecker {
     toolCall: ToolCall
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
-    const val = this.extractNestedNumber(toolCall.params, params.field);
+    const extraction = this.extractNestedNumber(toolCall.params, params.field);
 
-    // If the field is not present on this tool call, this numeric rule does not apply
-    if (val === null || val === undefined) {
+    // If the field is not present at all on this tool call, this rule does not apply
+    if (extraction.status === 'absent') {
       return violations;
     }
+
+    // If the field is present but has an invalid/malformed non-numeric type (e.g. "NaN", {}, [])
+    if (extraction.status === 'invalid') {
+      violations.push({
+        ruleId,
+        packId,
+        severity: 'critical',
+        message: `Numeric parameter '${params.field}' contains invalid or unparseable non-numeric value: ${JSON.stringify(extraction.rawValue)}.`,
+        suggestedFix: `Ensure '${params.field}' is a valid finite numeric value or formatted currency string.`,
+        context: { field: params.field, rawValue: extraction.rawValue },
+      });
+      return violations;
+    }
+
+    const val = extraction.value;
 
     if (params.min !== undefined && val < params.min) {
       violations.push({
@@ -43,7 +58,7 @@ export class NumericChecker {
       });
     }
 
-    // Rate Limiting Check (Sliding Window) for matching field operations
+    // Rate Limiting Check (Sliding Window)
     if (params.rate_limit) {
       const now = Date.now();
       const windowMs = 60 * 1000;
@@ -72,56 +87,101 @@ export class NumericChecker {
     return violations;
   }
 
-  private extractNestedNumber(params: Record<string, unknown>, pathStr: string): number | null {
-    if (!params || typeof params !== 'object') return null;
+  private parseNumericValue(val: unknown): number | null {
+    if (val === null || val === undefined || typeof val === 'boolean') {
+      return null;
+    }
+
+    // 1. Direct finite number
+    if (typeof val === 'number') {
+      return Number.isFinite(val) ? val : null;
+    }
+
+    // 2. Safe BigInt handling
+    if (typeof val === 'bigint') {
+      return Number(val);
+    }
+
+    // 3. Formatted currency / numeric string parsing ($5,000.00, €10,000, 1,000.50 USD)
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (!trimmed || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'infinity') {
+        return null;
+      }
+
+      // Strip currency codes, symbols, and commas
+      const normalized = trimmed
+        .replace(/[$€£¥₹]/g, '')
+        .replace(/\b(USD|EUR|GBP|CAD|AUD|INR)\b/gi, '')
+        .replace(/,/g, '')
+        .trim();
+
+      const parsed = Number(normalized);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    return null;
+  }
+
+  private extractNestedNumber(
+    params: Record<string, unknown>,
+    pathStr: string
+  ): { status: 'valid'; value: number } | { status: 'invalid'; rawValue: unknown } | { status: 'absent' } {
+    if (!params || typeof params !== 'object') return { status: 'absent' };
     const cleanPath = pathStr.replace(/^params\./, '');
     const parts = cleanPath.split('.');
     let current: any = params;
 
     let directFound = true;
     for (const part of parts) {
-      if (current === null || current === undefined || typeof current !== 'object') {
+      if (current === null || current === undefined || typeof current !== 'object' || !(part in current)) {
         directFound = false;
         break;
       }
       current = current[part];
     }
 
-    if (directFound && current !== null && current !== undefined) {
-      const num = Number(current);
-      if (!isNaN(num) && typeof current !== 'boolean') {
-        return num;
+    if (directFound) {
+      const parsed = this.parseNumericValue(current);
+      if (parsed !== null) {
+        return { status: 'valid', value: parsed };
       }
+      return { status: 'invalid', rawValue: current };
     }
 
     // Fallback: search recursively for target field name in nested objects
     const targetField = parts[parts.length - 1];
-    return this.findNestedNumber(params, targetField);
+    const recursiveResult = this.findNestedNumber(params, targetField);
+    return recursiveResult;
   }
 
   private findNestedNumber(
     obj: unknown,
     fieldName: string,
     visited: Set<unknown> = new Set()
-  ): number | null {
-    if (!obj || typeof obj !== 'object' || visited.has(obj)) return null;
+  ): { status: 'valid'; value: number } | { status: 'invalid'; rawValue: unknown } | { status: 'absent' } {
+    if (!obj || typeof obj !== 'object' || visited.has(obj)) return { status: 'absent' };
     visited.add(obj);
     const record = obj as Record<string, unknown>;
 
-    if (fieldName in record && record[fieldName] !== null && record[fieldName] !== undefined) {
-      const num = Number(record[fieldName]);
-      if (Number.isFinite(num) && typeof record[fieldName] !== 'boolean') {
-        return num;
+    if (fieldName in record) {
+      const raw = record[fieldName];
+      const parsed = this.parseNumericValue(raw);
+      if (parsed !== null) {
+        return { status: 'valid', value: parsed };
       }
+      return { status: 'invalid', rawValue: raw };
     }
 
     for (const val of Object.values(record)) {
       if (val && typeof val === 'object') {
         const found = this.findNestedNumber(val, fieldName, visited);
-        if (found !== null) return found;
+        if (found.status !== 'absent') return found;
       }
     }
 
-    return null;
+    return { status: 'absent' };
   }
 }

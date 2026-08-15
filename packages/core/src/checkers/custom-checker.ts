@@ -46,8 +46,11 @@ export class CustomChecker {
    * Safe evaluation of a boolean expression against parameters
    */
   public evaluateExpression(expr: string, contextParams: Record<string, unknown>): boolean {
-    const trimmed = expr.trim();
+    let trimmed = expr.trim();
     if (!trimmed) return false;
+
+    // Unwrap matching outer parentheses: ((a > 1) || (b > 2)) -> (a > 1) || (b > 2)
+    trimmed = this.unwrapOuterParentheses(trimmed);
 
     // Handle logical OR (||)
     const orParts = this.splitByTopLevelOperator(trimmed, '||');
@@ -77,9 +80,11 @@ export class CustomChecker {
 
         switch (cleanOp) {
           case '===':
+            return leftVal === rightVal;
           case '==':
             return leftVal == rightVal; // eslint-disable-line eqeqeq
           case '!==':
+            return leftVal !== rightVal;
           case '!=':
             return leftVal != rightVal; // eslint-disable-line eqeqeq
           case '<':
@@ -113,6 +118,30 @@ export class CustomChecker {
     // Single value boolean coercion
     const singleVal = this.resolveValue(trimmed, contextParams);
     return Boolean(singleVal);
+  }
+
+  private unwrapOuterParentheses(expr: string): string {
+    let current = expr.trim();
+    while (current.startsWith('(') && current.endsWith(')')) {
+      let depth = 0;
+      let matching = false;
+      for (let i = 0; i < current.length; i++) {
+        if (current[i] === '(') depth++;
+        else if (current[i] === ')') {
+          depth--;
+          if (depth === 0) {
+            matching = i === current.length - 1;
+            break;
+          }
+        }
+      }
+      if (matching) {
+        current = current.slice(1, -1).trim();
+      } else {
+        break;
+      }
+    }
+    return current;
   }
 
   private splitByTopLevelOperator(expr: string, op: string): string[] {
@@ -156,9 +185,10 @@ export class CustomChecker {
   }
 
   public resolveValue(token: string, contextParams: Record<string, unknown>): unknown {
-    const trimmed = token.trim();
+    let trimmed = token.trim();
+    trimmed = this.unwrapOuterParentheses(trimmed);
 
-    // Check for arithmetic addition/subtraction: a + b, a - b
+    // 1. Addition / Subtraction (lowest arithmetic precedence)
     const addParts = this.splitByTopLevelOperator(trimmed, '+');
     if (addParts.length > 1) {
       return addParts.reduce((acc, part) => Number(acc) + Number(this.resolveValue(part.trim(), contextParams)), 0);
@@ -169,6 +199,19 @@ export class CustomChecker {
       const first = Number(this.resolveValue(subParts[0].trim(), contextParams));
       const rest = subParts.slice(1).map((p) => Number(this.resolveValue(p.trim(), contextParams)));
       return rest.reduce((acc, val) => acc - val, first);
+    }
+
+    // 2. Multiplication / Division (higher precedence)
+    const mulParts = this.splitByTopLevelOperator(trimmed, '*');
+    if (mulParts.length > 1) {
+      return mulParts.reduce((acc, part) => Number(acc) * Number(this.resolveValue(part.trim(), contextParams)), 1);
+    }
+
+    const divParts = this.splitByTopLevelOperator(trimmed, '/');
+    if (divParts.length > 1) {
+      const first = Number(this.resolveValue(divParts[0].trim(), contextParams));
+      const rest = divParts.slice(1).map((p) => Number(this.resolveValue(p.trim(), contextParams)));
+      return rest.reduce((acc, val) => (val === 0 ? 0 : acc / val), first);
     }
 
     // String literal
@@ -184,7 +227,7 @@ export class CustomChecker {
       return Number(trimmed);
     }
 
-    // Boolean literal
+    // Boolean / Null literal
     if (trimmed === 'true') return true;
     if (trimmed === 'false') return false;
     if (trimmed === 'null') return null;
@@ -198,27 +241,39 @@ export class CustomChecker {
       return items.map((item) => this.resolveValue(item.trim(), contextParams));
     }
 
-    // Dot-notation Path lookup on params / state / root
-    const cleanPath = trimmed.replace(/^params\./, '');
-    const parts = cleanPath.split('.');
-    let current: any = contextParams;
+    // Property path resolution with fallback across root, params, and state
+    const lookup = (root: any, path: string) => {
+      const parts = path.split('.');
+      let curr = root;
+      for (const part of parts) {
+        if (['__proto__', 'constructor', 'prototype'].includes(part)) return undefined;
+        if (curr === null || curr === undefined || typeof curr !== 'object') return undefined;
+        curr = curr[part];
+      }
+      return curr;
+    };
 
-    for (const part of parts) {
-      if (['__proto__', 'constructor', 'prototype'].includes(part)) {
-        return undefined; // Strictly disallow prototype traversal
+    // 1. Try full path on contextParams
+    let found = lookup(contextParams, trimmed);
+    if (found !== undefined) return found;
+
+    // 2. Try stripped prefix (params.x -> x, state.y -> y)
+    const cleanPath = trimmed.replace(/^(?:params|state)\./, '');
+    found = lookup(contextParams, cleanPath);
+    if (found !== undefined) return found;
+
+    // 3. Try lookup on contextParams.params or contextParams.state
+    if (contextParams && typeof contextParams === 'object') {
+      if (trimmed.startsWith('params.') && (contextParams as any).params) {
+        found = lookup((contextParams as any).params, trimmed.slice(7));
+        if (found !== undefined) return found;
       }
-      if (current === null || current === undefined || typeof current !== 'object') {
-        return undefined;
+      if (trimmed.startsWith('state.') && (contextParams as any).state) {
+        found = lookup((contextParams as any).state, trimmed.slice(6));
+        if (found !== undefined) return found;
       }
-      current = current[part];
     }
 
-    if (current !== undefined) return current;
-
-    // Try direct key on contextParams (rejecting prototype keywords)
-    if (['__proto__', 'constructor', 'prototype'].includes(trimmed)) {
-      return undefined;
-    }
-    return (contextParams as any)[trimmed];
+    return undefined;
   }
 }
