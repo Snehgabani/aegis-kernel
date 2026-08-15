@@ -183,18 +183,19 @@ npx aegis pack validate custom-pack.yaml
 
 ## 🌐 Live Web Portals & Resources
 
-- **Interactive Playground:** [`site/playground/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/playground/index.html) — Test invariants live in browser.
-- **Documentation Hub:** [`site/docs/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/docs/index.html) — Searchable technical API & policy reference.
-- **Auditor Console:** [`site/dashboard/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/dashboard/index.html) — Live audit stream & one-click CSV export.
-- **GitHub Action Guide:** [`docs/MARKETPLACE_ACTION_GUIDE.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/MARKETPLACE_ACTION_GUIDE.md) — CI/CD integration and parameters.
-- **Enterprise Buyer's Guide:** [`docs/compliance/ENTERPRISE_BUYERS_GUIDE.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/ENTERPRISE_BUYERS_GUIDE.md) — TCO, ROI calculation & SLAs.
-- **Formal Specification & Invariant Model:** [`docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md`](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations and canonical literature citations.
-- **2026 Threat Landscape Report:** [`docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md) — OWASP MCP & agent attack vectors.
-- **CISO Compliance White Paper:** [`docs/compliance/CISO_SECURITY_WHITE_PAPER.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/CISO_SECURITY_WHITE_PAPER.md) (SOC 2, HIPAA, PCI-DSS).
-- **EU AI Act & GDPR Mapping:** [`docs/compliance/EU_AI_ACT_MAPPING.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/EU_AI_ACT_MAPPING.md) (Articles 9–15).
-- **Honest Boundaries & Limitations:** [`docs/LIMITATIONS_AND_BOUNDARIES.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/LIMITATIONS_AND_BOUNDARIES.md) — Unbiased scope and threat boundary map.
-- **Responsible AI & Ethics Charter:** [`ETHICS_AND_RESPONSIBLE_AI.md`](./ETHICS_AND_RESPONSIBLE_AI.md) — Dual-use policy, civil safety & ISO/IEC 29147 Safe Harbor.
-- **Legal & Ethical Disclaimers:** [`DISCLAIMER.md`](./DISCLAIMER.md).
+- **Interactive Playground:** [Live Browser Sandbox](./site/playground.html) — Test invariants live in browser.
+- **Documentation Hub:** [Interactive Documentation Site](./docs/README.md) — Searchable technical API & policy reference.
+- **Auditor Console:** [Live Audit Dashboard](./site/dashboard/index.html) — Live audit stream & one-click CSV export.
+- **GitHub Action Guide:** [Marketplace Action Integration Guide](./docs/MARKETPLACE_ACTION_GUIDE.md) — CI/CD integration and parameters.
+- **Enterprise Buyer's Guide:** [Enterprise Buyer's Guide & ROI Matrix](./docs/compliance/ENTERPRISE_BUYERS_GUIDE.md) — TCO, ROI calculation & SLAs.
+- **Formal Specification & Invariant Model:** [Formal Specification & LaTeX Architecture](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations and canonical citations.
+- **2026 Threat Landscape Report:** [2026 Agent Security Threat Report](./docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md) — OWASP MCP & agent attack vectors.
+- **CISO Compliance White Paper:** [CISO Security & Compliance White Paper](./docs/compliance/CISO_SECURITY_WHITE_PAPER.md) (SOC 2, HIPAA, PCI-DSS).
+- **EU AI Act & GDPR Mapping:** [EU AI Act & Regulatory Crosswalk](./docs/compliance/EU_AI_ACT_MAPPING.md) (Articles 9–15).
+- **Honest Boundaries & Limitations:** [Limitations & Architectural Boundaries](./docs/LIMITATIONS_AND_BOUNDARIES.md) — Unbiased scope and threat boundary map.
+- **Responsible AI & Ethics Charter:** [Ethics & Responsible AI Charter](./ETHICS_AND_RESPONSIBLE_AI.md) — Dual-use policy, civil safety & ISO/IEC 29147 Safe Harbor.
+- **Legal & Ethical Disclaimers:** [Legal Disclaimer & Safe Harbor](./DISCLAIMER.md).
+
 
 ---
 
