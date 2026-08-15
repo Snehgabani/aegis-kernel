@@ -4,8 +4,10 @@
 > *Sub-1.5ms Latency • Zero Network Egress • Deterministic Policy & State Invariants*
 
 [![CI Matrix](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
-[![Nightly Audit](https://github.com/Snehgabani/aegis-kernel/actions/workflows/nightly-health-audit.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![OpenSSF Scorecard](https://github.com/Snehgabani/aegis-kernel/actions/workflows/scorecard.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![CodeQL SAST](https://github.com/Snehgabani/aegis-kernel/actions/workflows/codeql.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Semgrep SAST](https://github.com/Snehgabani/aegis-kernel/actions/workflows/semgrep.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![SLSA 3](https://img.shields.io/badge/SLSA-Level%203-blue.svg)](https://slsa.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
@@ -13,6 +15,7 @@
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
 [![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Audit%20Ready-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)
+
 
 🌐 **Languages:** [English](./README.md) • [Español](./README.es.md) • [简体中文](./README.zh-CN.md) • [日本語](./README.ja.md) • [Deutsch](./README.de.md)
 

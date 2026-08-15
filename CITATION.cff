@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use Aegis Invariant Kernel in your research or production systems, please cite it as below."
+authors:
+  - family-names: "Gabani"
+    given-names: "Sneh"
+    orcid: "https://orcid.org/0009-0000-0000-0000"
+title: "Aegis Invariant Kernel: Formal Deterministic Guardrails & Invariant Enforcement for Autonomous AI Agent Swarms"
+version: 1.0.0
+date-released: 2026-08-15
+url: "https://github.com/Snehgabani/aegis-kernel"
+repository-code: "https://github.com/Snehgabani/aegis-kernel"
+keywords:
+  - "ai-safety"
+  - "agentic-ai"
+  - "guardrails"
+  - "security"
+  - "formal-verification"
+  - "mcp"
+  - "deterministic-ast"
+license: Apache-2.0
