@@ -161,3 +161,26 @@ export class AegisMCPMiddleware {
     return this.engine;
   }
 }
+
+/**
+ * Convenience helper to wrap a general MCP tool handler function
+ */
+export function wrapMcpToolHandler<TArgs extends Record<string, unknown>, TResult>(
+  handler: (request: { tool: string; params: TArgs }) => Promise<TResult>,
+  engine?: AegisEngine
+) {
+  const middleware = new AegisMCPMiddleware({ engine });
+  return async (request: { tool: string; params: TArgs }) => {
+    const wrapped = middleware.wrapToolHandler(request.tool, async (args) => {
+      return handler({ tool: request.tool, params: args as TArgs });
+    });
+    const result = await wrapped(request.params);
+    if (result && typeof result === 'object' && 'isError' in result && (result as any).isError) {
+      const errText =
+        (result as any).content?.map((c: any) => c.text).join('\n') ||
+        'Blocked by Aegis Invariant Policy';
+      throw new Error(errText);
+    }
+    return result as TResult;
+  };
+}

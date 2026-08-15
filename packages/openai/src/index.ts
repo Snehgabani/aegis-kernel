@@ -17,8 +17,12 @@ export interface OpenAIFunctionToolCall {
 export class AegisOpenAIGuard {
   private engine: AegisEngine;
 
-  constructor(config?: AegisConfig) {
-    this.engine = new AegisEngine(config);
+  constructor(config?: AegisConfig | AegisEngine) {
+    if (config instanceof AegisEngine) {
+      this.engine = config;
+    } else {
+      this.engine = new AegisEngine(config);
+    }
   }
 
   /**
@@ -38,6 +42,10 @@ export class AegisOpenAIGuard {
     };
 
     return this.engine.evaluate(toolCall, { framework: 'openai' });
+  }
+
+  public evaluateToolCall(toolCallItem: OpenAIFunctionToolCall): AegisVerdict {
+    return this.evaluate(toolCallItem);
   }
 
   /**
@@ -85,3 +93,5 @@ export class AegisOpenAIGuard {
     return this.engine;
   }
 }
+
+export { AegisOpenAIGuard as AegisOpenAIInterceptor };

@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-08-15T19:14:58.357Z",
+  "iterations": 10000,
+  "throughputRps": 2861,
+  "latency": {
+    "min": 0.2988749999999527,
+    "p50": 0.3182080000001406,
+    "p90": 0.42895800000007966,
+    "p95": 0.4984160000000202,
+    "p99": 0.6865000000000236,
+    "max": 15.983958999999999,
+    "mean": 0.3493994852999992,
+    "stdDev": 0.18365637306126936
+  },
+  "memory": {
+    "initialRssMb": 78.390625,
+    "finalRssMb": 125.953125,
+    "initialHeapMb": 20.15715789794922,
+    "finalHeapMb": 28.74323272705078
+  },
+  "threatDomains": {
+    "sql_evasion": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 6,
+      "maliciousBlocked": 6,
+      "benign": 4,
+      "benignPassed": 4
+    },
+    "zero_width_credentials": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "numeric_bypasses": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "benign_lookalike": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 0,
+      "maliciousBlocked": 0,
+      "benign": 10,
+      "benignPassed": 10
+    },
+    "cross_tenant": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "ddl_tampering": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "regulatory_hipaa_pci": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "nested_payload": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "indirect_prompt_injection": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    },
+    "velocity_state": {
+      "total": 10,
+      "passed": 10,
+      "malicious": 5,
+      "maliciousBlocked": 5,
+      "benign": 5,
+      "benignPassed": 5
+    }
+  }
+}
