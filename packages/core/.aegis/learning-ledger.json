@@ -1,9 +1,9 @@
 {
-  "totalEventsProcessed": 2,
+  "totalEventsProcessed": 4,
   "totalBlocked": 0,
-  "totalAllowed": 2,
+  "totalAllowed": 4,
   "totalOverrides": 0,
   "rulePerformance": {},
   "uncoveredTools": {},
-  "lastUpdated": "2026-08-15T20:11:16.900Z"
+  "lastUpdated": "2026-08-15T20:52:42.342Z"
 }
