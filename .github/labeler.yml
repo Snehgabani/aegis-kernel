@@ -1,0 +1,43 @@
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/core/**'
+
+mcp:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/mcp/**'
+
+cli:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/cli/**'
+
+diagnostics:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/diagnostics/**'
+
+evals:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/evals/**'
+
+adapters:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/openai/**'
+      - any-glob-to-any-file: 'packages/anthropic/**'
+      - any-glob-to-any-file: 'packages/langchain/**'
+
+python-sdk:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/python/**'
+
+services:
+  - changed-files:
+      - any-glob-to-any-file: 'services/**'
+
+ci-cd:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/**'
+      - any-glob-to-any-file: 'site/**'
+      - any-glob-to-any-file: '*.md'

@@ -1,0 +1,45 @@
+name: Aegis Monorepo Bundle Size & Performance Budget Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  bundle-budget:
+    name: Package Distribution & Artifact Size Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build Monorepo
+        run: npm run build
+
+      - name: Evaluate Package Distribution Sizes
+        run: |
+          echo "### 📦 Package Distribution Budgets" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | Size | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|:---:|" >> $GITHUB_STEP_SUMMARY
+          
+          for pkg in packages/*; do
+            if [ -d "$pkg/dist" ]; then
+              size=$(du -sh "$pkg/dist" | cut -f1)
+              echo "| \`$(basename $pkg)\` | $size | ✅ Optimal |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done

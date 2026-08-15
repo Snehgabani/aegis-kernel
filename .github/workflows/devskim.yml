@@ -1,0 +1,29 @@
+name: Microsoft DevSkim Security Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 5 * * 1' # Weekly on Monday at 05:00 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  devskim-lint:
+    name: Microsoft DevSkim Source Security Linter
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run DevSkim Security Linter
+        uses: microsoft/DevSkim-Action@v1
+        with:
+          directory-to-analyze: '.'
+          should-scan-archives: false

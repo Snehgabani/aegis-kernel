@@ -1,0 +1,44 @@
+name: Aegis Telemetry & Invariant Performance Digest
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # Daily at 12:00 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  telemetry-digest:
+    name: Continuous Invariant Latency & F1 Health Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies & Build
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Run Telemetry Collector
+        run: node scripts/collect-verification-telemetry.mjs
+
+      - name: Generate Invariant Health Markdown Digest
+        run: |
+          node -e '
+            const fs = require("fs");
+            const data = JSON.parse(fs.readFileSync(".aegis/benchmark-telemetry.json", "utf8"));
+            console.log("Telemetry Summary:");
+            console.log(`- Evaluated: ${data.totalEvaluations} iterations`);
+            console.log(`- P50 Latency: ${data.latency.p50}ms`);
+            console.log(`- P95 Latency: ${data.latency.p95}ms`);
+            console.log(`- F1 Score: ${(data.accuracy.f1Score * 100).toFixed(1)}%`);
+          '

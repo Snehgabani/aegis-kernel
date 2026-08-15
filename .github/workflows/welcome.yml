@@ -1,0 +1,29 @@
+name: Contributor Experience & First Interaction
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions: read-all
+
+jobs:
+  welcome:
+    name: Welcome First-Time Contributors
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Greet New Contributor
+        uses: actions/first-interaction@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            👋 **Welcome to Aegis Invariant Kernel!**
+            Thank you for opening an issue. Our automated verification pipeline has logged this report and maintainers will triage it shortly. Please ensure test vectors or steps to reproduce are included.
+          pr-message: |
+            🎉 **Thank you for contributing to Aegis Invariant Kernel!**
+            Your PR has triggered our automated CI/CD verification matrix, SAST security checks, and invariant benchmark scorecard.

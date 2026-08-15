@@ -1,0 +1,42 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🚀 Features & Capabilities'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🛡️ Security & Invariants'
+    labels:
+      - 'security'
+      - 'invariants'
+  - title: '🐛 Bug Fixes & Hardening'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: '🧰 Maintenance & Supply Chain'
+    labels:
+      - 'dependencies'
+      - 'chore'
+      - 'ci-cd'
+change-template: '- $TITLE (#$NUMBER) by @$AUTHOR'
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking-change'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+  default: patch
+template: |
+  ## What's Changed in Aegis Invariant Kernel $RESOLVED_VERSION
+
+  $CHANGES
+
+  ---
+  *Certified with deterministic AST invariants, Ed25519 Biscuit token monotonicity, and zero-egress kernel guarantees.*
