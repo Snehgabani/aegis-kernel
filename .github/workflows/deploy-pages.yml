@@ -19,11 +19,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Cloudflare Pages
+        if: env.CLOUDFLARE_API_TOKEN != ''
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: aegis-kernel
-          directory: site
+          command: pages deploy site --project-name=aegis-kernel
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
