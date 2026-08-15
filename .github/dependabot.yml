@@ -102,3 +102,6 @@ updates:
           - "actions/*"
           - "github/*"
           - "dependabot/*"
+    ignore:
+      - dependency-name: "actions/*"
+        update-types: ["version-update:semver-major"]
