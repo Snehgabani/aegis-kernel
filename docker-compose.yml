@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  aegis-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aegis-gateway
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      - NODE_ENV=production
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - AEGIS_LICENSE_SECRET=${AEGIS_LICENSE_SECRET:-aegis_master_enterprise_secret_key_2026}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8787/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,6 +1,6 @@
 name: 'Aegis Policy & Invariant Clearance Gate'
 description: 'Deterministic security clearance gate for AI Agent tool definitions, migrations, and prompt invariants in CI/CD'
-author: 'Aegis Project Contributors'
+author: 'Sneh Gabani'
 branding:
   icon: 'shield'
   color: 'blue'
