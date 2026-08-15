@@ -8,6 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
+[![GitHub Action](https://img.shields.io/badge/GitHub%20Action-v1-blue.svg?logo=github)](./docs/MARKETPLACE_ACTION_GUIDE.md)
 [![Tests](https://img.shields.io/badge/tests-143%2F143%20passing-brightgreen.svg)](#)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
@@ -128,6 +129,21 @@ const protectedTool = guard.wrap(myExistingTool);
 
 ---
 
+## 🚀 GitHub Action CI/CD Gate
+
+Audit AI agent tool invariants and generate compliance evidence directly in your GitHub pull requests:
+
+```yaml
+- name: Run Aegis Security & Compliance Audit
+  uses: Snehgabani/aegis-kernel@v1
+  with:
+    config-path: "./aegis.config.yaml"
+    mode: "enforce"
+    generate-report: "true"
+```
+
+---
+
 ## 🛠️ Developer CLI
 
 ```bash
@@ -155,6 +171,7 @@ npx aegis pack validate custom-pack.yaml
 - **Interactive Playground:** [`site/playground/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/playground/index.html) — Test invariants live in browser.
 - **Documentation Hub:** [`site/docs/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/docs/index.html) — Searchable technical API & policy reference.
 - **Auditor Console:** [`site/dashboard/index.html`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/site/dashboard/index.html) — Live audit stream & one-click CSV export.
+- **GitHub Action Guide:** [`docs/MARKETPLACE_ACTION_GUIDE.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/MARKETPLACE_ACTION_GUIDE.md) — CI/CD integration and parameters.
 - **Enterprise Buyer's Guide:** [`docs/compliance/ENTERPRISE_BUYERS_GUIDE.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/ENTERPRISE_BUYERS_GUIDE.md) — TCO, ROI calculation & SLAs.
 - **2026 Threat Landscape Report:** [`docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md) — OWASP MCP & agent attack vectors.
 - **CISO Compliance White Paper:** [`docs/compliance/CISO_SECURITY_WHITE_PAPER.md`](file:///Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/docs/compliance/CISO_SECURITY_WHITE_PAPER.md) (SOC 2, HIPAA, PCI-DSS).
