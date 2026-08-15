@@ -10,6 +10,10 @@ inputs:
     description: 'Path to aegis.config.yaml'
     required: false
     default: 'aegis.config.yaml'
+  scan-path:
+    description: 'Path or directory to scan for prompt injections and poisoned tools'
+    required: false
+    default: '.'
   fail-on-violation:
     description: 'Whether to fail the CI job if security invariants fail'
     required: false
@@ -28,3 +32,4 @@ runs:
       run: |
         echo "🛡️ Running Aegis Invariant CI/CD Security Gate..."
         npx aegis test
+        npx aegis scan "${{ inputs.scan-path }}"

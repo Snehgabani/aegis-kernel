@@ -37,3 +37,7 @@ export * from './ml/prompt-injection-classifier.js';
 export * from './grounding/rag-grounding-validator.js';
 export * from './graph/execution-dag.js';
 export * from './policy/policy-as-code.js';
+export * from './a2a/biscuit-token.js';
+export * from './a2a/agent-card-validator.js';
+export * from './a2a/delegation-router.js';
+export * from './confidential/zk-policy-verifier.js';

@@ -10,6 +10,8 @@ import { runRepl } from './repl-cli.js';
 import { runBenchmark } from './benchmark-cli.js';
 import { runMatrix } from './matrix-cli.js';
 import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
+import { runScan } from './scan-cli.js';
+import { runReplay } from './replay-cli.js';
 
 const program = new Command();
 
@@ -17,6 +19,20 @@ program
   .name('aegis')
   .description('Aegis Invariant Kernel: Deterministic Tool-Call Safety Clearance Gateway for AI Agents')
   .version('1.0.0');
+
+program
+  .command('scan [path]')
+  .description('Recursively scan workspace, prompts, and MCP tool definitions for security vulnerabilities')
+  .action((targetPath?: string) => {
+    runScan(targetPath || '.');
+  });
+
+program
+  .command('replay <logPath>')
+  .description('Deterministically replay historical audit log events against current policy rules')
+  .action((logPath: string) => {
+    runReplay(logPath);
+  });
 
 program
   .command('init')

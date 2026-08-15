@@ -4,7 +4,8 @@
     "outDir": "dist",
     "paths": {
       "@aegis-kernel/core": ["../core/src/index.ts"],
-      "@aegis-kernel/evals": ["../evals/src/index.ts"]
+      "@aegis-kernel/evals": ["../evals/src/index.ts"],
+      "@aegis-kernel/mcp": ["../mcp/src/index.ts"]
     }
   },
   "include": ["src/**/*"],
