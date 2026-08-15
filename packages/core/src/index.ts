@@ -15,6 +15,8 @@ export * from './telemetry/webhook-bot.js';
 export * from './hitl/escalation.js';
 export * from './identity/agent-identity.js';
 export * from './quarantine/circuit-breaker.js';
+export * from './self-healing.js';
+export * from './threat-feed.js';
 export * from './adapters/llamaindex.js';
 export * from './adapters/crewai.js';
 export * from './sanitizer.js';

@@ -184,3 +184,5 @@ export function wrapMcpToolHandler<TArgs extends Record<string, unknown>, TResul
     return result as TResult;
   };
 }
+
+export * from './scanner.js';
