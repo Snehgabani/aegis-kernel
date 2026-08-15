@@ -5,6 +5,7 @@ import { runReport } from './report.js';
 import { runLicenseActivate, runLicenseStatus } from './license-cli.js';
 import { runPricing } from './pricing-cli.js';
 import { runPackList, runPackValidate, runPackCreate } from './registry-cli.js';
+import { runHubList, runHubSearch, runHubInstall } from './hub-cli.js';
 import { runRepl } from './repl-cli.js';
 import { runBenchmark } from './benchmark-cli.js';
 
@@ -49,6 +50,29 @@ program
   .option('-t, --tricky', 'Run the 100-vector adversarial stress testbed')
   .action((options) => {
     runBenchmark(options);
+  });
+
+const hubCmd = program.command('hub').description('Discover, search, and install rule packs from the Aegis Hub registry');
+
+hubCmd
+  .command('list')
+  .description('List certified community and enterprise rule packs on Aegis Hub')
+  .action(() => {
+    runHubList();
+  });
+
+hubCmd
+  .command('search <term>')
+  .description('Search Aegis Hub registry for rule packs matching a term')
+  .action((term: string) => {
+    runHubSearch(term);
+  });
+
+hubCmd
+  .command('install <packId>')
+  .description('Download and install a rule pack into local .aegis/packs/')
+  .action((packId: string) => {
+    runHubInstall(packId);
   });
 
 const packCmd = program.command('pack').description('Manage, inspect, and validate Aegis Invariant Rule Packs');
@@ -98,6 +122,7 @@ program
   });
 
 program.parse(process.argv);
+
 
 
 
