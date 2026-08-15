@@ -1,25 +1,52 @@
-# Dependabot configuration for Aegis Invariant Kernel
-# Automated dependency management with grouped updates
+# Dependabot Configuration for Aegis Invariant Kernel
+# Frontier-Grade Automated Supply Chain & Security Governance
 
 version: 2
 updates:
+  # ── 1. Node.js & TypeScript Monorepo Ecosystem ─────────────────────
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+      time: "04:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 15
     labels:
       - "dependencies"
+      - "javascript"
       - "automated"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
     groups:
-      production-minor-patch:
+      # Group dev dependencies together to reduce PR fatigue
+      dev-dependencies:
+        dependency-type: "development"
         patterns:
-          - "*"
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "vitest*"
+          - "tsup"
+          - "turbo"
+      # Group production minor and patch updates
+      production-minor-patch:
+        dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
+        patterns:
+          - "*"
+      # Prioritize security vulnerability patches
+      security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
     ignore:
+      # Protect critical runtime parsers from unexpected breaking semver-major drift
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
       - dependency-name: "tsup"
@@ -28,18 +55,50 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "node-sql-parser"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "ajv"
+        update-types: ["version-update:semver-major"]
 
+  # ── 2. Python SDK Ecosystem ─────────────────────────────────────────
   - package-ecosystem: "pip"
     directory: "/packages/python"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+      day: "monday"
+      time: "04:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
 
+  # ── 3. GitHub Actions Workflows Ecosystem ───────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+      day: "monday"
+      time: "05:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
     labels:
       - "ci"
+      - "github-actions"
       - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      actions-dependencies:
+        patterns:
+          - "actions/*"
+          - "github/*"
+          - "dependabot/*"

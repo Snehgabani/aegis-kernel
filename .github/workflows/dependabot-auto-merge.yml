@@ -1,4 +1,4 @@
-name: Dependabot Auto-Merge
+name: Dependabot Automated Supply Chain & Auto-Merge Engine
 
 on:
   pull_request_target:
@@ -7,10 +7,12 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
+  statuses: read
 
 jobs:
-  dependabot-automerge:
-    name: Dependabot Auto-Approve & Auto-Merge
+  dependabot-governance:
+    name: Dependabot Security Triage & Auto-Merge Gate
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
@@ -20,17 +22,39 @@ jobs:
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
 
-      - name: Auto-Approve PR
-        continue-on-error: true
-        run: gh pr review --approve "$PR_URL" || true
+      - name: Add Triage Labels
+        run: |
+          gh pr edit "$PR_URL" --add-label "dependencies,automated-triage" || true
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Auto-Merge PR (Squash)
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major' || contains(steps.metadata.outputs.dependency-type, 'direct')
-        continue-on-error: true
-        run: gh pr merge --auto --squash "$PR_URL" || true
+      - name: Evaluate Security & SemVer Risk
+        id: risk-eval
+        run: |
+          UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
+          DEP_TYPE="${{ steps.metadata.outputs.dependency-type }}"
+          echo "Evaluating update: Type=$UPDATE_TYPE, DepType=$DEP_TYPE"
+          
+          # Auto-merge is permitted for dev dependencies, patch updates, and minor updates
+          if [[ "$UPDATE_TYPE" == "version-update:semver-patch" || "$UPDATE_TYPE" == "version-update:semver-minor" || "$DEP_TYPE" == "development" ]]; then
+            echo "can_automerge=true" >> $GITHUB_OUTPUT
+          else
+            echo "can_automerge=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-Approve Qualified PR
+        if: steps.risk-eval.outputs.can_automerge == 'true'
+        run: |
+          gh pr review --approve "$PR_URL" --body "✅ Automated security policy: Qualified non-breaking dependency update (${{ steps.metadata.outputs.update-type }})." || true
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable Auto-Merge (Squash)
+        if: steps.risk-eval.outputs.can_automerge == 'true'
+        run: |
+          gh pr merge --auto --squash "$PR_URL" || true
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
