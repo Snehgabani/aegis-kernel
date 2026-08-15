@@ -1,0 +1,8 @@
+{
+  "name": "aegis-kernel-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol for Aegis",
+  "capabilities": {
+    "tools": true
+  }
+}

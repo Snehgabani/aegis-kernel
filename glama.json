@@ -1,0 +1,8 @@
+{
+  "name": "Aegis Invariant Kernel",
+  "version": "1.0.0",
+  "description": "Deterministic safety engine for Agentic systems",
+  "mcp": {
+    "supported_versions": ["1.0"]
+  }
+}
