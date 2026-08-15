@@ -1,0 +1,17 @@
+# Ignore static site demo files and docs
+site/
+docs/
+*.min.js
+*.bundle.js
+
+# Ignore test files & mock fixtures
+**/__tests__/**
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+scripts/
+
+# Build artifacts
+dist/
+node_modules/
+.aegis/

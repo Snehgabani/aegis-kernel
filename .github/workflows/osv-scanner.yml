@@ -27,5 +27,3 @@ jobs:
         with:
           scan-args: |-
             --lockfile=package-lock.json
-            --recursive
-            ./
