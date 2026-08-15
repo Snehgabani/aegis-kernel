@@ -1,0 +1,50 @@
+name: Aegis Continuous Benchmark & Telemetry Scorecard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: 10,000-Iteration Latency & Threat Matrix Benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build All Monorepo Packages
+        run: npm run build
+
+      - name: Run Empirical Telemetry Benchmark
+        run: node scripts/collect-verification-telemetry.mjs
+
+      - name: Generate GitHub Actions Step Summary
+        run: |
+          echo "## 🛡️ Aegis Invariant Kernel — Empirical Benchmark Telemetry" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚡ Latency & Throughput Profile (10,000 Evaluations)" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Throughput** | **$(jq -r '.throughputRps' .aegis/benchmark-telemetry.json) evals/sec** |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Mean Latency** | **$(jq -r '.latency.mean' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
+          echo "| **P50 (Median)** | **$(jq -r '.latency.p50' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
+          echo "| **P95 Latency** | **$(jq -r '.latency.p95' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
+          echo "| **P99 Latency** | **$(jq -r '.latency.p99' .aegis/benchmark-telemetry.json) ms** |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 100-Vector Threat Matrix Breakdown" >> $GITHUB_STEP_SUMMARY
+          echo "| Threat Category | Total | Blocked | Passed | Accuracy |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :---: | :---: | :---: | :---: |" >> $GITHUB_STEP_SUMMARY
+          jq -r '.threatDomains | to_entries[] | "| **" + .key + "** | " + (.value.total|tostring) + " | " + (.value.maliciousBlocked|tostring) + "/" + (.value.malicious|tostring) + " | " + (.value.benignPassed|tostring) + "/" + (.value.benign|tostring) + " | **" + (((.value.passed / .value.total) * 100)|tostring) + "%** |"' .aegis/benchmark-telemetry.json >> $GITHUB_STEP_SUMMARY

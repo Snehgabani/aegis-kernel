@@ -1,18 +1,21 @@
-name: Multi-Platform Automated Release Pipeline
+name: Aegis Release Packaging & Distribution
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
+  workflow_dispatch:
 
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
-  publish-npm:
-    name: Publish NPM Monorepo Workspaces
+  verify-and-pack:
+    name: Verify & Package All Monorepo Distributions
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,94 +24,49 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
+          cache: npm
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Install Dependencies
-        run: npm install --no-audit --no-fund
-
-      - name: Build Packages
-        run: npm run build
-
-      - name: Run Test Verification
-        run: npm run test
-
-      - name: Publish NPM Workspaces
-        run: npm publish --workspaces --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-pypi:
-    name: Build & Publish Python SDK to PyPI
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Build Tooling
-        run: python -m pip install --upgrade pip build twine
+      - name: Install Monorepo Dependencies
+        run: npm ci
 
-      - name: Build Python Distribution Wheel & Source
-        run: cd packages/python && python -m build
+      - name: Build All Monorepo Packages
+        run: npm run build
 
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload packages/python/dist/*
+      - name: Run Full Test Matrix (136 Tests)
+        run: npm run test
 
-  publish-docker:
-    name: Build & Push Enterprise Gateway Container
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Run Python SDK Test Suite
+        run: python -m unittest discover packages/python/tests
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Validate Dry-Run npm Packaging on All 8 Packages
+        run: |
+          for dir in packages/* services/*; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Packaging $dir..."
+              (cd "$dir" && npm pack --dry-run) || exit 1
+            fi
+          done
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Build Python Wheel & Tarball
+        run: |
+          python -m pip install --upgrade build
+          python -m build packages/python
 
-      - name: Log in to GitHub Container Registry (GHCR)
-        uses: docker/login-action@v3
+      - name: Generate Release Checksums
+        run: |
+          mkdir -p release-artifacts
+          cp packages/python/dist/* release-artifacts/
+          (cd release-artifacts && sha256sum * > SHA256SUMS.txt)
+          cat release-artifacts/SHA256SUMS.txt
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  github-release:
-    name: Create GitHub Release with Assets
-    needs: [publish-npm, publish-pypi, publish-docker]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: aegis-release-artifacts
+          path: release-artifacts/
