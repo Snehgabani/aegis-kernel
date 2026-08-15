@@ -1,606 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aegis Security & Invariant Audit Dashboard</title>
-  <meta name="description" content="Centralized real-time telemetry, audit trails, and compliance reporting for AI agent tool invocations.">
-  <link rel="canonical" href="https://aegis-kernel.dev/dashboard/">
-  <meta property="og:title" content="Aegis Security & Invariant Audit Dashboard">
-  <meta property="og:description" content="Centralized real-time telemetry, audit trails, and compliance reporting for AI agent tool invocations.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://aegis-kernel.dev/dashboard/">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #090d16;
-      --surface: #0f172a;
-      --surface-elevated: #1e293b;
-      --border: #334155;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --danger: #ef4444;
-      --danger-bg: rgba(239, 68, 68, 0.15);
-      --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.15);
-      --warning: #f59e0b;
-      --warning-bg: rgba(245, 158, 11, 0.15);
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'Plus Jakarta Sans', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis Invariant Kernel - Enterprise Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #111827;
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --border: #1f2937;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+        h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .badge { background: var(--accent-green); color: black; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
 
-    /* Top Bar */
-    header {
-      background: rgba(15, 23, 42, 0.95);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(8px);
-    }
+        .sidebar {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #fff;
-      text-decoration: none;
-    }
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+        }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: var(--success-bg);
-      border: 1px solid var(--success);
-      color: var(--success);
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--success);
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
 
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .metric-card {
+            background: #1f2937;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .metric-value { font-size: 2rem; font-weight: bold; margin: 10px 0; }
+        .safe { color: var(--accent-green); }
+        .danger { color: var(--accent-red); }
 
-    .header-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
+        /* Code Editor Mock */
+        .editor {
+            background: #000;
+            color: #a6e22e;
+            font-family: 'Fira Code', monospace;
+            padding: 15px;
+            border-radius: 6px;
+            flex-grow: 1;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s ease-in-out;
-    }
+        /* Logs */
+        .log-container {
+            background: #000;
+            padding: 10px;
+            border-radius: 6px;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .log-entry { margin-bottom: 5px; }
+        .log-warn { color: #f59e0b; }
+        .log-err { color: var(--accent-red); }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-    }
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
+        button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.8; }
+        button.danger-btn { background: var(--accent-red); }
 
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-    .btn-outline:hover {
-      background: var(--surface-elevated);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    /* Main Container */
-    main {
-      flex: 1;
-      max-width: 1400px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    /* Metrics Grid */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      position: relative;
-    }
-
-    .metric-title {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-
-    .metric-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #fff;
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .metric-sub {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    /* Controls Bar */
-    .controls-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .search-input {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 0.85rem;
-      min-width: 280px;
-    }
-    .search-input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .filter-tabs {
-      display: flex;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 2px;
-    }
-
-    .tab-btn {
-      padding: 6px 14px;
-      border-radius: 4px;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .tab-btn.active {
-      background: var(--surface-elevated);
-      color: #fff;
-    }
-
-    /* Audit Table */
-    .table-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.85rem;
-    }
-
-    th {
-      background: var(--surface-elevated);
-      padding: 12px 16px;
-      font-weight: 600;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-      color: #cbd5e1;
-    }
-
-    tr:hover td {
-      background: rgba(30, 41, 59, 0.4);
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
-    .pill-blocked {
-      background: var(--danger-bg);
-      color: var(--danger);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .pill-allowed {
-      background: var(--success-bg);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .code-tag {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #38bdf8;
-    }
-
-    .hash-cell {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      max-width: 140px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* Modal */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 500px;
-      width: 90%;
-    }
-
-    .modal-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .modal-body {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-  </style>
+    </style>
 </head>
 <body>
 
-  <header>
-    <a href="../index.html" class="brand">
-      🛡️ <span>Aegis Security Console</span>
-    </a>
-    <div class="header-actions">
-      <div class="status-badge">
-        <span class="status-dot"></span>
-        <span>Gateway Live (Edge Connected)</span>
-      </div>
-      <button class="btn btn-outline" id="btn-simulate" title="Simulate attack vector injection">
-        ⚡ Simulate Block
-      </button>
-      <button class="btn btn-primary" id="btn-export" title="Export SOC 2 / HIPAA audit log">
-        📥 Export Auditor CSV
-      </button>
-    </div>
-  </header>
+    <header>
+        <h1>🛡️ Aegis Kernel <span class="badge">PROD</span></h1>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <span>System Status: <span class="safe">● ONLINE</span></span>
+            <span>Uptime: 99.99%</span>
+        </div>
+    </header>
 
-  <main>
-    <!-- Top KPI Metrics -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-title">Total Tool Invocations</div>
-        <div class="metric-value" id="val-total">1,428</div>
-        <div class="metric-sub">Across 4 production AI agents</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title">Security Clearance Rate</div>
-        <div class="metric-value" style="color: var(--success);" id="val-clearance">98.2%</div>
-        <div class="metric-sub">Safe benign actions passed</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title">Disasters Neutralized</div>
-        <div class="metric-value" style="color: var(--danger);" id="val-blocked">26</div>
-        <div class="metric-sub">SQL injections & PII exfiltrations</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title">Average Evaluation Latency</div>
-        <div class="metric-value" style="color: var(--primary);" id="val-latency">1.18ms</div>
-        <div class="metric-sub">Deterministic in-process hot path</div>
-      </div>
+    <div class="sidebar">
+        <h3>Navigation</h3>
+        <button>Overview</button>
+        <button style="background: transparent; border: 1px solid var(--border);">Cedar Policies</button>
+        <button style="background: transparent; border: 1px solid var(--border);">Threat Intel</button>
+        <button style="background: transparent; border: 1px solid var(--border);">Audit Logs</button>
+        
+        <h3 style="margin-top: auto;">Quick Actions</h3>
+        <button>Lockdown Mode</button>
+        <button class="danger-btn">Purge Cache</button>
     </div>
 
-    <!-- Filter & Search Controls -->
-    <div class="controls-bar">
-      <input type="text" class="search-input" id="search-input" placeholder="Search tool name, rule, or proof hash...">
-      <div class="filter-tabs">
-        <button class="tab-btn active" data-filter="all">All Events</button>
-        <button class="tab-btn" data-filter="BLOCKED">Blocked (26)</button>
-        <button class="tab-btn" data-filter="ALLOWED">Allowed (1,402)</button>
-      </div>
+    <div class="main-content">
+        
+        <!-- Live Metrics -->
+        <div class="panel">
+            <h2>Real-time Telemetry (SIEM)</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div>Requests/sec</div>
+                    <div class="metric-value">1,245</div>
+                </div>
+                <div class="metric-card">
+                    <div>Threats Blocked</div>
+                    <div class="metric-value danger">42</div>
+                </div>
+                <div class="metric-card">
+                    <div>NHI Spend Rate</div>
+                    <div class="metric-value">$0.12/m</div>
+                </div>
+                <div class="metric-card">
+                    <div>Latency (p99)</div>
+                    <div class="metric-value safe">14ms</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cedar Policy Editor -->
+        <div class="panel">
+            <h2>Cedar Policy Editor</h2>
+            <div class="editor" contenteditable="true" spellcheck="false">permit(
+    principal,
+    action in [Action::"ReadData", Action::"InvokeLLM"],
+    resource
+)
+when {
+    context.nhi_budget_remaining > 0 &&
+    context.threat_level < 50
+};
+
+forbid(
+    principal,
+    action,
+    resource
+)
+when {
+    resource.contains_pii == true
+};</div>
+            <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button style="background: var(--border);">Revert</button>
+                <button>Deploy Policy</button>
+            </div>
+        </div>
+
+        <!-- Merkle Proof Verifier -->
+        <div class="panel">
+            <h2>Merkle Proof Verifier</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Verify the integrity of LLM outputs using cryptographic invariants.</p>
+            <div style="background: var(--bg-color); padding: 15px; border-radius: 6px; border: 1px dashed var(--border); text-align: center; margin-bottom: 15px;">
+                Drag & Drop Payload JSON
+            </div>
+            <div style="display: flex; gap: 10px; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; font-family: monospace;">
+                    <span>Root Hash:</span>
+                    <span style="color: var(--accent-green);">0x7f83b...a9f2</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-family: monospace;">
+                    <span>Invariant State:</span>
+                    <span style="color: var(--accent-green);">VALIDATED</span>
+                </div>
+                <button style="margin-top: 10px;">Verify Chain</button>
+            </div>
+        </div>
+
+        <!-- Attack Simulator & Logs -->
+        <div class="panel">
+            <h2>Attack Simulator & Audit Logs</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button style="flex: 1;" onclick="addLog('injection')">Simulate Prompt Injection</button>
+                <button style="flex: 1;" class="danger-btn" onclick="addLog('exfil')">Simulate Exfiltration</button>
+            </div>
+            <div class="log-container" id="logBox">
+                <div class="log-entry">[2026-08-16 02:14:01] INFO: System initialized.</div>
+                <div class="log-entry">[2026-08-16 02:15:22] INFO: Cedar policy updated successfully.</div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Live Event Audit Trail Table -->
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Framework</th>
-            <th>Tool Name</th>
-            <th>Verdict</th>
-            <th>Triggered Invariant</th>
-            <th>Latency</th>
-            <th>SHA-256 Proof Hash</th>
-          </tr>
-        </thead>
-        <tbody id="events-table-body">
-          <!-- Populated dynamically via JavaScript -->
-        </tbody>
-      </table>
-    </div>
-  </main>
-
-  <script>
-    // Initial seeded events to demonstrate live telemetry
-    let events = [
-      {
-        id: "evt-001",
-        timestamp: "2026-08-15T22:30:12.140Z",
-        framework: "mcp",
-        tool: "db_query",
-        verdict: "BLOCKED",
-        rule: "SQL-001 (DELETE without WHERE)",
-        latency: "1.14ms",
-        hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-      },
-      {
-        id: "evt-002",
-        timestamp: "2026-08-15T22:29:54.810Z",
-        framework: "openai",
-        tool: "send_payment",
-        verdict: "BLOCKED",
-        rule: "FIN-001 (Amount > $10,000 ceiling)",
-        latency: "0.04ms",
-        hash: "7d1b58e35f6a91176b6a031e4e3b1c67d8f99e30a544b6c9213192080a9d18e2"
-      },
-      {
-        id: "evt-003",
-        timestamp: "2026-08-15T22:28:40.210Z",
-        framework: "anthropic",
-        tool: "customer_lookup",
-        verdict: "ALLOWED",
-        rule: "Safe (Targeted SELECT)",
-        latency: "1.25ms",
-        hash: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
-      },
-      {
-        id: "evt-004",
-        timestamp: "2026-08-15T22:27:15.650Z",
-        framework: "langchain",
-        tool: "export_patient_chart",
-        verdict: "BLOCKED",
-        rule: "HIPAA-001 (Unmasked NPI & SSN)",
-        latency: "0.08ms",
-        hash: "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a"
-      },
-      {
-        id: "evt-005",
-        timestamp: "2026-08-15T22:25:01.320Z",
-        framework: "mcp",
-        tool: "read_server_file",
-        verdict: "BLOCKED",
-        rule: "SOC2-001 (/etc/shadow traversal)",
-        latency: "0.03ms",
-        hash: "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d"
-      },
-      {
-        id: "evt-006",
-        timestamp: "2026-08-15T22:24:19.010Z",
-        framework: "openai",
-        tool: "update_order_status",
-        verdict: "ALLOWED",
-        rule: "Safe (Parameterized WHERE)",
-        latency: "0.98ms",
-        hash: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
-      }
-    ];
-
-    let currentFilter = "all";
-    let searchQuery = "";
-
-    function renderTable() {
-      const tbody = document.getElementById("events-table-body");
-      tbody.innerHTML = "";
-
-      const filtered = events.filter(e => {
-        const matchesFilter = currentFilter === "all" || e.verdict === currentFilter;
-        const matchesSearch = searchQuery === "" || 
-          e.tool.toLowerCase().includes(searchQuery) ||
-          e.rule.toLowerCase().includes(searchQuery) ||
-          e.hash.toLowerCase().includes(searchQuery);
-        return matchesFilter && matchesSearch;
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 32px; color: var(--text-muted);">No events matching filter criteria.</td></tr>`;
-        return;
-      }
-
-      for (const e of filtered) {
-        const tr = document.createElement("tr");
-        const timeFormatted = new Date(e.timestamp).toLocaleTimeString();
-        const verdictPill = e.verdict === "BLOCKED" 
-          ? `<span class="pill pill-blocked">🛑 BLOCKED</span>`
-          : `<span class="pill pill-allowed">✅ ALLOWED</span>`;
-
-        tr.innerHTML = `
-          <td>${timeFormatted}</td>
-          <td><span class="code-tag">${e.framework}</span></td>
-          <td><strong>${e.tool}</strong></td>
-          <td>${verdictPill}</td>
-          <td>${e.rule}</td>
-          <td style="color: #94a3b8;">${e.latency}</td>
-          <td class="hash-cell" title="${e.hash}">${e.hash}</td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }
-
-    // Filter tab buttons
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentFilter = btn.getAttribute("data-filter");
-        renderTable();
-      });
-    });
-
-    // Search bar
-    document.getElementById("search-input").addEventListener("input", (e) => {
-      searchQuery = e.target.value.trim().toLowerCase();
-      renderTable();
-    });
-
-    // Simulate Attack Vector Button
-    document.getElementById("btn-simulate").addEventListener("click", () => {
-      const attackTypes = [
-        { tool: "db_query", rule: "SQL-002 (DROP TABLE injection attempt)", framework: "mcp" },
-        { tool: "process_card", rule: "PCI-002 (CVV secret token detected)", framework: "openai" },
-        { tool: "fetch_medical_chart", rule: "HIPAA-002 (DEA Registration Token Leak)", framework: "anthropic" },
-        { tool: "exec_shell", rule: "SOC2-001 (~/.ssh/id_rsa path traversal)", framework: "langchain" }
-      ];
-      const selected = attackTypes[Math.floor(Math.random() * attackTypes.length)];
-      
-      const newEvt = {
-        id: "evt-" + Date.now(),
-        timestamp: new Date().toISOString(),
-        framework: selected.framework,
-        tool: selected.tool,
-        verdict: "BLOCKED",
-        rule: selected.rule,
-        latency: (Math.random() * 0.8 + 0.4).toFixed(2) + "ms",
-        hash: Array.from(crypto.getRandomValues(new Uint8Array(32)))
-          .map(b => b.toString(16).padStart(2, '0')).join('')
-      };
-
-      events.unshift(newEvt);
-      
-      // Update KPI counters
-      const totalEl = document.getElementById("val-total");
-      const blockedEl = document.getElementById("val-blocked");
-      totalEl.textContent = (parseInt(totalEl.textContent.replace(/,/g, '')) + 1).toLocaleString();
-      blockedEl.textContent = (parseInt(blockedEl.textContent) + 1).toString();
-
-      renderTable();
-    });
-
-    // Export CSV function for SOC 2 / HIPAA auditor
-    document.getElementById("btn-export").addEventListener("click", () => {
-      let csvContent = "data:text/csv;charset=utf-8,ID,Timestamp,Framework,ToolName,Verdict,TriggeredRule,Latency,ProofHash\n";
-      for (const e of events) {
-        csvContent += `"${e.id}","${e.timestamp}","${e.framework}","${e.tool}","${e.verdict}","${e.rule}","${e.latency}","${e.hash}"\n`;
-      }
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `aegis-compliance-audit-${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    // Initial render
-    renderTable();
-  </script>
+    <script>
+        function addLog(type) {
+            const box = document.getElementById('logBox');
+            const now = new Date().toISOString().split('.')[0].replace('T', ' ');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + (type === 'exfil' ? 'log-err' : 'log-warn');
+            entry.innerText = `[${now}] ${type === 'exfil' ? 'CRITICAL: Data exfiltration attempt intercepted!' : 'WARN: Prompt injection heuristic matched. Dropping payload.'}`;
+            box.appendChild(entry);
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
 </body>
 </html>
