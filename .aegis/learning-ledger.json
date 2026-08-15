@@ -1,50 +1,50 @@
 {
-  "totalEventsProcessed": 57657,
-  "totalBlocked": 1367,
-  "totalAllowed": 56290,
+  "totalEventsProcessed": 58683,
+  "totalBlocked": 1387,
+  "totalAllowed": 57296,
   "totalOverrides": 0,
   "rulePerformance": {
     "SQL-001": {
       "timesEvaluated": 0,
-      "timesFired": 455,
+      "timesFired": 461,
       "overridesCount": 0,
       "accuracyRate": 1,
-      "averageLatencyMs": 3.0863623770194346,
+      "averageLatencyMs": 1.4356619121409286,
       "status": "healthy",
-      "lastFired": "2026-08-15T18:19:12.120Z",
+      "lastFired": "2026-08-15T18:19:24.526Z",
       "overrideRatio": 0,
       "triageStatus": "healthy"
     },
     "SQL-003": {
       "timesEvaluated": 0,
-      "timesFired": 455,
+      "timesFired": 461,
       "overridesCount": 0,
       "accuracyRate": 1,
-      "averageLatencyMs": 3.0863623770194346,
+      "averageLatencyMs": 1.4356619121409286,
       "status": "healthy",
-      "lastFired": "2026-08-15T18:19:12.120Z",
+      "lastFired": "2026-08-15T18:19:24.526Z",
       "overrideRatio": 0,
       "triageStatus": "healthy"
     },
     "SQL-002": {
       "timesEvaluated": 0,
-      "timesFired": 322,
+      "timesFired": 326,
       "overridesCount": 0,
       "accuracyRate": 1,
-      "averageLatencyMs": 1.6460658630849672,
+      "averageLatencyMs": 0.9904416164428105,
       "status": "healthy",
-      "lastFired": "2026-08-15T18:19:12.120Z",
+      "lastFired": "2026-08-15T18:19:24.526Z",
       "overrideRatio": 0,
       "triageStatus": "healthy"
     },
     "FIN-001": {
       "timesEvaluated": 0,
-      "timesFired": 159,
+      "timesFired": 161,
       "overridesCount": 0,
       "accuracyRate": 1,
-      "averageLatencyMs": 1.855595281928616,
+      "averageLatencyMs": 3.3061488204821536,
       "status": "healthy",
-      "lastFired": "2026-08-15T18:19:14.270Z",
+      "lastFired": "2026-08-15T18:19:26.323Z",
       "overrideRatio": 0,
       "triageStatus": "healthy"
     },
@@ -61,12 +61,12 @@
     },
     "DATA-002": {
       "timesEvaluated": 0,
-      "timesFired": 240,
+      "timesFired": 243,
       "overridesCount": 0,
       "accuracyRate": 1,
-      "averageLatencyMs": 0.12106829207016356,
+      "averageLatencyMs": 0.047008536508770446,
       "status": "healthy",
-      "lastFired": "2026-08-15T18:19:12.170Z",
+      "lastFired": "2026-08-15T18:19:24.537Z",
       "overrideRatio": 0,
       "triageStatus": "healthy"
     },
@@ -83,57 +83,57 @@
     },
     "FIN-STATE-001": {
       "timesEvaluated": 0,
-      "timesFired": 116,
+      "timesFired": 117,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 1.7353745628626571,
+      "averageLatencyMs": 0.9971872814313285,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:19:14.031Z"
+      "lastFired": "2026-08-15T18:19:24.540Z"
     },
     "HIPAA-001": {
       "timesEvaluated": 0,
-      "timesFired": 30,
+      "timesFired": 31,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 2.1647479318659753,
+      "averageLatencyMs": 5.257873965932988,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:16:46.074Z"
+      "lastFired": "2026-08-15T18:19:26.347Z"
     },
     "HIPAA-002": {
       "timesEvaluated": 0,
-      "timesFired": 13,
+      "timesFired": 14,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 0.18141650390625,
+      "averageLatencyMs": 0.15270825195312498,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:16:46.076Z"
+      "lastFired": "2026-08-15T18:19:26.348Z"
     },
     "PCI-002": {
       "timesEvaluated": 0,
-      "timesFired": 13,
+      "timesFired": 14,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 0.093188232421875,
+      "averageLatencyMs": 0.09109411621093749,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:16:46.076Z"
+      "lastFired": "2026-08-15T18:19:26.349Z"
     },
     "SOC2-001": {
       "timesEvaluated": 0,
-      "timesFired": 23,
+      "timesFired": 24,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 0.061013553619384764,
+      "averageLatencyMs": 0.05650677680969238,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:16:46.077Z"
+      "lastFired": "2026-08-15T18:19:26.349Z"
     },
     "SOC2-002": {
       "timesEvaluated": 0,
-      "timesFired": 52,
+      "timesFired": 53,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 6.932225991998313,
+      "averageLatencyMs": 7.278612995999156,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:16:46.087Z"
+      "lastFired": "2026-08-15T18:19:26.357Z"
     },
     "SOC2-003": {
       "timesEvaluated": 0,
@@ -146,12 +146,12 @@
     },
     "FIN-CUSTOM-01": {
       "timesEvaluated": 0,
-      "timesFired": 21,
+      "timesFired": 22,
       "overridesCount": 0,
       "overrideRatio": 0,
-      "averageLatencyMs": 0.15328175258636476,
+      "averageLatencyMs": 0.1336408762931824,
       "triageStatus": "healthy",
-      "lastFired": "2026-08-15T18:19:13.957Z"
+      "lastFired": "2026-08-15T18:19:26.843Z"
     },
     "PCI-001": {
       "timesEvaluated": 0,
@@ -210,5 +210,5 @@
   },
   "uncoveredTools": {},
   "estimatedDisastersPrevented": 45,
-  "lastUpdated": "2026-08-15T18:19:14.371Z"
+  "lastUpdated": "2026-08-15T18:19:26.844Z"
 }
