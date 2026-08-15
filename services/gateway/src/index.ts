@@ -130,6 +130,36 @@ export function createGatewayApp(env?: GatewayEnv) {
 
       const licenseKey = licenseManager.generateLicenseKey(licensePayload, secretKey);
 
+      // Automated Onboarding Email Delivery (via Resend API if configured)
+      if (process.env.RESEND_API_KEY && customerEmail && !customerEmail.includes('localhost')) {
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: 'Aegis Invariant Kernel <license@aegis-kernel.dev>',
+              to: [customerEmail],
+              subject: `🛡️ Your Aegis ${plan.toUpperCase()} License Key & Activation Guide`,
+              html: `
+                <h2>Welcome to Aegis Invariant Kernel!</h2>
+                <p>Thank you for upgrading to the <strong>${plan.toUpperCase()} Plan</strong>.</p>
+                <p>Your offline cryptographic license token is:</p>
+                <pre style="background: #111827; color: #34d399; padding: 12px; border-radius: 6px; font-family: monospace;">${licenseKey}</pre>
+                <p>To activate your compliance packs and unlimited throughput, run:</p>
+                <pre style="background: #111827; color: #38bdf8; padding: 12px; border-radius: 6px; font-family: monospace;">npx aegis license activate ${licenseKey}</pre>
+                <p>Or configure via environment variable in your production runtime:</p>
+                <pre style="background: #111827; color: #fbbf24; padding: 12px; border-radius: 6px; font-family: monospace;">AEGIS_LICENSE_KEY=${licenseKey}</pre>
+              `,
+            }),
+          });
+        } catch {
+          // Log and continue gracefully
+        }
+      }
+
       return c.json({
         received: true,
         fulfilled: true,

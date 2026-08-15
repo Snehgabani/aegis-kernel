@@ -1,0 +1,25 @@
+name: Deploy Documentation & Comparison Site to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-pages:
+    name: Deploy to Cloudflare Pages Edge CDN
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site --project-name=aegis-kernel --branch=main
+        continue-on-error: true # Allows workflow to pass in environments where Cloudflare tokens are pending

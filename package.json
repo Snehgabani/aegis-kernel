@@ -2,6 +2,7 @@
   "name": "aegis-kernel-monorepo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "packageManager": "npm@10.9.8",
   "description": "Aegis Invariant Kernel: Deterministic Tool-Call Safety Gateway for AI Agents",
   "workspaces": [
