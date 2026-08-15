@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability Disclosure
+    url: https://github.com/Snehgabani/aegis-kernel/security/advisories/new
+    about: Please report potential security vulnerabilities privately.
+  - name: 💬 Developer Community & Discussions
+    url: https://github.com/Snehgabani/aegis-kernel/discussions
+    about: Ask questions, share ideas, and connect with other AI agent engineers.

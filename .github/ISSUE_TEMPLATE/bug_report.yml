@@ -1,0 +1,59 @@
+name: 🐛 Bug Report
+description: Report a bug, engine exception, or false-positive/negative evaluation verdict
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a potential issue with Aegis Invariant Kernel! Please provide as much context as possible.
+
+  - type: input
+    id: version
+    attributes:
+      label: Aegis Kernel Version
+      description: What version of `@aegis-kernel/core` or CLI are you running?
+      placeholder: e.g. v1.0.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Runtime Environment
+      options:
+        - Node.js 18.x
+        - Node.js 20.x (LTS)
+        - Node.js 22.x
+        - Bun / Deno
+        - Python 3.9+ SDK
+        - Cloudflare Workers / Edge Runtime
+        - Docker Container
+    validations:
+      required: true
+
+  - type: textarea
+    id: tool_payload
+    attributes:
+      label: Tool Call Payload & Rule Triggered
+      description: Provide the tool call name, parameters, and rule pack YAML being evaluated.
+      render: json
+      placeholder: |
+        {
+          "tool": "execute_sql",
+          "params": {
+            "query": "SELECT * FROM accounts;"
+          }
+        }
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected vs Actual Verdict
+      description: Explain what verdict you expected (`ALLOWED` vs `BLOCKED`) and what the kernel produced.
+      placeholder: |
+        Expected: ALLOWED
+        Actual: BLOCKED (violates SQL-001)
+    validations:
+      required: true

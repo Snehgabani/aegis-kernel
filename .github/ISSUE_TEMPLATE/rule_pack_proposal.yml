@@ -1,0 +1,41 @@
+name: 📦 New Invariant Rule Pack Proposal
+description: Propose a new open-source or industry compliance rule pack (e.g. ISO 27001, FedRAMP, FinTech)
+labels: ['enhancement', 'rule-pack']
+body:
+  - type: input
+    id: pack_name
+    attributes:
+      label: Rule Pack Name & Domain
+      placeholder: e.g. fedramp-guard (Federal Cloud Security & Data Invariants)
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivations
+    attributes:
+      label: Regulatory / Business Motivation
+      description: What specific compliance standard or attack vector does this pack guard against?
+    validations:
+      required: true
+
+  - type: textarea
+    id: rule_definitions
+    attributes:
+      label: Proposed YAML Rule Specifications
+      description: Provide drafted YAML rule specifications.
+      render: yaml
+      placeholder: |
+        id: fedramp-guard
+        name: FedRAMP High Invariant Security Guard
+        version: 1.0.0
+        rules:
+          - id: FEDRAMP-001
+            name: Prohibit Unencrypted External Data Egress
+            severity: critical
+            condition:
+              type: regex
+              params:
+                target_field: params.url
+                pattern: "^http://"
+    validations:
+      required: true

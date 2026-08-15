@@ -1,0 +1,20 @@
+#!/bin/sh
+# Aegis Invariant Kernel Pre-Commit Quality & Security Hook
+echo "🛡️  Running Aegis Pre-Commit Verification Gate..."
+
+# 1. Check TypeScript compilation across all workspaces
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-commit failed: Strict TypeScript check reported errors."
+  exit 1
+fi
+
+# 2. Run unit & invariant test suite
+npm run test
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-commit failed: Unit tests did not pass."
+  exit 1
+fi
+
+echo "✅ Aegis Pre-Commit Verification Passed!"
+exit 0

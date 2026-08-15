@@ -1,0 +1,30 @@
+# Aegis Invariant Kernel Code Ownership
+# Lines starting with '#' are comments.
+
+# Default global owners for the repository
+* @Snehgabani
+
+# Core Engine & Mathematical Checkers (Strict Security Review Required)
+/packages/core/ @Snehgabani
+/packages/core/src/checkers/ @Snehgabani
+/packages/core/packs/ @Snehgabani
+
+# Security Advisories & Benchmarks
+/packages/evals/ @Snehgabani
+/docs/advisories/ @Snehgabani
+/Dockerfile.test @Snehgabani
+
+# Cloud Gateway & Stripe Monetization
+/services/gateway/ @Snehgabani
+
+# Developer CLI & Framework Adapters
+/packages/cli/ @Snehgabani
+/packages/mcp/ @Snehgabani
+/packages/openai/ @Snehgabani
+/packages/anthropic/ @Snehgabani
+/packages/langchain/ @Snehgabani
+/packages/python/ @Snehgabani
+
+# CI/CD Workflows & Security Automation
+/.github/workflows/ @Snehgabani
+/.github/dependabot.yml @Snehgabani
