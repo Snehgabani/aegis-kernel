@@ -1,0 +1,22 @@
+name: ❓ Question & Support
+description: Ask a question about Aegis policies, AST checkers, or agent integrations
+title: "[Q&A]: "
+labels: ["question", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask questions about integrating Aegis Invariant Kernel with LangChain, OpenAI, Anthropic, or MCP.
+  - type: textarea
+    id: question
+    attributes:
+      label: What is your question?
+      description: Provide details about your agent stack and what you are trying to enforce.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Info
+      description: Node / Python version, framework name, operating system.
+      placeholder: Node 22.14, @aegis-kernel/langchain v1.0.0, macOS

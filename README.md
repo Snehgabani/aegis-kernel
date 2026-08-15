@@ -21,7 +21,11 @@
 
 🌐 **Languages:** [English](./README.md) • [Español](./README.es.md) • [简体中文](./README.zh-CN.md) • [日本語](./README.ja.md) • [Deutsch](./README.de.md)
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Snehgabani/aegis-kernel)
+[![Open in VS Code](https://img.shields.io/static/v1?logo=visualstudiocode&label=VS%20Code&message=Open%20in%20Browser&color=007ACC)](https://vscode.dev/github/Snehgabani/aegis-kernel)
+
 ---
+
 
 ## ⚡ [Try the Live Interactive Studio Sandbox](https://github.com/Snehgabani/aegis-kernel/blob/main/site/playground.html)
 

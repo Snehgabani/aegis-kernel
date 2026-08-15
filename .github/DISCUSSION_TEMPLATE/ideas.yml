@@ -1,0 +1,25 @@
+name: 💡 Feature Request or Rule Pack Idea
+description: Share an idea for a new invariant checker, framework adapter, or rule pack
+title: "[Idea]: "
+labels: ["enhancement", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new idea for the Aegis Invariant Kernel!
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Explain the agent vulnerability, safety threat, or UX friction.
+      placeholder: When agents execute XYZ, there is a risk of...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution / Invariant Rule
+      description: Describe how the new checker or configuration should behave.
+      placeholder: Introduce a new checker '@aegis/custom-rule' with AST parsing for...
+    validations:
+      required: true

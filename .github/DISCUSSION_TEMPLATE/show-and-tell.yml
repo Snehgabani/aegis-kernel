@@ -1,0 +1,21 @@
+name: 🙌 Show & Tell (Agent Architecture Showcase)
+description: Show off what you built with Aegis Invariant Kernel
+title: "[Showcase]: "
+labels: ["showcase", "community"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show off your autonomous AI agent, custom rule packs, or enterprise safety gateway architecture!
+  - type: textarea
+    id: project-description
+    attributes:
+      label: Project Description & Architecture
+      description: What does your agent do and how does Aegis protect its tool execution runtime?
+    validations:
+      required: true
+  - type: input
+    id: repository-url
+    attributes:
+      label: Repository or Live Demo URL (Optional)
+      placeholder: https://github.com/my-org/my-autonomous-agent
