@@ -1,0 +1,38 @@
+name: Issue & PR Automated Triage
+
+on:
+  issues:
+    types: [opened, labeled]
+  pull_request_target:
+    types: [opened]
+
+permissions: read-all
+
+jobs:
+  triage:
+    name: Automatic Issue Classifier & Triage
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Add Triage Label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isIssue = !!context.payload.issue;
+            const issueNumber = isIssue ? context.payload.issue.number : context.payload.pull_request.number;
+            
+            console.log(`Processing triage for #${issueNumber}`);
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['triage', 'needs-review']
+              });
+              console.log(`✅ Applied triage labels to #${issueNumber}`);
+            } catch (err) {
+              console.log(`Notice: Could not attach labels (insufficient token scope in fork or dry run): ${err.message}`);
+            }

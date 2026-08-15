@@ -1,0 +1,44 @@
+name: Go SDK Multi-Architecture Compilation & Verification
+
+on:
+  push:
+    paths:
+      - 'packages/go/**'
+      - '.github/workflows/go-build.yml'
+  pull_request:
+    paths:
+      - 'packages/go/**'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  build-go:
+    name: Compile Go SDK across Target Architectures
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.23
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: packages/go/go.sum
+
+      - name: Build Go Package
+        working-directory: packages/go
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -v ./...

@@ -1,0 +1,40 @@
+name: Python SDK Wheel Build & Package Verification
+
+on:
+  push:
+    paths:
+      - 'packages/python/**'
+      - '.github/workflows/python-package.yml'
+  pull_request:
+    paths:
+      - 'packages/python/**'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  build-python:
+    name: Build Python Wheel & Tarball
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Build Tools
+        run: pip install --upgrade build twine
+
+      - name: Build Distribution Packages
+        working-directory: packages/python
+        run: python -m build
+
+      - name: Verify Package Metadata
+        working-directory: packages/python
+        run: twine check dist/*

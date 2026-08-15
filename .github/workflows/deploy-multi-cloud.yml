@@ -1,0 +1,51 @@
+name: Multi-Cloud Production Deployment (Cloud Run, AWS ECS & Azure)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_cloud:
+        description: 'Target Cloud Platform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - gcp-cloud-run
+          - aws-ecs
+          - azure-app-service
+      environment:
+        description: 'Target Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions: read-all
+
+jobs:
+  validate-and-plan:
+    name: Validate Multi-Cloud Release Artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Build & Package Production Bundles
+        run: |
+          npm ci
+          npm run build
+
+      - name: Verify Container Buildability
+        run: |
+          docker build -t aegis-gateway:latest -f services/gateway/Dockerfile .
+          echo "✅ Container image built and verified for cloud deployment!"

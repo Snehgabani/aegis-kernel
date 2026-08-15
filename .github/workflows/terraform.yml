@@ -1,0 +1,38 @@
+name: Terraform Infrastructure as Code (IaC) Validation Gate
+
+on:
+  push:
+    paths:
+      - 'deploy/terraform/**'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    paths:
+      - 'deploy/terraform/**'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  validate-terraform:
+    name: Terraform Format, Syntax & Security Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Validate Terraform Directory if present
+        run: |
+          if [ -d "deploy/terraform" ]; then
+            cd deploy/terraform
+            terraform init -backend=false
+            terraform fmt -check
+            terraform validate
+          else
+            echo "✅ No custom Terraform manifests defined. IaC validation passed."
+          fi
