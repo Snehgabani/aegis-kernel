@@ -683,7 +683,11 @@ export class SqlChecker {
     processedSql = processedSql.replace(/\/\*.*?\*\//g, '');
 
     const violations: AegisViolation[] = [];
-    const rawTokens = processedSql.toUpperCase().split(/\s+/).filter(Boolean);
+    const rawTokens = processedSql
+      .toUpperCase()
+      .replace(/([(),;])/g, ' $1 ')
+      .split(/\s+/)
+      .filter(Boolean);
     const tokens = rawTokens.map((t) => (t.endsWith(';') ? t.slice(0, -1) : t));
 
     // 1. Comprehensive DDL Detection
