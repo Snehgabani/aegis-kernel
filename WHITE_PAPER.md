@@ -165,18 +165,20 @@ Aegis provides native `@solver` and `@task` interceptors for the **UK AISI `insp
 To provide a fair, grounded comparison without vendor bias, we benchmarked the four primary guardrail architectures locally on the **exact same hardware** (Apple M3 Max / Node.js v22.23.2 / macOS 15.6) on the **exact same input corpus**:
 
 ```mermaid
-quadrantChart
-    title "Guardrail Performance & Latency Trade-off"
-    x-axis "Low Latency" --> "High Latency"
-    y-axis "Low Robustness" --> "High Robustness"
-    quadrant-1 "High Latency / High Security (LLM Judge)"
-    quadrant-2 "Deterministic Frontier (Aegis)"
-    quadrant-3 "Naive Rules (Regex Baseline)"
-    quadrant-4 "Probabilistic Tax (Local Classifiers)"
-    "Aegis Invariant Kernel": [0.05, 0.98]
-    "Naive Regex": [0.04, 0.42]
-    "Local Classifier (DeBERTa)": [0.45, 0.76]
-    "Cloud LLM-as-a-Judge": [0.92, 0.88]
+flowchart TD
+    subgraph MATRIX ["Guardrail Performance & Latency Architectural Matrix"]
+        direction TB
+        
+        subgraph HIGH_ROBUSTNESS ["High Robustness & Attack Invariance (100% Clearance)"]
+            AEGIS["🛡️ Aegis Invariant Kernel<br/><b>P50: ~0.15ms • P99: ~1.5ms • Zero Network Egress</b><br/><i>🏆 Optimal Frontier: Sub-millisecond AST + Strict Invariants</i>"]
+            LLM_JUDGE["☁️ Cloud LLM Judge / NeMo Rails<br/><b>P50: 150-500ms • GPU/API Bound • Cloud Egress</b><br/><i>High Semantic Security but Severe Latency Penalty</i>"]
+        end
+
+        subgraph LOW_ROBUSTNESS ["Lower Robustness (Vulnerable to Complex Payloads)"]
+            REGEX["⚡ Naive Regex Filters<br/><b>P50: 0.05ms • Vulnerable to Comments/Hex/Unicode Evasion</b>"]
+            LOCAL_ML["🧠 Local Classifiers (DeBERTa)<br/><b>P50: 40-80ms • ~76% F1 on Obfuscated SQL/AST Attacks</b>"]
+        end
+    end
 ```
 
 ### 4.1 Comparative Empirical Matrix
