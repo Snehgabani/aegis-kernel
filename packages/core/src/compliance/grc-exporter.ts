@@ -5,7 +5,7 @@
  * EU AI Act, and NIST AI RMF 1.0 with SHA-256 Merkle tree root hash verification.
  */
 
-import { createHash, createHmac } from 'node:crypto';
+import { createHash, createHmac, generateKeyPairSync, sign, verify } from 'node:crypto';
 import type { AegisEvent, RulePack } from '../types.js';
 
 export interface FrameworkMapping {
@@ -99,6 +99,38 @@ export function verifyChainIntegrity(events: AegisEvent[], expectedRoot: string,
   }
   
   return expectedRoot === computeEventChainMerkleRoot(events, previousRootHash);
+}
+
+/**
+ * Generates an asymmetric Ed25519 keypair for offline tamper-evident audit ledger signing.
+ */
+export function generateAuditKeyPairEd25519(): { publicKey: string; privateKey: string } {
+  const { publicKey, privateKey } = generateKeyPairSync('ed25519', {
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+  return { publicKey, privateKey };
+}
+
+/**
+ * Computes an asymmetric Ed25519 digital signature over a Merkle root using a private key.
+ */
+export function signMerkleRootEd25519(merkleRoot: string, privateKeyPem: string): string {
+  const data = Buffer.from(`AEGIS_ED25519_MERKLE_ROOT:${merkleRoot}`, 'utf-8');
+  return sign(null, data, privateKeyPem).toString('base64');
+}
+
+/**
+ * Verifies an asymmetric Ed25519 digital signature over a Merkle root using a public key.
+ */
+export function verifyMerkleRootEd25519(merkleRoot: string, signatureBase64: string, publicKeyPem: string): boolean {
+  try {
+    const data = Buffer.from(`AEGIS_ED25519_MERKLE_ROOT:${merkleRoot}`, 'utf-8');
+    const sig = Buffer.from(signatureBase64, 'base64');
+    return verify(null, data, publicKeyPem, sig);
+  } catch {
+    return false;
+  }
 }
 
 /**

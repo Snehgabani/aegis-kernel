@@ -6,8 +6,8 @@
   "packageManager": "npm@10.9.8",
   "description": "Aegis Invariant Kernel: Deterministic Tool-Call Safety Gateway for AI Agents",
   "license": "MIT",
-  "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
-  "homepage": "https://aegis-kernel.dev",
+  "author": "Sneh Gabani <https://github.com/Snehgabani>",
+  "homepage": "https://snehgabani.github.io/aegis-kernel/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Snehgabani/aegis-kernel.git"

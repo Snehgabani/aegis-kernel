@@ -17,14 +17,17 @@ rules:
 
   - id: SQL-002
     severity: critical
-    description: Prohibit destructive DROP and TRUNCATE commands
-    suggestedFix: Destructive DDL statements are prohibited in production.
+    description: Prohibit destructive DROP, TRUNCATE, ALTER, GRANT, and REVOKE commands
+    suggestedFix: Destructive DDL and privilege escalation statements are prohibited in production.
     condition:
       type: sql_ast
       params:
         block_statements:
           - DROP
           - TRUNCATE
+          - ALTER
+          - GRANT
+          - REVOKE
 
   - id: SQL-003
     severity: critical

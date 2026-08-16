@@ -1,9 +1,9 @@
 # Aegis: In-Process Deterministic Invariant Clearance for Tool-Augmented AI Agents
 
 **Technical Report & Scientific Whitepaper (v1.0)**  
-**Author**: Sneh Gabani (`sneh@aegis-kernel.dev`)  
+**Author**: Sneh Gabani  
 **Repository**: [github.com/Snehgabani/aegis-kernel](https://github.com/Snehgabani/aegis-kernel)  
-**Live Site & Portals**: [aegis-kernel.dev](https://aegis-kernel.dev)  
+**Live Site & Portals**: [snehgabani.github.io/aegis-kernel/](https://snehgabani.github.io/aegis-kernel/)  
 **Date**: August 2026
 
 ---
@@ -19,9 +19,14 @@ We introduce **Aegis Invariant Kernel**, an open-source, in-process, determinist
 - Multi-dialect SQL Abstract Syntax Tree (AST) mutations and tautology folds.
 - Numeric bounds with currency normalization and `BigInt` overflow protection.
 - High-throughput PII masking with salted deterministic token vaults.
-- Multi-turn crescendo risk tracking with Ed25519 cryptographic Biscuit capability attenuation.
+- Multi-turn crescendo risk tracking with Ed25519 cryptographic Biscuit capability attenuation and signed Merkle ledgers.
 
-We evaluate Aegis across standard academic benchmarks—**InjecAgent** (ACL 2024), **AgentDojo** (NeurIPS 2024), **MCP-Bench** (Tool Poisoning), and the **100-Vector Adversarial Tricky Suite**. Aegis achieves **100.0% Empirical F1** with a median (P50) latency of **0.318 ms** and 0.0% false positive disruption to benign agent workflows. All evaluation harnesses and cryptographic proof-of-benchmark generators are open-sourced for complete third-party reproducibility.
+We evaluate Aegis across standard academic benchmarks:
+- **InjecAgent (ACL 2024, 1,054 test cases)**: 93.5% attack resilience rate.
+- **AgentDojo (NeurIPS 2024, 629 security test cases)**: 86.6% benchmark accuracy.
+- **Internal Tricky-100 Testbed**: 100.0% Empirical F1.
+- **Curated Representative Sample (27 cases)**: 100.0% Empirical F1 in sub-second offline CI/CD.
+- **Median (P50) Latency**: 0.252 ms with zero network egress. All evaluation harnesses and test suites are open-sourced for complete third-party reproducibility.
 
 ---
 

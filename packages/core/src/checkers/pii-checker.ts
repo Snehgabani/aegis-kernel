@@ -15,18 +15,26 @@ export const DEFAULT_PII_PATTERNS = {
   JWT_TOKEN: /\beyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*\b/,
   GCP_SERVICE_ACCOUNT: /"type":\s*"service_account"/,
   DATABASE_URI_SECRET: /\b(?:postgres|postgresql|mysql|mongodb|redis):\/\/[^:\s]+:[^@\s]+@[^\s]+\b/,
-  SLACK_TOKEN: /\bxox[baprs]-[0-9a-zA-Z]{10,48}\b/,
+  SLACK_TOKEN: /\bxox[baprs]-[0-9a-zA-Z-]{10,64}\b/,
+  SENDGRID_KEY: /\bSG\.[0-9a-zA-Z_-]{16,32}\.[0-9a-zA-Z_-]{32,64}\b/,
+  AZURE_KEY: /\b(?:secret|api_key)_[a-zA-Z0-9_]{10,}\b/i,
 
   // Global & Compliance Patterns (HIPAA, PCI-DSS, GDPR)
   INTERNATIONAL_PHONE: /\+(?:[0-9][ -]?){6,14}[0-9]/,
   IBAN: /\b[A-Z]{2}[0-9]{2}[ -]?(?:[A-Z0-9]{4}[ -]?){1,7}[A-Z0-9]{1,4}\b/,
   US_NPI: /\b[12]\d{9}\b/, // National Provider Identifier (10 digits starting with 1 or 2)
   US_DEA: /\b[A-Z]{2}\d{7}\b/, // Drug Enforcement Administration registration number
+  US_TAX_ID: /\b\d{2}-\d{7}\b/,
+  DRIVER_LICENSE: /\bDriver License:\s*[A-Z0-9]{6,10}\b/i,
+  MEDICAL_RECORD_NUMBER: /\bMRN:\s*\d{6,10}\b/i,
   ICD10_CODE: /\b[A-TV-Z][0-9][0-9AB](?:\.[0-9A-TV-Z]{1,4})?\b/, // Medical diagnostic code
   CREDIT_CARD_CVV: /\b(?:cvv|cvc|cvn|cid)\s*[:=]\s*\d{3,4}\b/i, // Card security code
   UK_NINO: /\b[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D]{1}\b/i,
   INDIAN_PAN: /\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b/,
-  SENSITIVE_FILE_PATH: /(?:\/etc\/(?:shadow|passwd|sudoers)|\.ssh\/(?:id_rsa|authorized_keys)|\.env(?:\.[a-zA-Z0-9_-]+)?|\/proc\/self\/environ)/, // System traversal
+  // System & Environment Invariants
+  SENSITIVE_FILE_PATH: /(?:\/etc\/(?:shadow|passwd|sudoers)|\.ssh\/(?:id_rsa|authorized_keys)|\.env(?:\.[a-zA-Z0-9_-]+)?|\/proc\/self\/environ)/,
+  DESTRUCTIVE_COMMAND: /\b(?:rm\s+-(?:r|f|rf|fr)\s+[\/\*]|mkfs|dd\s+if=|\:(){ \:\|\: & }\;:\b)/i,
+  ZERO_WIDTH_TOOL: /[\u200B-\u200D\uFEFF\u200E\u200F\u2060\u00AD]/,
 
   // OWASP LLM02 & LLM07: Conversational Prompt Leakage & Data Exfiltration
   SYSTEM_PROMPT_LEAKAGE: /(?:<\|im_start\|>system|<\|begin_of_text\|>|You are an AI assistant who must always|Internal system instructions:|=== SYSTEM INSTRUCTIONS ===)/i,

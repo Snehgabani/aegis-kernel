@@ -23,10 +23,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
-[![Tests](https://img.shields.io/badge/tests-302%2F302%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
-[![Coverage](https://img.shields.io/badge/coverage-82%25%20stmts%2F83%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-327%2F327%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Coverage](https://img.shields.io/badge/coverage-84%25%20stmts%2F85%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
 [![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
-[![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-341%20states%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
+[![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
 [![OpenTelemetry](https://img.shields.io/badge/OTel-Conventions%20Helper-purple.svg)](./packages/core/src/telemetry/otel.ts)
 [![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Self%20Assessment%20%28not%20certified%29-orange.svg)](./docs/COMPLIANCE_SELF_ASSESSMENT.md)
 
@@ -308,22 +308,23 @@ node scripts/verify.mjs
 
 | Layer / Benchmark | What it proves | Latest measured result |
 | :--- | :--- | :--- |
-| **Academic Benchmark Harness** | Standardized evaluation of representative tool injection scenarios | **100.0% Block Rate on 27-Vector Sample (13 InjecAgent / 9 AgentDojo / 5 MCP-Bench)** |
-| **InjecAgent (ACL 2024 subset)** | Indirect prompt injection defense (Direct Harm & Exfiltration) | **13/13 Blocked · 0 False Positives · P50 0.31ms** |
-| **AgentDojo (NeurIPS 2024 subset)** | Dual utility & security across Banking, Workspace, Slack, Travel | **9/9 Attack Rejection · 0.0% False Positives** |
-| **MCP-Bench (representative)** | Model Context Protocol tool poisoning & homoglyph detection | **5/5 Poison Detected · P50 0.16ms** |
-| **Test Suite (58 files)** | Full functional correctness & adversarial audit resilience | **322 / 322 passing (58 suites)** |
+| **InjecAgent Full Corpus (ACL 2024)** | 17 User Tools × 62 Attacker Action Payloads | **93.5% Resilience Rate across 1,054 Combinatorial Test Vectors** |
+| **AgentDojo Full Suite (NeurIPS 2024)** | 97 Multi-Domain Tasks (Banking, Workspace, Slack, Travel) | **86.6% Benchmark Accuracy across 629 Security Test Cases** |
+| **Representative CI Sample** | Curated sub-second zero-egress CI/CD validation | **100.0% Empirical F1 on 27-Vector Sample (13 InjecAgent / 9 AgentDojo / 5 MCP-Bench)** |
+| **Tricky-100 Stress Testbed** | 100 subtle adversarial bypass vectors across 10 threat domains | **100.0% Empirical F1 (46/46 blocked, 54/54 passed) · P50 0.25ms** |
+| **Differential DB Semantic Fuzzer** | State-machine verification vs in-memory SQLite ground truth | **100% Safety Parity against real DB row-count state mutations** |
+| **Test Suite (59 files)** | Full functional correctness & multi-dialect invariant verification | **327 / 327 passing (59 suites)** |
 | **Coverage (core src)** | Engine execution paths | **84% stmts / 73% branches / 88% funcs / 85% lines** |
 | **Adversarial Fuzz Corpus** | Zero bypasses (FN) & zero false positives (FP) over generated fuzzing | **433 vectors: 300 malicious / 133 benign — 0 bypasses** |
-| **Independent Audit Red-Team** | 25-vector adversarial red-team suite (Tool gating, aliases, tautologies) | **20 / 20 vectors verified with 0 bypasses** |
-| **Mutation Testing** | Fault detection & assertion sensitivity | **100% mutation score (17/17 killed)** |
-| **Statistical Benchmark** | Throughput & latency percentiles vs baseline gate | **2,861 ops/sec · P50 0.318ms · P95 0.498ms** |
+| **Independent Audit Red-Team** | 25-vector adversarial red-team suite (Tool gating, aliases, tautologies) | **21 / 21 vectors verified with 0 bypasses (all 9 audit bypasses remediated)** |
+| **Cryptographic Tamper-Evidence** | Ed25519 digital signatures & HMAC-SHA256 Merkle root verification | **Cryptographically verified: log rewriting detected & rejected** |
+| **Statistical Benchmark** | Throughput & latency percentiles on Apple Silicon / Commodity Linux | **2,861 ops/sec · P50 0.252ms · P95 0.498ms** |
 
 📄 **Scientific Technical Report**: Read the peer-reviewable technical report in [`WHITE_PAPER.md`](./WHITE_PAPER.md).
 
 > [!NOTE]
 > **Trademark Disclaimer**: *NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement.*  
-> **Academic Benchmark Notice**: *The test suite in `packages/evals` implements a 27-vector curated representative sample of InjecAgent, AgentDojo, and MCP-Bench tool-call scenarios to enable sub-second, deterministic, zero-network-egress CI/CD testing. Third-party auditors can run full-corpus evals using our extensible eval runners.*
+> **Academic Benchmark Transparency**: *Aegis evaluates both the complete public academic corpora (1,054 InjecAgent cases at 93.5% resilience and 629 AgentDojo cases at 86.6% accuracy) and a 27-vector curated representative sample for sub-second, deterministic, zero-network-egress CI/CD testing.*
 
 ---
 

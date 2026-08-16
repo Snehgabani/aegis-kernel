@@ -19,18 +19,13 @@ If you encounter a reproducible bug, invariant edge case, or parser divergence:
 ### 3. 🔒 Security Vulnerability Disclosures
 **DO NOT report security vulnerabilities via public GitHub issues.**
 - Please refer to our **[Security Policy](SECURITY.md)**.
-- Report vulnerabilities securely via GitHub Private Vulnerability Reporting or email: `security@aegis-kernel.dev`.
+- Report vulnerabilities securely via GitHub Private Vulnerability Reporting at [https://github.com/Snehgabani/aegis-kernel/security/advisories/new](https://github.com/Snehgabani/aegis-kernel/security/advisories/new).
 - Response SLA: Within **24 hours**.
-
-### 4. 🏢 Enterprise Support & SLAs
-For production deployments requiring 24/7 on-call SLAs, custom rule pack authoring, zero-egress hardware enclaves, or compliance auditing:
-- Visit **[Aegis Enterprise](https://aegis-kernel.dev/enterprise)**
-- Contact: `enterprise@aegis-kernel.dev`
 
 ---
 
 ## 📚 Official Documentation & Learning
 
-- **Interactive Playground & Live Demo**: [https://aegis-kernel.dev/playground](https://aegis-kernel.dev/playground)
-- **Architecture & Verification Proofs**: [https://aegis-kernel.dev/docs](https://aegis-kernel.dev/docs)
+- **Interactive Playground & Live Demo**: [https://snehgabani.github.io/aegis-kernel/playground/](https://snehgabani.github.io/aegis-kernel/playground/)
+- **Live Documentation Portal**: [https://snehgabani.github.io/aegis-kernel/](https://snehgabani.github.io/aegis-kernel/)
 - **Local Diagnostics**: Run `npx aegis doctor` in your terminal.

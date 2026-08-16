@@ -177,5 +177,38 @@ describe('Independent Audit Red-Team Verification Suite (All 25 Vectors)', () =>
       expect(tamperedCheck.valid).toBe(false);
       expect(tamperedCheck.signatureValid).toBe(false);
     });
+
+    it('signs and verifies Merkle root with asymmetric Ed25519 digital keypair', async () => {
+      const {
+        computeEventChainMerkleRoot,
+        generateAuditKeyPairEd25519,
+        signMerkleRootEd25519,
+        verifyMerkleRootEd25519,
+      } = await import('../src/compliance/grc-exporter.js');
+
+      const { publicKey, privateKey } = generateAuditKeyPairEd25519();
+      const events = [
+        {
+          id: 'ev-2',
+          timestamp: '2026-08-16T12:00:00Z',
+          toolName: 'database_exec',
+          params: { query: 'SELECT * FROM users LIMIT 10' },
+          verdict: 'ALLOWED' as const,
+          rulesEvaluated: 10,
+          rulesFired: [],
+          latencyMs: 0.3,
+          proofHash: 'proof-2',
+        },
+      ];
+
+      const root = computeEventChainMerkleRoot(events);
+      const sig = signMerkleRootEd25519(root, privateKey);
+
+      // Verify legitimate signature with public key
+      expect(verifyMerkleRootEd25519(root, sig, publicKey)).toBe(true);
+
+      // Verify tampered root fails signature verification
+      expect(verifyMerkleRootEd25519('forged-root-hash-12345', sig, publicKey)).toBe(false);
+    });
   });
 });

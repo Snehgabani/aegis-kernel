@@ -9,24 +9,22 @@ contribution-policy:
   code-of-conduct: https://github.com/Snehgabani/aegis-kernel/blob/main/CODE_OF_CONDUCT.md
   contributing: https://github.com/Snehgabani/aegis-kernel/blob/main/CONTRIBUTING.md
 documentation:
-  - https://aegis-kernel.dev/docs
+  - https://snehgabani.github.io/aegis-kernel/
 distribution-points:
-  - https://www.npmjs.com/package/@aegis-kernel/core
-  - https://pypi.org/project/aegis-kernel/
-  - https://ghcr.io/snehgabani/aegis-gateway
+  - https://github.com/Snehgabani/aegis-kernel/releases
 security-assessments:
   - time: 2026-08-16
     type: automated-sast-and-secret-audit
-    tool: CodeQL, Semgrep, Gitleaks, Hadolint, Anchore Grype
+    tool: CodeQL, Semgrep, Gitleaks, Hadolint, Anchore Grype, OSV-Scanner
     url: https://github.com/Snehgabani/aegis-kernel/actions
 security-contacts:
-  - type: email
-    value: security@aegis-kernel.dev
+  - type: url
+    value: https://github.com/Snehgabani/aegis-kernel/security/advisories/new
 dependencies:
   third-party:
     - name: vitest
       type: testing
-    - name: hono
+    - name: node-sql-parser
       type: runtime
-    - name: zed-industries/biscuit
-      type: cryptography
+    - name: ajv
+      type: validation

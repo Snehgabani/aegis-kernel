@@ -31,17 +31,32 @@ class TestAegisPythonKernel(unittest.TestCase):
         self.assertTrue(v3.allowed)
         self.assertEqual(v3.verdict, "ALLOWED")
 
-        # 4. Tautology bypass attempt (WHERE 2>1)
-        call4 = ToolCall(tool="db_exec", params={"query": "DELETE FROM users WHERE 2>1"})
-        v4 = self.engine.evaluate(call4)
-        self.assertFalse(v4.allowed)
-        self.assertEqual(v4.violations[0].rule_id, "SQL-001")
+        # 4. Tautology bypass attempts (WHERE 2>1, WHERE 1, WHERE id>0)
+        for tautology in ["DELETE FROM users WHERE 2>1", "DELETE FROM users WHERE 1", "DELETE FROM users WHERE id > 0"]:
+            call_t = ToolCall(tool="db_exec", params={"query": tautology})
+            v_t = self.engine.evaluate(call_t)
+            self.assertFalse(v_t.allowed, f"Expected {tautology} to be BLOCKED")
+            self.assertEqual(v_t.violations[0].rule_id, "SQL-001")
 
-        # 5. Financial alias overspend (total instead of amount)
-        call5 = ToolCall(tool="payment", params={"total": 50000})
-        v5 = self.engine.evaluate(call5)
-        self.assertFalse(v5.allowed)
-        self.assertEqual(v5.violations[0].rule_id, "FIN-001")
+        # 5. Tool-name and param-name alias bypasses (tools/call with stmt)
+        call_alias = ToolCall(tool="tools/call", params={"stmt": "DROP TABLE users"})
+        v_alias = self.engine.evaluate(call_alias)
+        self.assertFalse(v_alias.allowed)
+        self.assertEqual(v_alias.violations[0].rule_id, "SQL-002")
+
+        # 6. Financial alias overspend (total/price/value instead of amount)
+        for alias_field in ["total", "price", "value", "sum", "payout"]:
+            call_f = ToolCall(tool="payment", params={alias_field: 50000})
+            v_f = self.engine.evaluate(call_f)
+            self.assertFalse(v_f.allowed, f"Expected financial limit on {alias_field} to be BLOCKED")
+            self.assertEqual(v_f.violations[0].rule_id, "FIN-001")
+
+        # 7. Negative amount & formatted currency string
+        call_neg = ToolCall(tool="transfer", params={"amount": -100})
+        self.assertFalse(self.engine.evaluate(call_neg).allowed)
+
+        call_str = ToolCall(tool="transfer", params={"amount": "$50,000.00"})
+        self.assertFalse(self.engine.evaluate(call_str).allowed)
 
     def test_blocks_financial_limits_and_pii(self):
         # Overspend

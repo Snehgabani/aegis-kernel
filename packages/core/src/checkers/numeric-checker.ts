@@ -40,8 +40,11 @@ export class NumericChecker {
     let effectiveMin = params.min;
     if (effectiveMin === undefined) {
       const lowerField = params.field.toLowerCase();
-      if (lowerField.includes('amount') || lowerField.includes('price') || lowerField.includes('cost') ||
-          lowerField.includes('payment') || lowerField.includes('payout') || lowerField.includes('transfer')) {
+      const financialNames = [
+        'amount', 'price', 'cost', 'payment', 'payout', 'transfer',
+        'balance', 'credit', 'debit', 'total', 'value', 'sum', 'fee', 'charge', 'limit'
+      ];
+      if (financialNames.some(name => lowerField.includes(name))) {
         effectiveMin = 0;
       }
     }
@@ -170,7 +173,7 @@ export class NumericChecker {
 
     // Semantic alias search for financial fields (e.g. amount -> total, value, sum, price, payout)
     const lowerTarget = targetField.toLowerCase();
-    const financialAliases = ['amount', 'total', 'value', 'sum', 'price', 'cost', 'payout', 'payment', 'transfer', 'fee', 'charge', 'subtotal', 'debit', 'credit'];
+    const financialAliases = ['amount', 'total', 'value', 'sum', 'price', 'cost', 'payout', 'payment', 'transfer', 'fee', 'charge', 'subtotal', 'debit', 'credit', 'balance', 'limit'];
     if (financialAliases.includes(lowerTarget)) {
       for (const alias of financialAliases) {
         if (alias === lowerTarget) continue;

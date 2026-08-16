@@ -16,7 +16,7 @@ rules:
 
   - id: SOC2-002
     severity: critical
-    description: Prohibit destructive schema DDL alterations in production agent workflows
+    description: Prohibit destructive schema DDL alterations and privilege escalations in production agent workflows
     condition:
       type: sql_ast
       params:
@@ -24,6 +24,8 @@ rules:
           - DROP
           - TRUNCATE
           - ALTER
+          - GRANT
+          - REVOKE
 
   - id: SOC2-003
     severity: critical
@@ -54,6 +56,12 @@ rules:
         target_field: order_id
         assertion: "state.order_status == null || state.order_status != 'cancelled'"
 
-
-
-
+  - id: SOC2-006
+    severity: critical
+    description: Block destructive host commands (rm -rf, fork bombs, disk format)
+    condition:
+      type: regex
+      params:
+        patterns:
+          - DESTRUCTIVE_COMMAND
+        match_action: block

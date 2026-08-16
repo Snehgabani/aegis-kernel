@@ -783,6 +783,46 @@ export class SqlChecker {
       }
     }
 
+    // 5. GRANT / REVOKE Privilege Escalation
+    if (tokens.includes('GRANT') || tokens.includes('REVOKE')) {
+      violations.push({
+        ruleId,
+        packId,
+        severity,
+        message: `Privilege modification statement (GRANT/REVOKE) detected via safety filter.`,
+        suggestedFix: `Database privilege modification commands are prohibited in production agent workflows.`,
+        context: { fallbackUsed: true, pattern: 'PRIVILEGE_MODIFICATION' },
+      });
+    }
+
+    // 6. UPDATE without WHERE
+    const updateIdx = tokens.indexOf('UPDATE');
+    if (updateIdx !== -1) {
+      const updateWhereIdx = tokens.indexOf('WHERE', updateIdx);
+      if (updateWhereIdx === -1) {
+        violations.push({
+          ruleId,
+          packId,
+          severity,
+          message: `Mass UPDATE statement detected without WHERE clause via safety fallback filter.`,
+          suggestedFix: `Add a specific WHERE clause to your UPDATE query.`,
+          context: { fallbackUsed: true, pattern: 'UPDATE_NO_WHERE' },
+        });
+      }
+    }
+
+    // 7. CTE Nested Mutation (WITH ... AS (DELETE/DROP/UPDATE/TRUNCATE))
+    if (tokens.includes('WITH') && (tokens.includes('DELETE') || tokens.includes('DROP') || tokens.includes('TRUNCATE'))) {
+      violations.push({
+        ruleId,
+        packId,
+        severity,
+        message: `Destructive mutation inside Common Table Expression (CTE) detected via safety filter.`,
+        suggestedFix: `Destructive CTE mutations are prohibited in production agent workflows.`,
+        context: { fallbackUsed: true, pattern: 'CTE_MUTATION' },
+      });
+    }
+
     return violations;
   }
 }
