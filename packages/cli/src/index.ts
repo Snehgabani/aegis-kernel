@@ -92,10 +92,17 @@ program
 
 program
   .command('eval [dataset]')
-  .description('Run standardized academic benchmarks (injecagent, agentdojo, mcp, or all)')
+  .description('Run standardized academic and double-blind benchmarks (injecagent, agentdojo, mcp, or all)')
   .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .option('--blinded', 'Execute cryptographic double-blind evaluation with sealed oracle and Merkle trace')
+  .option('--adaptive', 'Run dynamic Tree-of-Attacks (TAP) automated red-teaming fuzzer')
   .action(async (dataset, options) => {
-    process.exitCode = await runPublicEval({ dataset, output: options.output });
+    process.exitCode = await runPublicEval({
+      dataset,
+      output: options.output,
+      blinded: options.blinded,
+      adaptive: options.adaptive,
+    });
   });
 
 const hubCmd = program.command('hub').description('Discover, search, and install rule packs from the Aegis Hub registry');

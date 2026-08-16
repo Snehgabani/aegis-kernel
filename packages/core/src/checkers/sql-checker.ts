@@ -7,6 +7,31 @@ const ParserClass: any =
   (NodeSqlParser as any).default?.Parser ??
   NodeSqlParser;
 
+const HOMOGLYPH_DECODE_MAP: Record<string, string> = {
+  '\u0430': 'a', '\u0410': 'A',
+  '\u0432': 'b', '\u0412': 'B',
+  '\u0441': 'c', '\u0421': 'C',
+  '\u0435': 'e', '\u0415': 'E',
+  '\u0456': 'i', '\u0406': 'I',
+  '\u0458': 'j', '\u0408': 'J',
+  '\u043A': 'k', '\u041A': 'K',
+  '\u041C': 'M',
+  '\u041D': 'H',
+  '\u043E': 'o', '\u041E': 'O',
+  '\u0440': 'p', '\u0420': 'P',
+  '\u0455': 's', '\u0405': 'S',
+  '\u0422': 'T',
+  '\u0443': 'y',
+  '\u0445': 'x', '\u0425': 'X',
+  '\u0391': 'A', '\u03B1': 'a',
+  '\u0392': 'B',
+  '\u0395': 'E', '\u03B5': 'e',
+  '\u039F': 'O', '\u03BF': 'o',
+  '\u03A1': 'P', '\u03C1': 'p',
+  '\u03A4': 'T',
+  '\u03A7': 'X', '\u03C7': 'x',
+};
+
 export class SqlChecker {
   private parser: any;
   private static readonly SUPPORTED_DIALECTS = ['PostgreSQL', 'MySQL', 'SQLite', 'TransactSQL'] as const;
@@ -461,18 +486,23 @@ export class SqlChecker {
    */
 
   /**
-   * Unicode normalization for evasion-proof SQL inspection.
-   *
-   * 1. NFKD compatibility decomposition: fullwidth letters (ＤＥＬＥＴＥ), homoglyphs,
-   *    and other compatibility characters collapse to ASCII (DELETE). NBSP -> space.
-   * 2. Strips invisible/format control characters: zero-width (U+200B-200D),
-   *    BOM (U+FEFF), bidi controls (U+202A-202E, U+200E/200F), word joiner
+   * Normalize unicode representation to prevent evasion via:
+   * 1. Compatibility decomposition (NFKD) -> fullwidth (0xFF01-0xFF5E) mapped to ASCII
+   * 2. Cyrillic & Greek homoglyph decoding to ASCII
+   * 3. Stripping of zero-width spaces (U+200B..U+200D), word joiner
    *    (U+2060), and soft hyphen (U+00AD).
    */
   public static normalizeUnicode(sql: string): string {
-    return sql
+    let normalized = sql
       .normalize('NFKD')
       .replace(/[\u200b-\u200d\u2060\u2061\u2062\u2063\u2064\u200e\u200f\u202a-\u202e\uFEFF\u00ad]/g, '');
+
+    // Decode homoglyphs
+    let decoded = '';
+    for (const ch of normalized) {
+      decoded += HOMOGLYPH_DECODE_MAP[ch] ?? ch;
+    }
+    return decoded;
   }
 
   public static stripSqlComments(sql: string): string {
@@ -590,13 +620,27 @@ export class SqlChecker {
   ): AegisViolation[] {
     let processedSql = sql;
 
-    // 1. Hex-encoded keyword detection
+    // 1. Hex (\xXX, 0xXX) & URL (%XX) decoding
     processedSql = processedSql.replace(/0x([0-9a-fA-F]+)/g, (match, hex) => {
       try {
         return Buffer.from(hex, 'hex').toString('utf8');
       } catch {
         return match;
       }
+    });
+    processedSql = processedSql.replace(/\\x([0-9a-fA-F]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    processedSql = processedSql.replace(/%([0-9a-fA-F]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+
+    // 1b. Base64 encoded payload detection in SQL string
+    processedSql = processedSql.replace(/\b[A-Za-z0-9+/]{12,}={0,2}\b/g, (match) => {
+      try {
+        const rawDecoded = Buffer.from(match, 'base64').toString('utf8');
+        const decoded = SqlChecker.normalizeUnicode(rawDecoded).replace(/\/\*.*?\*\//g, '');
+        if (/\b(DELETE|DROP|TRUNCATE|UPDATE|ALTER|SELECT)\b/i.test(decoded)) {
+          return decoded;
+        }
+      } catch {}
+      return match;
     });
 
     // 2. String concatenation detection
@@ -682,12 +726,21 @@ export class SqlChecker {
         });
       } else {
         const whereClause = tokens.slice(whereIdx + 1).join(' ');
-        const tautologies = [
-          '1=1', '1 = 1', '2=2', '2 = 2', '0=0', '0 = 0',
-          "'A'='A'", "'A' = 'A'", "'1'='1'", "'1' = '1'",
-          'TRUE', '1<2', '1 < 2', 'NULL IS NULL'
-        ];
-        if (tautologies.some((t) => whereClause === t || whereClause.startsWith(t + ' ') || whereClause.includes('OR 1=1'))) {
+        
+        // Comprehensive fallback tautology check: N=N, 'X'='X', N>M, IS NOT NULL, TRUE
+        const isTautology = 
+          whereClause === 'TRUE' ||
+          whereClause.startsWith('TRUE') ||
+          /\bIS\s+NOT\s+NULL\b/i.test(whereClause) ||
+          /(\d+)\s*=\s*\1\b/.test(whereClause) ||
+          /(\d+)\s*!=\s*(\d+)/.test(whereClause) ||
+          /'([^']+)'\s*=\s*'\1'/i.test(whereClause) ||
+          /\bOR\s+(?:1\s*=\s*1|TRUE|\d+\s*>\s*\d+|'[^']+'\s*=\s*'[^']+')/i.test(whereClause) ||
+          ['1=1', '1 = 1', '2=2', '2 = 2', '0=0', '0 = 0', '100=100', '100 = 100', '2>1', '2 > 1'].some(
+            t => whereClause === t || whereClause.startsWith(t + ' ') || whereClause.includes(t)
+          );
+
+        if (isTautology) {
           violations.push({
             ruleId,
             packId,

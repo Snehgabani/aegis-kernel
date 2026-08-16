@@ -8,3 +8,7 @@ export * from './benchmarks/agentdojo-adapter.js';
 export * from './benchmarks/mcp-bench-suite.js';
 export * from './head-to-head/comparative-profiler.js';
 export * from './public-eval-harness.js';
+export * from './adaptive/mutation-engine.js';
+export * from './adaptive/tap-red-team.js';
+export * from './blinded/double-blind-harness.js';
+export * from './fuzz/ast-grammar-fuzzer.js';
