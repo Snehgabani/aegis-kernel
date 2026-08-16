@@ -13,7 +13,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
-[![Tests](https://img.shields.io/badge/tests-288%2F288%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-290%2F290%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![Coverage](https://img.shields.io/badge/coverage-82%25%20stmts%2F83%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
 [![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
 [![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
@@ -29,7 +29,7 @@
 ---
 
 
-## ⚡ [Try the Live Interactive Studio Sandbox](https://github.com/Snehgabani/aegis-kernel/blob/main/site/playground.html)
+## ⚡ [Try the Live Interactive Studio Sandbox](https://snehgabani.github.io/aegis-kernel/playground/) *(or [aegis-kernel.dev/playground](https://aegis-kernel.dev/playground/))*
 
 Test real-world adversarial attacks (SQL comment evasion, zero-width token leaks, scientific notation overspend, cross-tenant spoofing) live directly in your browser with zero installation!
 
@@ -178,7 +178,7 @@ git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
 npm run build        # builds all TypeScript workspace packages (tsup)
-npm test             # 266/266 tests
+npm test             # 290/290 tests (50 suites)
 ```
 
 Once published, the commands below will work:
@@ -252,7 +252,7 @@ node scripts/verify.mjs          # tests + coverage + fuzz + mutation + benchmar
 
 | Layer | What it proves | Latest measured result |
 | :--- | :--- | :--- |
-| Test suite (50 files) | Functional correctness | **288 / 288 passing** |
+| Test suite (50 files) | Functional correctness | **290 / 290 passing (50 suites)** |
 | Coverage (core src, CI-gated) | How much of the engine the tests exercise | **82% stmts / 70% branches / 86% funcs / 83% lines** |
 | Adversarial fuzz corpus (seeded) | Zero bypasses (FN) and zero false positives (FP) over generated obfuscations | **433 vectors: 300 malicious / 133 benign — 0 bypasses, 0 FPs** |
 | Property tests (fast-check, seeded) | Idempotence, determinism, representation invariance, redaction completeness, no-throw | **7 properties, 2,300+ random cases** |
@@ -318,9 +318,10 @@ npx aegis pack validate custom-pack.yaml
 
 ## 🌐 Live Web Portals & Resources
 
-- **Interactive Playground:** [Live Browser Sandbox](./site/playground.html) — Test invariants live in browser.
-- **Documentation Hub:** [Interactive Documentation Site](./docs/README.md) — Searchable technical API & policy reference.
-- **Auditor Console:** [Live Audit Dashboard](./site/dashboard/index.html) — Live audit stream & one-click CSV export.
+- **Interactive Playground:** [Live Browser Sandbox](https://snehgabani.github.io/aegis-kernel/playground/) — Test invariants and prompt defenses live in browser.
+- **Documentation Hub:** [Interactive Documentation Site](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable technical API & policy reference.
+- **Auditor Console:** [Live Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream & one-click CSV export.
+- **Architecture Comparison:** [Architecture Comparison Matrix](https://snehgabani.github.io/aegis-kernel/compare/) — Side-by-side technical benchmarks and capabilities.
 - **GitHub Action:** [`action.yml`](./action.yml) — CI/CD integration and parameters (guide in [`CONTRIBUTING.md`](./CONTRIBUTING.md)).
 - **Enterprise Buyer's Guide:** [Enterprise Buyer's Guide & ROI Matrix](./docs/compliance/ENTERPRISE_BUYERS_GUIDE.md) — TCO, ROI calculation & SLAs.
 - **Formal Specification & Invariant Model:** [Formal Specification & LaTeX Architecture](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations and canonical citations.
