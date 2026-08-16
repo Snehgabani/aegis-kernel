@@ -1,0 +1,116 @@
+{
+  "generatedAt": "2026-08-16T09:54:39.014Z",
+  "total": 17,
+  "killedCount": 17,
+  "scorePct": 100,
+  "results": [
+    {
+      "id": "SQL-1",
+      "desc": "tautology detection disabled for DELETE",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SQL-2",
+      "desc": "blocked statement types no longer enforced",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SQL-3",
+      "desc": "regex fallback disabled on parse failure (CTE/concat evasions slip)",
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
+    },
+    {
+      "id": "SQL-4",
+      "desc": "LIMIT ceiling not enforced",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SQL-5",
+      "desc": "unicode normalization (fullwidth/zero-width) removed",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SQL-6",
+      "desc": "SQL tool gate removed (non-DB tools parsed as SQL)",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SQL-7",
+      "desc": "IS NOT NULL tautology not detected",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "NUM-1",
+      "desc": "max ceiling off-by-one (>= instead of >)",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "NUM-2",
+      "desc": "min floor off-by-one (<= instead of <)",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "NUM-3",
+      "desc": "invalid numeric values no longer blocked (NaN passes)",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "NUM-4",
+      "desc": "rate limit off-by-one (>= instead of >)",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SAN-1",
+      "desc": "zero-width stripping disabled",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SAN-2",
+      "desc": "credit-card redaction disabled",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SAN-3",
+      "desc": "SSN redaction disabled",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "SAN-4",
+      "desc": "mandatory SELECT LIMIT injection disabled",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "ENG-1",
+      "desc": "default fail policy reverted to fail-open",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "ENG-2",
+      "desc": "all tool calls allowed regardless of violations",
+      "status": "KILLED",
+      "detail": ""
+    },
+    {
+      "id": "EVT-1",
+      "desc": "card redaction removed from audit log",
+      "status": "KILLED",
+      "detail": ""
+    }
+  ]
+}

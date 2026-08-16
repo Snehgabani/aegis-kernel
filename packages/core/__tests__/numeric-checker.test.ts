@@ -51,3 +51,18 @@ describe('NumericChecker', () => {
     expect(violations[0].message).toContain('Rate limit');
   });
 });
+
+describe('NumericChecker rate-limit boundary (found via mutation testing)', () => {
+  it('allows exactly max_per_minute invocations, blocks the next one', () => {
+    const checker = new NumericChecker();
+    const params = { field: 'amount', rate_limit: { max_per_minute: 1 } };
+    const call = { tool: 'payout', params: { amount: 100 } };
+
+    const first = checker.evaluate('FIN-RL', 'finance-guard', params, call);
+    expect(first.length).toBe(0); // 1st call within limit
+
+    const second = checker.evaluate('FIN-RL', 'finance-guard', params, call);
+    expect(second.length).toBe(1); // 2nd call exceeds limit
+    expect(second[0].severity).toBe('critical');
+  });
+});

@@ -57,9 +57,10 @@
     "packs"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "npm run gen:packs && tsup",
     "test": "vitest run",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "gen:packs": "node ../../scripts/gen-packs.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",

@@ -10,6 +10,17 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 15000,
     hookTimeout: 15000,
+    coverage: {
+      include: ['packages/core/src/**'],
+      exclude: ['packages/core/src/**/*.test.ts', 'packages/core/src/types.ts'],
+      reporter: ['text', 'json-summary', 'html'],
+      thresholds: {
+        statements: 78,
+        branches: 65,
+        functions: 82,
+        lines: 80,
+      },
+    },
   },
   resolve: {
     alias: {

@@ -79,3 +79,33 @@ describe('AegisEngine Orchestrator', () => {
     expect(verdict.latencyMs).toBeLessThan(100);
   });
 });
+
+describe('Fail-policy defaults (found via mutation testing)', () => {
+  it('defaults to fail-closed: engine errors BLOCK the tool call', () => {
+    // No failPolicy config -> must default to fail-closed.
+    const engine = new AegisEngine({ mode: 'enforce', packs: ['@aegis/sql-guard'] });
+    const verdict = engine.evaluate(
+      { tool: 'database_exec', params: { query: 'SELECT 1' } },
+      {
+        stateProvider: () => {
+          throw new Error('simulated state provider failure');
+        },
+      }
+    );
+    expect(verdict.allowed).toBe(false);
+    expect(verdict.violations.some((v) => v.ruleId === 'ENGINE-ERR')).toBe(true);
+  });
+
+  it('fail-open remains an explicit opt-in', () => {
+    const engine = new AegisEngine({ mode: 'enforce', failPolicy: 'fail-open', packs: ['@aegis/sql-guard'] });
+    const verdict = engine.evaluate(
+      { tool: 'database_exec', params: { query: 'SELECT 1' } },
+      {
+        stateProvider: () => {
+          throw new Error('simulated state provider failure');
+        },
+      }
+    );
+    expect(verdict.allowed).toBe(true);
+  });
+});

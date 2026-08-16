@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SqlChecker } from '../src/checkers/sql-checker.js';
+import { AegisEngine } from '../src/engine.js';
 
 describe('SqlChecker', () => {
   const checker = new SqlChecker();
@@ -100,5 +101,44 @@ describe('SqlChecker', () => {
         expect(violations.length).toBe(0);
       });
     }
+  });
+});
+
+describe('SqlChecker regression guards (found via mutation testing)', () => {
+  it('blocks SELECT result sets above the LIMIT ceiling', () => {
+    const engine = new AegisEngine({ mode: 'enforce', packs: ['@aegis/sql-guard'] });
+    const verdict = engine.evaluate({
+      tool: 'database_exec',
+      params: { query: 'SELECT * FROM users LIMIT 50000' },
+    });
+    expect(verdict.allowed).toBe(false);
+    expect(verdict.violations.some((v) => v.ruleId === 'SQL-004')).toBe(true);
+  });
+
+  it('allows SELECTs within the LIMIT ceiling', () => {
+    const engine = new AegisEngine({ mode: 'enforce', packs: ['@aegis/sql-guard'] });
+    const verdict = engine.evaluate({
+      tool: 'database_exec',
+      params: { query: 'SELECT * FROM users LIMIT 100' },
+    });
+    expect(verdict.allowed).toBe(true);
+  });
+
+  it('blocks destructive SQL wrapped in a CTE via the regex fallback', () => {
+    const engine = new AegisEngine({ mode: 'enforce', packs: ['@aegis/sql-guard'] });
+    const verdict = engine.evaluate({
+      tool: 'database_exec',
+      params: { query: 'WITH cte AS (DELETE FROM users WHERE 1=1) SELECT * FROM cte' },
+    });
+    expect(verdict.allowed).toBe(false);
+  });
+
+  it('blocks keyword-split via string concatenation (regex fallback)', () => {
+    const engine = new AegisEngine({ mode: 'enforce', packs: ['@aegis/sql-guard'] });
+    const verdict = engine.evaluate({
+      tool: 'database_exec',
+      params: { query: "DELETE FROM users WHERE '1'||''='1'" },
+    });
+    expect(verdict.allowed).toBe(false);
   });
 });

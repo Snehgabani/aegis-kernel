@@ -1,0 +1,50 @@
+name: Aegis Verification Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * *' # nightly deep run
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  verification:
+    name: Tests + Coverage + Fuzz + Mutation + Benchmark
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build All Packages
+        run: npm run build
+
+      - name: Run Verification Pipeline (tests, coverage thresholds, fuzz corpus, mutation score, benchmark gate)
+        run: node scripts/verify.mjs
+
+      - name: Nightly Deep Fuzz (10x generated corpus)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: AEGIS_FUZZ_SCALE=10 npx vitest run packages/evals/__tests__/adversarial-fuzz.test.ts
+
+      - name: Upload Verification Evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-evidence
+          path: |
+            docs/VERIFICATION_REPORT.md
+            .benchmark/
+          if-no-files-found: warn

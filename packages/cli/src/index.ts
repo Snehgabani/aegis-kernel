@@ -80,10 +80,14 @@ program
 
 program
   .command('benchmark')
-  .description('Run evaluation harness against public prompt-injection & safety benchmarks')
-  .option('-t, --tricky', 'Run the 100-vector adversarial stress testbed')
+  .description('Run the statistical benchmark harness (workload profiles, percentiles, throughput)')
+  .option('-t, --tricky', 'Run the 100-vector adversarial stress testbed (internal curated dataset)')
+  .option('--compare', 'Compare against committed baseline (.benchmark/baseline.json) and gate on regressions')
+  .option('--save-baseline', 'Persist current results as the new baseline')
+  .option('--json <path>', 'Write machine-readable evidence JSON (default .benchmark/evidence.json)')
+  .option('--quick', 'Shorter runs for CI smoke checks')
   .action((options) => {
-    runBenchmark(options);
+    process.exitCode = runBenchmark(options);
   });
 
 const hubCmd = program.command('hub').description('Discover, search, and install rule packs from the Aegis Hub registry');
