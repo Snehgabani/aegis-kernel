@@ -1,12 +1,23 @@
+<div align="center">
+
 # Aegis Invariant Kernel (日本語)
 
 > **自律型 AI エージェント向け 決定論的ツール実行セキュリティゲートウェイ**  
 > *レイテンシ <1.5ms • 外部ネットワーク送信ゼロ • 決定論的 AST ポリシー & 状態不変条件*
 
+<br/>
+
+[![Live Studio Demo](https://img.shields.io/badge/⚡_ライブデモ-オンラインサンドボックスを起動-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground/)
+[![ドキュメント](https://img.shields.io/badge/📖_ドキュメント-アーキテクチャガイドを見る-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/)
+
+<br/>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
+
+</div>
 
 ---
 

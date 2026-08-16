@@ -1,12 +1,23 @@
+<div align="center">
+
 # Aegis Invariant Kernel (Español)
 
 > **Pasarela Determinista de Seguridad e Intercepción de Herramientas para Agentes de IA**  
 > *Latencia <1.5ms • Cero Fuga de Red • Invariantes de Estado y Políticas Deterministas*
 
+<br/>
+
+[![Live Studio Demo](https://img.shields.io/badge/⚡_Live_Studio-Abrir_Sandbox_Interactivo-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground/)
+[![Documentación](https://img.shields.io/badge/📖_Documentación-Ver_Guía_de_Arquitectura-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/)
+
+<br/>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
+
+</div>
 
 ---
 

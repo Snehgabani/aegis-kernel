@@ -1,7 +1,17 @@
-# Aegis Invariant Kernel
+<div align="center">
+
+# 🛡️ Aegis Invariant Kernel
 
 > **Deterministic Tool-Call Clearance Gateway for Autonomous AI Agents**  
 > *Sub-1.5ms Latency • Zero Network Egress • Deterministic Policy & State Invariants*
+
+<br/>
+
+[![Live Studio Demo](https://img.shields.io/badge/⚡_Live_Studio-Launch_Interactive_Playground-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground/)
+[![Documentation](https://img.shields.io/badge/📖_Documentation-View_Architecture_Guide-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/)
+[![Auditor Console](https://img.shields.io/badge/🛡️_Auditor_Console-View_Merkle_Dossier-8b5cf6?style=for-the-badge&logo=security&logoColor=white)](https://snehgabani.github.io/aegis-kernel/dashboard/)
+
+<br/>
 
 [![CI Matrix](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![OpenSSF Scorecard](https://github.com/Snehgabani/aegis-kernel/actions/workflows/scorecard.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
@@ -20,16 +30,16 @@
 [![OpenTelemetry](https://img.shields.io/badge/OTel-Conventions%20Helper-purple.svg)](./packages/core/src/telemetry/otel.ts)
 [![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Self%20Assessment%20%28not%20certified%29-orange.svg)](./docs/COMPLIANCE_SELF_ASSESSMENT.md)
 
-
 🌐 **Languages:** [English](./README.md) • [Español](./README.es.md) • [简体中文](./README.zh-CN.md) • [日本語](./README.ja.md) • [Deutsch](./README.de.md)
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Snehgabani/aegis-kernel)
 [![Open in VS Code](https://img.shields.io/static/v1?logo=visualstudiocode&label=VS%20Code&message=Open%20in%20Browser&color=007ACC)](https://vscode.dev/github/Snehgabani/aegis-kernel)
 
+</div>
+
 ---
 
-
-## ⚡ [Try the Live Interactive Studio Sandbox](https://snehgabani.github.io/aegis-kernel/playground/) *(or [aegis-kernel.dev/playground](https://aegis-kernel.dev/playground/))*
+## ⚡ [Try the Live Interactive Studio Sandbox](https://snehgabani.github.io/aegis-kernel/playground/)
 
 Test real-world adversarial attacks (SQL comment evasion, zero-width token leaks, scientific notation overspend, cross-tenant spoofing) live directly in your browser with zero installation!
 

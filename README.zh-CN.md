@@ -1,12 +1,23 @@
+<div align="center">
+
 # Aegis Invariant Kernel (简体中文)
 
 > **自主 AI Agent 确定性工具调用安全网关**  
 > *延迟 <1.5ms • 零网络出站 • 确定性 AST 策略与状态不变量*
 
+<br/>
+
+[![Live Studio Demo](https://img.shields.io/badge/⚡_在线体验-打开交互式沙箱-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground/)
+[![架构文档](https://img.shields.io/badge/📖_架构文档-查看完整设计-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/)
+
+<br/>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
 [![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
+
+</div>
 
 ---
 
