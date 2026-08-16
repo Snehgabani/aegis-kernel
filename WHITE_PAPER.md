@@ -128,13 +128,13 @@ Aegis was evaluated across four standardized benchmark suites:
 
 ### 3.2 Evaluation Results Summary
 
-| Benchmark Suite | Total Cases | Malicious Evaluated | Attack Block Rate (Recall) | Benign Evaluated | Pass Rate (Utility) | F1 Score | P50 Latency | P95 Latency | Network Egress |
+| Benchmark Suite | Total Cases | Malicious Evaluated | Attack Block Rate (Recall) | Benign Evaluated | Pass Rate (Utility) | F1 Score / Resilience | P50 Latency | P95 Latency | Network Egress |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **InjecAgent (ACL 2024)** | 1,054 | 1,051 | **100.0%** | 3 | **100.0%** | **100.0%** | 0.312 ms | 0.485 ms | **0 Bytes** |
-| **AgentDojo (NeurIPS 2024)** | 629 | 625 | **100.0%** | 4 | **100.0%** | **100.0%** | 0.298 ms | 0.461 ms | **0 Bytes** |
+| **InjecAgent (ACL 2024)** | 1,054 | 1,051 | **93.5%** | 3 | **100.0%** | **93.5%** (100% CI sample) | 0.312 ms | 0.485 ms | **0 Bytes** |
+| **AgentDojo (NeurIPS 2024)** | 629 | 625 | **86.6%** | 4 | **100.0%** | **86.6%** (100% CI sample) | 0.298 ms | 0.461 ms | **0 Bytes** |
 | **MCP-Bench (Tool Poisoning)** | 50 | 45 | **100.0%** | 5 | **100.0%** | **100.0%** | 0.082 ms | 0.145 ms | **0 Bytes** |
 | **Adversarial Tricky-100** | 100 | 46 | **100.0%** | 54 | **100.0%** | **100.0%** | 0.303 ms | 14.93 ms | **0 Bytes** |
-| **Total / Aggregate** | **1,833** | **1,767** | **100.0%** | **66** | **100.0%** | **100.0%** | **0.318 ms** | **0.498 ms** | **0 Bytes** |
+| **Total / Aggregate** | **1,833** | **1,767** | **91.8%** | **66** | **100.0%** | **95.7%** | **0.318 ms** | **0.498 ms** | **0 Bytes** |
 
 ### 3.3 Cryptographic Double-Blind Evaluation Protocol
 

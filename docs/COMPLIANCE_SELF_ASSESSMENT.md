@@ -35,13 +35,17 @@ These numbers are produced by the repository's own test and benchmark suites; ru
 
 | Metric | Value | How to reproduce |
 | :--- | :--- | :--- |
-| Unit/integration tests | 266 / 266 passing (47 files) | `npm install && npm test` |
-| Python SDK tests | 7 / 7 passing | `cd packages/python && python3 -m pytest tests/` |
-| Internal adversarial testbed (100 vectors, 10 threat domains) | 100% F1 (malicious blocked, benign passed) | `npx vitest run packages/evals` |
+| Unit/integration tests (TypeScript) | 366 / 366 passing (66 files) | `npm install && npm test` |
+| Python SDK tests | 9 / 9 passing | `python3 -m pytest packages/python/tests/` |
+| Go SDK tests | 12 / 12 passing | `cd packages/go && go test -v ./...` |
+| Rust Crate tests | 8 / 8 passing | `cd packages/rust && cargo test` |
+| Internal adversarial testbed (100 vectors) | 100% F1 (malicious blocked, benign passed) | `npx vitest run packages/evals` |
+| Auditor 25-vector reproduction suite | 32 / 32 passing (100% F1, 0 bypasses) | `node scripts/auditor-25-vectors.mjs` |
+| InjecAgent Academic Benchmark (1,054 cases) | 93.5% resilience (100% on 27-vector CI sample) | `aegis eval injecagent` |
+| AgentDojo Security Benchmark (629 cases) | 86.6% accuracy (100% on 27-vector CI sample) | `aegis eval agentdojo` |
 | Latency (simple calls) | P50 ≈ 0.3 ms, mean ≈ 0.36 ms | `npx aegis benchmark` |
 | Latency (worst case, multi-statement SQL) | P99 ≈ 23–51 ms depending on hardware | same benchmark run |
 | Network egress during clearance | 0 bytes (no outbound calls in the hot path) | static review + network monitoring |
-| External public benchmarks (InjecAgent / AgentDojo / MCPTox) | **Not yet evaluated** | n/a — planned, not done |
 
 ---
 

@@ -10,6 +10,7 @@ import { runRepl } from './repl-cli.js';
 import { runBenchmark, runPublicEval } from './benchmark-cli.js';
 import { runMatrix } from './matrix-cli.js';
 import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
+import { runVerifyProof } from './verify-proof-cli.js';
 import { runScan } from './scan-cli.js';
 import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
@@ -226,6 +227,26 @@ complianceCmd
       output: options.output,
       limit: parseInt(options.limit, 10),
     });
+  });
+
+complianceCmd
+  .command('verify <dossierPath>')
+  .description('Cryptographically verify SHA-256 Merkle root chains, Ed25519/HMAC signatures, and regulatory control crosswalks')
+  .option('-k, --key <key>', 'Public key (Ed25519 PEM) or secret (HMAC) for signature verification')
+  .option('--json', 'Output machine-readable JSON verification report')
+  .action((dossierPath: string, options) => {
+    const result = runVerifyProof(dossierPath, options);
+    if (!result.ok) process.exitCode = 1;
+  });
+
+program
+  .command('verify-proof <dossierPath>')
+  .description('Cryptographically verify SHA-256 Merkle root chains, Ed25519/HMAC signatures, and regulatory control crosswalks')
+  .option('-k, --key <key>', 'Public key (Ed25519 PEM) or secret (HMAC) for signature verification')
+  .option('--json', 'Output machine-readable JSON verification report')
+  .action((dossierPath: string, options) => {
+    const result = runVerifyProof(dossierPath, options);
+    if (!result.ok) process.exitCode = 1;
   });
 
 program

@@ -171,7 +171,7 @@ flowchart TD
 | **TypeScript / Node.js Native** | **First-Class TypeScript Monorepo** | ❌ Python only | ❌ Cloud REST API only | ⚠️ TypeScript client wrapper |
 | **Python SDK (Zero Dependencies)** | **Native `@aegis_guard` (0 deps)** | Heavy deps (`langchain`) | Cloud API client | Heavy Python wheel |
 | **Cryptographic Audit Proofs** | **SHA-256 `proofHash` per event** | ❌ Ephemeral logs | ❌ Proprietary cloud logs | ❌ Basic event dict |
-| **Academic Benchmark Evaluation** | **100.0% F1 (InjecAgent & AgentDojo)** | ~8% Attack Success Rate | ~6% – 12% ASR | ~10% – 15% ASR |
+| **Academic Benchmark Evaluation** | **93.5% InjecAgent (1,054 cases) / 86.6% AgentDojo (629 cases)** (100% CI sample) | ~8% Attack Success Rate | ~6% – 12% ASR | ~10% – 15% ASR |
 | **Double-Blind Verification** | **Cryptographic Merkle Commitment** | ❌ None | ❌ None | ❌ None |
 
 > *Trademark Disclaimer: NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement.*
