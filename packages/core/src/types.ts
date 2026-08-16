@@ -9,7 +9,7 @@ import type { AgentIdentityManager } from './identity/agent-identity.js';
 export type AegisMode = 'enforce' | 'shadow';
 export type AegisSeverity = 'critical' | 'warning' | 'info';
 export type AegisFailPolicy = 'fail-open' | 'fail-closed';
-export type AegisFramework = 'mcp' | 'langchain' | 'openai' | 'anthropic' | 'raw';
+export type AegisFramework = 'mcp' | 'langchain' | 'openai' | 'anthropic' | 'vercel-ai' | 'llamaindex' | 'raw';
 
 /**
  * Developer-owned State Provider function.
