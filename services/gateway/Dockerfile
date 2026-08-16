@@ -3,8 +3,10 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy root configurations and workspace definitions
+# Copy root configurations, scripts, and workspace definitions
 COPY package*.json tsconfig.json turbo.json ./
+COPY scripts/ ./scripts/
+COPY .aegis/ ./.aegis/
 COPY packages/ ./packages/
 COPY services/ ./services/
 

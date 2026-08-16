@@ -1,18 +1,13 @@
-# Aegis Invariant Kernel: Enterprise Self-Hosted Gateway Container
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy monorepo manifests
-COPY package.json turbo.json tsconfig.json ./
-COPY packages/core ./packages/core
-COPY packages/mcp ./packages/mcp
-COPY packages/langchain ./packages/langchain
-COPY packages/openai ./packages/openai
-COPY packages/anthropic ./packages/anthropic
-COPY packages/evals ./packages/evals
-COPY packages/cli ./packages/cli
-COPY services/gateway ./services/gateway
+# Copy monorepo manifests, scripts, and schemas
+COPY package*.json turbo.json tsconfig.json ./
+COPY scripts/ ./scripts/
+COPY .aegis/ ./.aegis/
+COPY packages/ ./packages/
+COPY services/ ./services/
 
 # Install dependencies and build
 RUN npm install
