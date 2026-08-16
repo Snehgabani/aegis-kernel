@@ -15,6 +15,22 @@ PATTERNS = {
     "US_DEA": re.compile(r"\b[A-Z]{2}\d{7}\b"),
 }
 
+def looks_like_sql(val: str) -> bool:
+    if not isinstance(val, str):
+        return False
+    s = val.lstrip()
+    while s:
+        if s.startswith("--"):
+            idx = s.find("\n")
+            s = "" if idx == -1 else s[idx + 1:].lstrip()
+        elif s.startswith("/*"):
+            idx = s.find("*/")
+            s = "" if idx == -1 else s[idx + 2:].lstrip()
+        else:
+            break
+    return bool(re.match(r"^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|WITH)\b", s, re.IGNORECASE))
+
+
 class PythonSqlChecker:
     @staticmethod
     def evaluate(rule_id: str, pack_id: str, params: Dict[str, Any], tool_call: ToolCall) -> List[AegisViolation]:
@@ -32,7 +48,7 @@ class PythonSqlChecker:
 
         sql_text = ""
         for val in strings:
-            if re.search(r"^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/|\s*)*(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|WITH)\b", val, re.IGNORECASE):
+            if looks_like_sql(val):
                 sql_text = val
                 break
 

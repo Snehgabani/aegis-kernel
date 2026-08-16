@@ -56,10 +56,32 @@ impl SqlChecker {
         Self {
             default_sql_tools,
             search_tool_names,
-            looks_like_sql_regex: Regex::new(r"(?i)^\s*(?:--[^\n]*\n|/\*[\s\S]*?\*/|\s*)*(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b").unwrap(),
+            looks_like_sql_regex: Regex::new(r"(?i)^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b").unwrap(),
             explicit_sql_fields,
             homoglyphs,
         }
+    }
+
+    pub fn looks_like_sql(&self, val: &str) -> bool {
+        let mut s = val.trim_start();
+        while !s.is_empty() {
+            if s.starts_with("--") {
+                if let Some(idx) = s.find('\n') {
+                    s = s[idx + 1..].trim_start();
+                } else {
+                    s = "";
+                }
+            } else if s.starts_with("/*") {
+                if let Some(idx) = s.find("*/") {
+                    s = s[idx + 2..].trim_start();
+                } else {
+                    s = "";
+                }
+            } else {
+                break;
+            }
+        }
+        self.looks_like_sql_regex.is_match(s)
     }
 
     pub fn normalize_unicode(&self, sql: &str) -> String {
@@ -211,7 +233,7 @@ impl SqlChecker {
                     if is_search && (field == "query" || field == "q") {
                         continue;
                     }
-                    if self.looks_like_sql_regex.is_match(val) || (is_db_tool && !val.trim().is_empty()) {
+                    if self.looks_like_sql(val) || (is_db_tool && !val.trim().is_empty()) {
                         return Some(val.clone());
                     }
                 }
@@ -225,7 +247,7 @@ impl SqlChecker {
                     if is_search && (k == "query" || k == "q") {
                         continue;
                     }
-                    if self.explicit_sql_fields.contains(&k.to_lowercase()) || self.looks_like_sql_regex.is_match(val) {
+                    if self.explicit_sql_fields.contains(&k.to_lowercase()) || self.looks_like_sql(val) {
                         return Some(val.clone());
                     }
                 }
@@ -238,7 +260,7 @@ impl SqlChecker {
                 serde_json::Value::Array(arr) => {
                     for item in arr {
                         if let serde_json::Value::String(str_item) = item {
-                            if self.looks_like_sql_regex.is_match(str_item) {
+                            if self.looks_like_sql(str_item) {
                                 return Some(str_item.clone());
                             }
                         } else if let serde_json::Value::Object(sub_map) = item {

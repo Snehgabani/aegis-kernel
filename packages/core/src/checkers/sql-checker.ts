@@ -480,8 +480,32 @@ export class SqlChecker {
     return undefined;
   }
 
-  public static readonly LOOKS_LIKE_SQL_REGEX =
-    /^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/|\s*)*(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b/i;
+  public static readonly SQL_KEYWORD_START_REGEX =
+    /^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b/i;
+
+  /**
+   * Linear-Time Deterministic SQL Prefix Check (O(N) with zero backtracking ReDoS risk).
+   */
+  public static looksLikeSql(val: string): boolean {
+    if (!val || typeof val !== 'string') return false;
+    let s = val.trimStart();
+    while (s.length > 0) {
+      if (s.startsWith('--')) {
+        const idx = s.indexOf('\n');
+        s = idx === -1 ? '' : s.slice(idx + 1).trimStart();
+      } else if (s.startsWith('/*')) {
+        const idx = s.indexOf('*/');
+        s = idx === -1 ? '' : s.slice(idx + 2).trimStart();
+      } else {
+        break;
+      }
+    }
+    return SqlChecker.SQL_KEYWORD_START_REGEX.test(s);
+  }
+
+  public static readonly LOOKS_LIKE_SQL_REGEX = {
+    test: (val: string) => SqlChecker.looksLikeSql(val),
+  };
 
   /**
    * SQL tool gate: checks whether tool name represents database execution.

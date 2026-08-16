@@ -48,7 +48,31 @@ var searchToolNames = map[string]bool{
 	"search_documentation": true, "search_articles": true, "help_search": true, "faq_search": true,
 }
 
-var looksLikeSqlRegex = regexp.MustCompile(`(?i)^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/|\s*)*(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b`)
+var sqlKeywordStartRegex = regexp.MustCompile(`(?i)^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b`)
+
+func looksLikeSql(val string) bool {
+	s := strings.TrimLeft(val, " \t\r\n")
+	for len(s) > 0 {
+		if strings.HasPrefix(s, "--") {
+			idx := strings.Index(s, "\n")
+			if idx == -1 {
+				s = ""
+			} else {
+				s = strings.TrimLeft(s[idx+1:], " \t\r\n")
+			}
+		} else if strings.HasPrefix(s, "/*") {
+			idx := strings.Index(s, "*/")
+			if idx == -1 {
+				s = ""
+			} else {
+				s = strings.TrimLeft(s[idx+2:], " \t\r\n")
+			}
+		} else {
+			break
+		}
+	}
+	return sqlKeywordStartRegex.MatchString(s)
+}
 
 var explicitSqlFields = map[string]bool{
 	"sql": true, "sql_query": true, "sqlquery": true, "sql_statement": true, "sqltext": true,
@@ -218,7 +242,7 @@ func (sc *SqlChecker) findSqlInParams(params map[string]interface{}, tool string
 				if isSearch && (field == "query" || field == "q") {
 					continue
 				}
-				if looksLikeSqlRegex.MatchString(strVal) || (isDbTool && len(strings.TrimSpace(strVal)) > 0) {
+				if looksLikeSql(strVal) || (isDbTool && len(strings.TrimSpace(strVal)) > 0) {
 					return strVal
 				}
 			}
@@ -231,7 +255,7 @@ func (sc *SqlChecker) findSqlInParams(params map[string]interface{}, tool string
 			if isSearch && (k == "query" || k == "q") {
 				continue
 			}
-			if explicitSqlFields[strings.ToLower(k)] || looksLikeSqlRegex.MatchString(strVal) {
+			if explicitSqlFields[strings.ToLower(k)] || looksLikeSql(strVal) {
 				return strVal
 			}
 		} else if mapVal, ok := v.(map[string]interface{}); ok {
@@ -241,7 +265,7 @@ func (sc *SqlChecker) findSqlInParams(params map[string]interface{}, tool string
 			}
 		} else if sliceVal, ok := v.([]interface{}); ok {
 			for _, item := range sliceVal {
-				if strItem, ok := item.(string); ok && looksLikeSqlRegex.MatchString(strItem) {
+				if strItem, ok := item.(string); ok && looksLikeSql(strItem) {
 					return strItem
 				} else if mapItem, ok := item.(map[string]interface{}); ok {
 					found := sc.findSqlInParams(mapItem, tool, depth+1)
