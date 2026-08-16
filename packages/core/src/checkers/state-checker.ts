@@ -26,7 +26,8 @@ export class StateChecker {
     packId: string,
     params: StateInvariantConditionParams,
     toolCall: ToolCall,
-    stateContext?: Record<string, unknown>
+    stateContext?: Record<string, unknown>,
+    severity: import("../types.js").AegisSeverity = "critical"
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
 
@@ -48,7 +49,7 @@ export class StateChecker {
           violations.push({
             ruleId,
             packId,
-            severity: 'critical',
+            severity,
             message: `Cross-tenant isolation violation: Tool requested tenant '${toolTenant}' does not match authenticated session tenant '${stateTenant}'.`,
             suggestedFix: `Restrict tool call parameters to the caller's active tenant '${stateTenant}'.`,
             context: { toolTenant, stateTenant },
@@ -64,7 +65,7 @@ export class StateChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `State invariant rule '${ruleId}' requires system state context, but no state was provided.`,
           suggestedFix: `Pass current state context object to Aegis evaluate() to clear state invariant assertions.`,
           context: { missingState: true },
@@ -91,7 +92,7 @@ export class StateChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `State precondition failed: '${params.precondition}' was not satisfied by current system state.`,
           suggestedFix: `Ensure system state satisfies precondition '${params.precondition}' before invoking '${toolCall.tool}'.`,
           context: { precondition: params.precondition, state: stateContext },
@@ -109,7 +110,7 @@ export class StateChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `System state invariant violated: '${params.assertion}' would be breached by this action.`,
           suggestedFix: `Action exceeds permitted state boundary. Invariant constraint: '${params.assertion}'.`,
           context: { assertion: params.assertion, state: stateContext, params: toolCall.params },

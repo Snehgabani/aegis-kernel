@@ -16,7 +16,8 @@ export class SchemaChecker {
     ruleId: string,
     packId: string,
     params: JsonSchemaConditionParams,
-    toolCall: ToolCall
+    toolCall: ToolCall,
+    severity: import("../types.js").AegisSeverity = "critical"
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
 
@@ -37,7 +38,7 @@ export class SchemaChecker {
           violations.push({
             ruleId,
             packId,
-            severity: 'critical',
+            severity,
             message: `Parameter schema violation at '${property}': ${err.message}`,
             suggestedFix: `Ensure parameters match the required schema definition for tool '${toolCall.tool}'.`,
             context: {

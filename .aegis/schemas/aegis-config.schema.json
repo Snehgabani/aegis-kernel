@@ -1,43 +1,75 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "AegisConfig",
-  "description": "Configuration schema for Aegis Invariant Kernel (aegis.config.yaml)",
-  "type": "object",
-  "properties": {
-    "version": {
-      "type": "string",
-      "enum": ["1.0", "1.0.0"]
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AegisConfig",
+    "description": "Configuration schema for Aegis Invariant Kernel (aegis.config.yaml)",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "enum": [
+                "1.0",
+                "1.0.0"
+            ]
+        },
+        "mode": {
+            "type": "string",
+            "enum": [
+                "enforce",
+                "shadow",
+                "audit",
+                "sanitize"
+            ],
+            "default": "enforce"
+        },
+        "fail_policy": {
+            "type": [
+                "string",
+                "object"
+            ],
+            "default": "fail-closed"
+        },
+        "packs": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "storage": {
+            "type": "object",
+            "properties": {
+                "ledger_path": {
+                    "type": "string"
+                },
+                "events_path": {
+                    "type": "string"
+                }
+            }
+        },
+        "cloud": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "api_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "failPolicy": {
+            "type": [
+                "string",
+                "object"
+            ],
+            "default": "fail-closed",
+            "description": "Fail-safe behavior (camelCase \u2014 what AegisEngine reads). 'fail_policy' accepted for back-compat."
+        }
     },
-    "mode": {
-      "type": "string",
-      "enum": ["enforce", "shadow", "audit", "sanitize"],
-      "default": "enforce"
-    },
-    "fail_policy": {
-      "type": ["string", "object"],
-      "default": "fail-closed"
-    },
-    "packs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "storage": {
-      "type": "object",
-      "properties": {
-        "ledger_path": { "type": "string" },
-        "events_path": { "type": "string" }
-      }
-    },
-    "cloud": {
-      "type": "object",
-      "properties": {
-        "enabled": { "type": "boolean" },
-        "endpoint": { "type": "string" },
-        "api_key": { "type": "string" }
-      }
-    }
-  },
-  "required": ["version", "mode"]
+    "required": [
+        "version",
+        "mode"
+    ]
 }

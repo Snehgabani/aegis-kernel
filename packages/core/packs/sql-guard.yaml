@@ -36,3 +36,12 @@ rules:
         statements:
           - UPDATE
         require: WHERE_CLAUSE
+
+  - id: SQL-004
+    severity: critical
+    description: Prohibit unbounded SELECT result sets (LIMIT ceiling)
+    suggestedFix: Add an explicit LIMIT clause at or below 10000 rows.
+    condition:
+      type: sql_ast
+      params:
+        max_limit: 10000

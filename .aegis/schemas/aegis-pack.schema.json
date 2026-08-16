@@ -1,35 +1,82 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "AegisRulePack",
-  "description": "Schema for proprietary and certified Aegis Invariant Rule Packs (*.yaml)",
-  "type": "object",
-  "properties": {
-    "id": { "type": "string" },
-    "name": { "type": "string" },
-    "version": { "type": "string" },
-    "description": { "type": "string" },
-    "rules": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "severity": { "type": "string", "enum": ["critical", "warning", "info"] },
-          "condition": {
-            "type": "object",
-            "properties": {
-              "type": { "type": "string", "enum": ["sql", "numeric", "pii", "state", "schema", "custom"] },
-              "params": { "type": "object" }
-            },
-            "required": ["type", "params"]
-          },
-          "suggested_fix": { "type": "string" }
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AegisRulePack",
+    "description": "Schema for proprietary and certified Aegis Invariant Rule Packs (*.yaml)",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
         },
-        "required": ["id", "severity", "condition"]
-      }
-    }
-  },
-  "required": ["id", "name", "version", "rules"]
+        "name": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "rules": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "enum": [
+                            "critical",
+                            "warning",
+                            "info"
+                        ]
+                    },
+                    "condition": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "sql_ast",
+                                    "json_schema",
+                                    "regex",
+                                    "numeric",
+                                    "custom",
+                                    "state_invariant"
+                                ]
+                            },
+                            "params": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "params"
+                        ]
+                    },
+                    "suggested_fix": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "severity",
+                    "condition"
+                ]
+            }
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "version",
+        "rules"
+    ]
 }

@@ -12,7 +12,8 @@ export class CustomChecker {
     ruleId: string,
     packId: string,
     params: CustomConditionParams,
-    toolCall: ToolCall
+    toolCall: ToolCall,
+    severity: import("../types.js").AegisSeverity = "critical"
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
 
@@ -23,7 +24,7 @@ export class CustomChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `Declarative policy predicate triggered for tool '${toolCall.tool}'.`,
           suggestedFix: `Adjust tool call arguments to satisfy policy condition: ${params.predicate}`,
           context: { predicate: params.predicate },

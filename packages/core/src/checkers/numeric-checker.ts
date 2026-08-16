@@ -11,7 +11,8 @@ export class NumericChecker {
     ruleId: string,
     packId: string,
     params: NumericConditionParams,
-    toolCall: ToolCall
+    toolCall: ToolCall,
+    severity: import("../types.js").AegisSeverity = "critical"
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
     const extraction = this.extractNestedNumber(toolCall.params, params.field);
@@ -26,7 +27,7 @@ export class NumericChecker {
       violations.push({
         ruleId,
         packId,
-        severity: 'critical',
+        severity,
         message: `Numeric parameter '${params.field}' contains invalid or unparseable non-numeric value: ${JSON.stringify(extraction.rawValue)}.`,
         suggestedFix: `Ensure '${params.field}' is a valid finite numeric value or formatted currency string.`,
         context: { field: params.field, rawValue: extraction.rawValue },
@@ -49,7 +50,7 @@ export class NumericChecker {
       violations.push({
         ruleId,
         packId,
-        severity: 'critical',
+        severity,
         message: `Numeric parameter '${params.field}' (${val}) is below minimum allowed value of ${effectiveMin}.`,
         suggestedFix: `Increase value of '${params.field}' to at least ${effectiveMin}.`,
         context: { field: params.field, actual: val, minimum: effectiveMin },
@@ -60,7 +61,7 @@ export class NumericChecker {
       violations.push({
         ruleId,
         packId,
-        severity: 'critical',
+        severity,
         message: `Numeric parameter '${params.field}' (${val}) exceeds maximum allowed limit of ${params.max}.`,
         suggestedFix: `Reduce value of '${params.field}' to ${params.max} or less.`,
         context: { field: params.field, actual: val, maximum: params.max },
@@ -82,7 +83,7 @@ export class NumericChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `Rate limit ceiling reached: Tool '${toolCall.tool}' invoked ${timestamps.length} times in past minute (max: ${params.rate_limit.max_per_minute}).`,
           suggestedFix: `Throttle tool invocation frequency or batch operations.`,
           context: {

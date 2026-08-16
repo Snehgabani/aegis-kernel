@@ -7,6 +7,7 @@ export interface ReplayResult {
   blockedCount: number;
   allowedCount: number;
   differences: number;
+  ok: boolean; // false when the log is missing or unparseable (callers exit non-zero)
 }
 
 export function runReplay(auditLogPath: string): ReplayResult {
@@ -15,7 +16,7 @@ export function runReplay(auditLogPath: string): ReplayResult {
 
   if (!fs.existsSync(auditLogPath)) {
     console.error(pc.red(`Error: Audit log file not found at ${auditLogPath}`));
-    return { totalEvents: 0, blockedCount: 0, allowedCount: 0, differences: 0 };
+    return { totalEvents: 0, blockedCount: 0, allowedCount: 0, differences: 0, ok: false };
   }
 
   let events: any[] = [];
@@ -28,7 +29,7 @@ export function runReplay(auditLogPath: string): ReplayResult {
     }
   } catch (e: any) {
     console.error(pc.red(`Failed to parse audit log: ${e.message}`));
-    return { totalEvents: 0, blockedCount: 0, allowedCount: 0, differences: 0 };
+    return { totalEvents: 0, blockedCount: 0, allowedCount: 0, differences: 0, ok: false };
   }
 
   const engine = new AegisEngine();
@@ -63,5 +64,5 @@ export function runReplay(auditLogPath: string): ReplayResult {
   console.log(`  Blocked:        ${pc.red(blockedCount)}`);
   console.log(`  Policy Drifts:  ${differences > 0 ? pc.yellow(differences) : pc.green('0 (100% Consistent)')}\n`);
 
-  return { totalEvents: events.length, blockedCount, allowedCount, differences };
+  return { totalEvents: events.length, blockedCount, allowedCount, differences, ok: true };
 }

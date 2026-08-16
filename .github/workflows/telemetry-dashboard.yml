@@ -37,7 +37,7 @@ jobs:
             const fs = require("fs");
             const data = JSON.parse(fs.readFileSync(".aegis/benchmark-telemetry.json", "utf8"));
             console.log("Telemetry Summary:");
-            console.log(`- Evaluated: ${data.totalEvaluations} iterations`);
+            console.log(`- Evaluated: ${data.iterations} iterations`);
             console.log(`- P50 Latency: ${data.latency.p50}ms`);
             console.log(`- P95 Latency: ${data.latency.p95}ms`);
             console.log(`- F1 Score: ${(data.accuracy.f1Score * 100).toFixed(1)}%`);

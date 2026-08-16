@@ -46,7 +46,8 @@ export class PiiChecker {
     ruleId: string,
     packId: string,
     params: RegexConditionParams,
-    toolCall: ToolCall
+    toolCall: ToolCall,
+    severity: import("../types.js").AegisSeverity = "critical"
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
     const textValues = this.collectStringValues(toolCall.params);
@@ -69,12 +70,12 @@ export class PiiChecker {
         if (regex.test(text)) {
           const match = text.match(regex);
           const sanitizedMatch = match ? match[0].slice(0, 4) + '***' : '***';
-          const severity = params.match_action === 'warn' ? 'warning' : 'critical';
+          const effectiveSeverity = params.match_action === 'warn' ? 'warning' : severity;
 
           violations.push({
             ruleId,
             packId,
-            severity,
+            severity: effectiveSeverity,
             message: `Sensitive credential or PII pattern '${patternStr}' detected in tool arguments.`,
             suggestedFix: `Redact or parameterize sensitive tokens before invoking tool '${toolCall.tool}'.`,
             context: {

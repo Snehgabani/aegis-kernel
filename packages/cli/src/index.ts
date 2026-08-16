@@ -32,7 +32,8 @@ program
   .command('replay <logPath>')
   .description('Deterministically replay historical audit log events against current policy rules')
   .action((logPath: string) => {
-    runReplay(logPath);
+    const result = runReplay(logPath);
+    if (!result.ok) process.exitCode = 1;
   });
 
 program

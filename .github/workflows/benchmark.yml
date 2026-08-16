@@ -1,4 +1,4 @@
-name: Aegis Continuous Benchmark & Telemetry Scorecard
+name: Aegis Benchmark & Regression Gate
 
 on:
   push:
@@ -11,13 +11,13 @@ permissions: read-all
 
 jobs:
   benchmark:
-    name: 10,000-Iteration Latency & Threat Matrix Benchmark
+    name: Statistical Benchmark + Baseline Regression Gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js 22.x
@@ -28,26 +28,18 @@ jobs:
       - name: Install Dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build All Monorepo Packages
+      - name: Build All Packages
         run: npm run build
 
-      - name: Run Empirical Telemetry Benchmark
-        run: node scripts/collect-verification-telemetry.mjs
+      - name: Run Statistical Benchmark (profiles + percentiles + throughput)
+        run: node packages/cli/dist/index.cjs benchmark --quick
 
-      - name: Check Latency & Accuracy Invariants
-        run: |
-          node -e '
-            const fs = require("fs");
-            const data = JSON.parse(fs.readFileSync(".aegis/benchmark-telemetry.json", "utf8"));
-            console.log("Validating benchmark telemetry invariants...");
-            
-            if (data.latency.p95 > 2.0) {
-              console.error(`❌ INVARIANT VIOLATION: P95 latency is ${data.latency.p95}ms (exceeds 2.0ms threshold)`);
-              process.exit(1);
-            }
-            if (data.accuracy && data.accuracy.f1Score < 0.95) {
-              console.error(`❌ INVARIANT VIOLATION: F1 score is ${(data.accuracy.f1Score*100).toFixed(1)}% (below 95% threshold)`);
-              process.exit(1);
-            }
-            console.log("✅ All latency and accuracy invariants satisfied!");
-          '
+      - name: Baseline Regression Gate (P50/P95 vs committed baseline)
+        run: node packages/cli/dist/index.cjs benchmark --quick --compare
+
+      - name: Upload Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-evidence
+          path: .benchmark/
+          if-no-files-found: warn

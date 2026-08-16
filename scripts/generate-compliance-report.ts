@@ -97,7 +97,7 @@ npx aegis benchmark --tricky
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const defaultPath = path.resolve(process.cwd(), 'docs/COMPLIANCE_CERTIFICATION_REPORT.md');
+  const defaultPath = path.resolve(process.cwd(), 'docs/COMPLIANCE_SELF_ASSESSMENT.md');
   generateComplianceReport(defaultPath);
   console.log(`✅ Generated Official Compliance Certification Report at ${defaultPath}`);
 }
