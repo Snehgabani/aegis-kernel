@@ -5,7 +5,7 @@
  * EU AI Act, and NIST AI RMF 1.0 with SHA-256 Merkle tree root hash verification.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import type { AegisEvent, RulePack } from '../types.js';
 
 export interface FrameworkMapping {
@@ -26,12 +26,14 @@ export interface ComplianceDossier {
   blockedViolationsCount: number;
   allowedEvaluationsCount: number;
   merkleRootHash: string;
+  merkleRootSignature?: string;
   previousRootHash: string;
   policyCommitmentHashes: string[];
   frameworkMappings: FrameworkMapping[];
   tamperProofSummary: {
     algorithm: 'SHA-256-MERKLE-LEAF-CHAIN';
     integrityVerified: boolean;
+    signatureVerified?: boolean;
   };
 }
 
@@ -73,6 +75,14 @@ export function computeEventChainMerkleRoot(events: AegisEvent[], previousRootHa
 }
 
 /**
+ * Computes a cryptographic HMAC-SHA256 signature over a Merkle root using a server-held secret key.
+ * This guarantees that an attacker with write access to the log cannot forge a valid root.
+ */
+export function signMerkleRoot(merkleRoot: string, secretKey: string): string {
+  return createHmac('sha256', secretKey).update(`AEGIS_MERKLE_ROOT:${merkleRoot}`).digest('hex');
+}
+
+/**
  * Walks the event chain to cryptographically verify all links and the final Merkle root.
  */
 export function verifyChainIntegrity(events: AegisEvent[], expectedRoot: string, previousRootHash: string = '0'.repeat(64)): boolean {
@@ -89,6 +99,26 @@ export function verifyChainIntegrity(events: AegisEvent[], expectedRoot: string,
   }
   
   return expectedRoot === computeEventChainMerkleRoot(events, previousRootHash);
+}
+
+/**
+ * Verifies both the hash-chain integrity of events and the digital signature over the resulting Merkle root.
+ */
+export function verifySignedChainIntegrity(
+  events: AegisEvent[],
+  expectedRoot: string,
+  signature: string,
+  secretKey: string,
+  previousRootHash: string = '0'.repeat(64)
+): { valid: boolean; chainIntact: boolean; signatureValid: boolean } {
+  const chainIntact = verifyChainIntegrity(events, expectedRoot, previousRootHash);
+  const expectedSig = signMerkleRoot(expectedRoot, secretKey);
+  const signatureValid = signature === expectedSig;
+  return {
+    valid: chainIntact && signatureValid,
+    chainIntact,
+    signatureValid,
+  };
 }
 
 /**

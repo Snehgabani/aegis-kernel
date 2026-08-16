@@ -248,13 +248,52 @@ export class SqlChecker {
       }
     }
 
-    // 3. Subtree with zero column references -> constant-fold the expression
+    // 3. Subtree with zero column references -> constant-fold the expression (catches WHERE 1, WHERE 1=1, WHERE 2>1)
     if (!this.hasColumnReferences(whereAst)) {
       const folded = this.foldConstantExpression(whereAst);
-      if (folded === true) return true;
+      if (folded === true || (typeof folded === 'number' && folded !== 0) || folded === '1') return true;
       if (folded === undefined) {
         // Unresolvable constant expression without column references -> treat as unconstrained
         return true;
+      }
+    }
+
+    // 4. Domain lower-bound tautologies on identifiers: WHERE id > 0, WHERE id >= 0, WHERE id != -1, WHERE id <> -1
+    if (whereAst.type === 'binary_expr') {
+      const op = String(whereAst.operator).toUpperCase();
+      const leftIsCol = whereAst.left?.type === 'column_ref';
+      const rightIsCol = whereAst.right?.type === 'column_ref';
+
+      if (leftIsCol && whereAst.right?.type === 'number') {
+        const numVal = Number(whereAst.right.value);
+        if ((op === '>' && numVal <= 0) || (op === '>=' && numVal <= 1) || ((op === '<>' || op === '!=') && numVal < 0)) {
+          return true;
+        }
+      } else if (rightIsCol && whereAst.left?.type === 'number') {
+        const numVal = Number(whereAst.left.value);
+        if ((op === '<' && numVal <= 0) || (op === '<=' && numVal <= 1) || ((op === '<>' || op === '!=') && numVal < 0)) {
+          return true;
+        }
+      }
+
+      // 5. Self-referential unconstrained subquery: WHERE id IN (SELECT id FROM same_table)
+      if (op === 'IN') {
+        if (whereAst.right?.type === 'expr_list' && Array.isArray(whereAst.right.value)) {
+          for (const item of whereAst.right.value) {
+            const subAst = item?.ast || item;
+            if (subAst && typeof subAst === 'object' && (subAst.type === 'select' || subAst._type === 'select')) {
+              if (!subAst.where) {
+                return true;
+              }
+            }
+          }
+        }
+        const rightSubquery = whereAst.right?.ast || whereAst.right;
+        if (rightSubquery && typeof rightSubquery === 'object' && (rightSubquery.type === 'select' || rightSubquery._type === 'select')) {
+          if (!rightSubquery.where) {
+            return true;
+          }
+        }
       }
     }
 
@@ -281,24 +320,29 @@ export class SqlChecker {
     return false;
   }
 
-  private extractColumnName(col: any): string {
-    if (!col) return '';
-    if (typeof col === 'string') return col;
-    if (typeof col.value === 'string') return col.value;
-    if (col.expr && typeof col.expr.value === 'string') return col.expr.value;
-    if (col.column && typeof col.column === 'string') return col.column;
-    return '';
+  private extractColumnName(column: any): string | null {
+    if (!column) return null;
+    if (typeof column === 'string') return column;
+    if (typeof column === 'object') {
+      if (column.expr && column.expr.value) {
+        return String(column.expr.value);
+      }
+      if (column.value) {
+        return String(column.value);
+      }
+    }
+    return null;
   }
 
   private isSelfColumnComparison(node: any): boolean {
     if (!node || typeof node !== 'object') return false;
-    if (node.type === 'binary_expr' && node.operator === '=') {
+    if (node.type === 'binary_expr' && ['=', '==', '<=', '>='].includes(node.operator)) {
       if (node.left?.type === 'column_ref' && node.right?.type === 'column_ref') {
-        const leftCol = this.extractColumnName(node.left.column).toLowerCase();
-        const rightCol = this.extractColumnName(node.right.column).toLowerCase();
-        const leftTab = this.extractColumnName(node.left.table).toLowerCase();
-        const rightTab = this.extractColumnName(node.right.table).toLowerCase();
-        if (leftCol && rightCol && leftCol === rightCol && leftTab === rightTab) {
+        const leftCol = this.extractColumnName(node.left.column);
+        const rightCol = this.extractColumnName(node.right.column);
+        const leftTable = node.left.table || '';
+        const rightTable = node.right.table || '';
+        if (leftCol && rightCol && leftCol.toLowerCase() === rightCol.toLowerCase() && leftTable.toLowerCase() === rightTable.toLowerCase()) {
           return true;
         }
       }
@@ -306,7 +350,7 @@ export class SqlChecker {
     return false;
   }
 
-  private foldConstantExpression(node: any): unknown {
+  private foldConstantExpression(node: any): boolean | number | string | null | undefined {
     if (!node || typeof node !== 'object') return undefined;
     if (node.type === 'number') return Number(node.value);
     if (node.type === 'string' || node.type === 'single_quote_string') return String(node.value);
@@ -369,11 +413,11 @@ export class SqlChecker {
     return undefined;
   }
 
+  public static readonly LOOKS_LIKE_SQL_REGEX =
+    /^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/|\s*)*(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE|BEGIN|COMMIT|ROLLBACK)\b/i;
+
   /**
-   * SQL tool gate: prevents non-database tools (search_kb, web_search, chat,
-   * file ops...) from paying the SQL AST parse cost and from false-positives
-   * when a generic `query` param merely CONTAINS SQL-looking text.
-   * AegisEngine emits a warning when a sql_ast rule skips a non-SQL tool.
+   * SQL tool gate: checks whether tool name represents database execution.
    */
   public static isSqlTool(tool: string): boolean {
     const t = (tool || '').toLowerCase();
@@ -381,7 +425,7 @@ export class SqlChecker {
     return SqlChecker.SQL_TOOL_HINTS.some((h) => t.includes(h));
   }
 
-  /** Param names that are unambiguously SQL, even on oddly-named tools. */
+  /** Param names that are unambiguously SQL, even on generic tool names. */
   public static isExplicitSqlField(field: string): boolean {
     const f = (field || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
     return (
@@ -391,11 +435,24 @@ export class SqlChecker {
       f === 'sql_statement' ||
       f === 'sqltext' ||
       f === 'sql_text' ||
+      f === 'stmt' ||
+      f === 'sql_stmt' ||
       f === 'database_query' ||
-      f === 'query_string' ||
-      f === 'db_query' ||
-      f === 'query_sql'
+      f === 'query_sql' ||
+      f === 'raw_sql' ||
+      f === 'db_query'
     );
+  }
+
+  public static readonly SEARCH_TOOL_NAMES = new Set([
+    'search_kb', 'kb_search', 'web_search', 'google_search', 'docs_search',
+    'doc_search', 'search_docs', 'wiki_search', 'semantic_search', 'search_wiki',
+    'search_documentation', 'search_articles', 'help_search', 'faq_search'
+  ]);
+
+  public static isSearchTool(tool: string): boolean {
+    const t = (tool || '').toLowerCase();
+    return SqlChecker.SEARCH_TOOL_NAMES.has(t);
   }
 
   private extractSqlString(toolCall: ToolCall, databaseField?: string): string | null {
@@ -411,71 +468,60 @@ export class SqlChecker {
       return params[databaseField] as string;
     }
 
-    // 2. Tool gate. Generic `query`/`q` params on non-DB tools are NOT SQL:
-    //    parsing them costs ~2-3ms/call and can false-positive on natural
-    //    language that happens to look like SQL. Explicitly SQL-named params
-    //    (`sql`, `sql_query`, ...) are still honored at ANY nesting depth.
-    if (!SqlChecker.isSqlTool(tool)) {
-      return this.findNestedExplicitSql(params);
-    }
-
-    // 3. Common top-level SQL field names
-    const commonFields = ['sql', 'query', 'statement', 'command', 'q', 'sql_query'];
-    for (const field of commonFields) {
-      if (typeof params[field] === 'string') {
-        return params[field] as string;
-      }
-    }
-
-    // 4. Nested object extraction
-    return this.findNestedSql(params);
+    // 2. Comprehensive Fail-Closed SQL Extraction across all tools
+    return this.findSqlInParams(params, tool);
   }
 
-  /** Depth-limited recursive search for explicitly SQL-named params. */
-  private findNestedExplicitSql(params: Record<string, unknown>, depth = 0): string | null {
+  private findSqlInParams(params: Record<string, unknown>, tool: string, depth = 0): string | null {
     if (depth > 6) return null;
+    const isDbTool = SqlChecker.isSqlTool(tool);
+    const isSearch = SqlChecker.isSearchTool(tool);
+
+    // Check common high-priority fields first
+    const commonFields = [
+      'sql', 'stmt', 'sql_query', 'sql_statement', 'raw_sql', 'sql_stmt', 'query_sql', 'db_query',
+      'query', 'statement', 'command', 'cmd', 'body', 'text', 'script', 'expression', 'code', 'q'
+    ];
+
+    for (const field of commonFields) {
+      if (typeof params[field] === 'string') {
+        const val = params[field] as string;
+        if (SqlChecker.isExplicitSqlField(field)) {
+          return val;
+        }
+        if (isSearch && (field === 'query' || field === 'q')) {
+          continue; // Search tools with query params are search terms, not SQL
+        }
+        if (SqlChecker.LOOKS_LIKE_SQL_REGEX.test(val) || (isDbTool && val.trim().length > 0)) {
+          return val;
+        }
+      }
+    }
+
+    // Recursive search across all fields and sub-objects
     for (const [key, value] of Object.entries(params)) {
-      const explicit = SqlChecker.isExplicitSqlField(key);
-      if (typeof value === 'string' && explicit) {
-        return value;
-      }
-      // Explicitly SQL-named field wrapping a nested payload (config.sql.query):
-      // the field declared SQL, so ANY string inside its subtree is the SQL.
-      if (explicit && value && typeof value === 'object') {
-        const found = this.findFirstString(value, depth + 1);
-        if (found) return found;
-      }
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        const found = this.findNestedExplicitSql(value as Record<string, unknown>, depth + 1);
+      if (typeof value === 'string') {
+        if (isSearch && (key === 'query' || key === 'q')) {
+          continue; // Search tools with query params are search terms, not SQL
+        }
+        if (SqlChecker.isExplicitSqlField(key) || SqlChecker.LOOKS_LIKE_SQL_REGEX.test(value)) {
+          return value;
+        }
+      } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const found = this.findSqlInParams(value as Record<string, unknown>, tool, depth + 1);
         if (found) return found;
       } else if (Array.isArray(value)) {
         for (const item of value) {
-          if (item && typeof item === 'object') {
-            const found = this.findNestedExplicitSql(item as Record<string, unknown>, depth + 1);
+          if (typeof item === 'string' && SqlChecker.LOOKS_LIKE_SQL_REGEX.test(item)) {
+            return item;
+          } else if (item && typeof item === 'object') {
+            const found = this.findSqlInParams(item as Record<string, unknown>, tool, depth + 1);
             if (found) return found;
           }
         }
       }
     }
-    return null;
-  }
 
-  private findFirstString(value: unknown, depth: number): string | null {
-    if (depth > 6) return null;
-    if (typeof value === 'string') return value;
-    if (value && typeof value === 'object') {
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          const found = this.findFirstString(item, depth + 1);
-          if (found) return found;
-        }
-        return null;
-      }
-      for (const v of Object.values(value as Record<string, unknown>)) {
-        const found = this.findFirstString(v, depth + 1);
-        if (found) return found;
-      }
-    }
     return null;
   }
 
@@ -588,27 +634,6 @@ export class SqlChecker {
       .replace(/\bS\s*E\s*L\s*E\s*C\s*T\b/gi, 'SELECT');
 
     return cleaned;
-  }
-
-  private findNestedSql(obj: unknown, visited: Set<unknown> = new Set()): string | null {
-    if (!obj || typeof obj !== 'object' || visited.has(obj)) return null;
-    visited.add(obj);
-    const record = obj as Record<string, unknown>;
-
-    for (const key of ['sql', 'query', 'statement', 'command', 'q', 'sql_query']) {
-      if (typeof record[key] === 'string') {
-        return record[key] as string;
-      }
-    }
-
-    for (const val of Object.values(record)) {
-      if (val && typeof val === 'object') {
-        const found = this.findNestedSql(val, visited);
-        if (found) return found;
-      }
-    }
-
-    return null;
   }
 
   private evaluateRegexFallback(
@@ -727,16 +752,21 @@ export class SqlChecker {
       } else {
         const whereClause = tokens.slice(whereIdx + 1).join(' ');
         
-        // Comprehensive fallback tautology check: N=N, 'X'='X', N>M, IS NOT NULL, TRUE
+        // Comprehensive fallback tautology check: N=N, 'X'='X', N>M, IS NOT NULL, TRUE, 1, id>0, id<>-1, subqueries
         const isTautology = 
           whereClause === 'TRUE' ||
+          whereClause === '1' ||
           whereClause.startsWith('TRUE') ||
+          whereClause.startsWith('1 ') ||
           /\bIS\s+NOT\s+NULL\b/i.test(whereClause) ||
           /(\d+)\s*=\s*\1\b/.test(whereClause) ||
           /(\d+)\s*!=\s*(\d+)/.test(whereClause) ||
           /'([^']+)'\s*=\s*'\1'/i.test(whereClause) ||
-          /\bOR\s+(?:1\s*=\s*1|TRUE|\d+\s*>\s*\d+|'[^']+'\s*=\s*'[^']+')/i.test(whereClause) ||
-          ['1=1', '1 = 1', '2=2', '2 = 2', '0=0', '0 = 0', '100=100', '100 = 100', '2>1', '2 > 1'].some(
+          /\b[a-zA-Z_]\w*\s*>\s*0\b/i.test(whereClause) ||
+          /\b[a-zA-Z_]\w*\s*(?:<>|!=)\s*-\d+\b/i.test(whereClause) ||
+          /\bIN\s*\(\s*SELECT\b/i.test(whereClause) ||
+          /\bOR\s+(?:1\s*=\s*1|TRUE|1|\d+\s*>\s*\d+|'[^']+'\s*=\s*'[^']+')/i.test(whereClause) ||
+          ['1=1', '1 = 1', '2=2', '2 = 2', '0=0', '0 = 0', '100=100', '100 = 100', '2>1', '2 > 1', '1'].some(
             t => whereClause === t || whereClause.startsWith(t + ' ') || whereClause.includes(t)
           );
 

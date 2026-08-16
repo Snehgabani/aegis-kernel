@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from .types import AegisViolation, ToolCall
 
 PATTERNS = {
@@ -32,14 +32,22 @@ class PythonSqlChecker:
 
         sql_text = ""
         for val in strings:
-            if any(kw in val.upper() for kw in ["SELECT", "DELETE", "DROP", "UPDATE", "TRUNCATE", "ALTER"]):
+            if re.search(r"^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/|\s*)*(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|WITH)\b", val, re.IGNORECASE):
                 sql_text = val
                 break
+
+        if not sql_text and strings:
+            for val in strings:
+                if any(kw in val.upper() for kw in ["DELETE", "DROP", "UPDATE", "TRUNCATE", "ALTER"]):
+                    sql_text = val
+                    break
 
         if not sql_text:
             return violations
 
-        upper_sql = sql_text.upper()
+        # Strip string literals before searching for DDL statements (prevents false positives on note='DROP')
+        sql_without_strings = re.sub(r"'[^']*'", "''", sql_text)
+        upper_sql = sql_without_strings.upper()
 
         # 1. Blocked statements (DROP, TRUNCATE, ALTER)
         blocked_statements = params.get("block_statements", [])
@@ -60,7 +68,7 @@ class PythonSqlChecker:
         for stmt in statements:
             if re.search(rf"\b{stmt}\b", upper_sql):
                 if require == "WHERE_CLAUSE":
-                    where_match = re.search(r"\bWHERE\b\s+(.*)", sql_text, re.IGNORECASE | re.DOTALL)
+                    where_match = re.search(r"\bWHERE\b\s+(.*)", sql_without_strings, re.IGNORECASE | re.DOTALL)
                     if not where_match:
                         violations.append(AegisViolation(
                             rule_id=rule_id,
@@ -71,8 +79,16 @@ class PythonSqlChecker:
                         ))
                     else:
                         where_clause = where_match.group(1).strip()
-                        # Check for constant tautologies like '1=1', 'true', 'id = id'
-                        if re.search(r"^\s*(?:1\s*=\s*1|true|'a'\s*=\s*'a')\s*(?:;)?$", where_clause, re.IGNORECASE):
+                        # Comprehensive tautology check (1=1, 2>1, true, 1, id>0, id<>-1, IS NOT NULL)
+                        is_tautology = bool(
+                            re.search(r"^\s*(?:1\s*=\s*1|2\s*>\s*1|(\d+)\s*=\s*\1|(\d+)\s*>\s*(\d+)|true|1|'a'\s*=\s*'a')\s*(?:;)?$", where_clause, re.IGNORECASE)
+                            or re.search(r"\bIS\s+NOT\s+NULL\b", where_clause, re.IGNORECASE)
+                            or re.search(r"\b[a-zA-Z_]\w*\s*>\s*0\b", where_clause, re.IGNORECASE)
+                            or re.search(r"\b[a-zA-Z_]\w*\s*(?:<>|!=)\s*-\d+\b", where_clause, re.IGNORECASE)
+                            or re.search(r"\bIN\s*\(\s*SELECT\b", where_clause, re.IGNORECASE)
+                            or re.search(r"\bOR\s+(?:1\s*=\s*1|true|1|\d+\s*>\s*\d+|'[^']+'\s*=\s*'[^']+')", where_clause, re.IGNORECASE)
+                        )
+                        if is_tautology:
                             violations.append(AegisViolation(
                                 rule_id=rule_id,
                                 pack_id=pack_id,
@@ -119,35 +135,62 @@ class PythonNumericChecker:
     @staticmethod
     def evaluate(rule_id: str, pack_id: str, params: Dict[str, Any], tool_call: ToolCall) -> List[AegisViolation]:
         violations: List[AegisViolation] = []
-        field_name = params.get("field")
+        field_name = params.get("field", "amount")
         max_val = params.get("max")
-        min_val = params.get("min")
+        min_val = params.get("min", 0 if any(k in field_name.lower() for k in ["amount", "price", "cost", "payment", "payout", "transfer"]) else None)
+
+        def parse_number(val: Any) -> Optional[float]:
+            if isinstance(val, (int, float)):
+                return float(val)
+            if isinstance(val, str):
+                cleaned = re.sub(r"[$€£¥₹,]", "", val).strip()
+                try:
+                    return float(cleaned)
+                except ValueError:
+                    return None
+            return None
 
         val = None
-        if field_name and field_name in tool_call.params:
-            val = tool_call.params[field_name]
-        elif "_args" in tool_call.params and isinstance(tool_call.params["_args"], list):
-            for arg in tool_call.params["_args"]:
-                if isinstance(arg, (int, float)):
-                    val = arg
+        # Check direct field
+        if field_name in tool_call.params:
+            val = parse_number(tool_call.params[field_name])
+        
+        # Check semantic aliases (total, value, sum, price, payout, cost)
+        if val is None:
+            aliases = ["amount", "total", "value", "sum", "price", "cost", "payout", "payment", "transfer"]
+            for alias in aliases:
+                for k, v in tool_call.params.items():
+                    if k.lower() == alias:
+                        parsed = parse_number(v)
+                        if parsed is not None:
+                            val = parsed
+                            break
+                if val is not None:
                     break
 
-        if isinstance(val, (int, float)):
-                if max_val is not None and val > max_val:
-                    violations.append(AegisViolation(
-                        rule_id=rule_id,
-                        pack_id=pack_id,
-                        severity="critical",
-                        message=f"Field '{field_name}' with value {val} exceeds maximum allowed boundary of {max_val}.",
-                        suggested_fix=f"Constrain {field_name} <= {max_val}.",
-                    ))
-                if min_val is not None and val < min_val:
-                    violations.append(AegisViolation(
-                        rule_id=rule_id,
-                        pack_id=pack_id,
-                        severity="critical",
-                        message=f"Field '{field_name}' with value {val} is below minimum allowed boundary of {min_val}.",
-                        suggested_fix=f"Ensure {field_name} >= {min_val}.",
-                    ))
+        if val is None and "_args" in tool_call.params and isinstance(tool_call.params["_args"], list):
+            for arg in tool_call.params["_args"]:
+                parsed = parse_number(arg)
+                if parsed is not None:
+                    val = parsed
+                    break
+
+        if val is not None:
+            if max_val is not None and val > max_val:
+                violations.append(AegisViolation(
+                    rule_id=rule_id,
+                    pack_id=pack_id,
+                    severity="critical",
+                    message=f"Field '{field_name}' with value {val} exceeds maximum allowed boundary of {max_val}.",
+                    suggested_fix=f"Constrain {field_name} <= {max_val}.",
+                ))
+            if min_val is not None and val < min_val:
+                violations.append(AegisViolation(
+                    rule_id=rule_id,
+                    pack_id=pack_id,
+                    severity="critical",
+                    message=f"Field '{field_name}' with value {val} is below minimum allowed boundary of {min_val}.",
+                    suggested_fix=f"Ensure {field_name} >= {min_val}.",
+                ))
 
         return violations

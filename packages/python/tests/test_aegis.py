@@ -25,11 +25,23 @@ class TestAegisPythonKernel(unittest.TestCase):
         self.assertFalse(v2.allowed)
         self.assertEqual(v2.violations[0].rule_id, "SQL-002")
 
-        # 3. Legitimate targeted SELECT
-        call3 = ToolCall(tool="db_exec", params={"query": "SELECT id, name FROM users WHERE id = 42"})
+        # 3. Legitimate targeted SELECT with string literal containing DROP
+        call3 = ToolCall(tool="db_exec", params={"query": "SELECT * FROM t WHERE note = 'DROP'"})
         v3 = self.engine.evaluate(call3)
         self.assertTrue(v3.allowed)
         self.assertEqual(v3.verdict, "ALLOWED")
+
+        # 4. Tautology bypass attempt (WHERE 2>1)
+        call4 = ToolCall(tool="db_exec", params={"query": "DELETE FROM users WHERE 2>1"})
+        v4 = self.engine.evaluate(call4)
+        self.assertFalse(v4.allowed)
+        self.assertEqual(v4.violations[0].rule_id, "SQL-001")
+
+        # 5. Financial alias overspend (total instead of amount)
+        call5 = ToolCall(tool="payment", params={"total": 50000})
+        v5 = self.engine.evaluate(call5)
+        self.assertFalse(v5.allowed)
+        self.assertEqual(v5.violations[0].rule_id, "FIN-001")
 
     def test_blocks_financial_limits_and_pii(self):
         # Overspend

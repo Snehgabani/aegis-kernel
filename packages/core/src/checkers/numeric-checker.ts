@@ -164,7 +164,24 @@ export class NumericChecker {
     // Fallback: search recursively for target field name in nested objects
     const targetField = parts[parts.length - 1];
     const recursiveResult = this.findNestedNumber(params, targetField);
-    return recursiveResult;
+    if (recursiveResult.status !== 'absent') {
+      return recursiveResult;
+    }
+
+    // Semantic alias search for financial fields (e.g. amount -> total, value, sum, price, payout)
+    const lowerTarget = targetField.toLowerCase();
+    const financialAliases = ['amount', 'total', 'value', 'sum', 'price', 'cost', 'payout', 'payment', 'transfer', 'fee', 'charge', 'subtotal', 'debit', 'credit'];
+    if (financialAliases.includes(lowerTarget)) {
+      for (const alias of financialAliases) {
+        if (alias === lowerTarget) continue;
+        const aliasResult = this.findNestedNumber(params, alias);
+        if (aliasResult.status !== 'absent') {
+          return aliasResult;
+        }
+      }
+    }
+
+    return { status: 'absent' };
   }
 
   private findNestedNumber(
@@ -176,13 +193,16 @@ export class NumericChecker {
     visited.add(obj);
     const record = obj as Record<string, unknown>;
 
-    if (fieldName in record) {
-      const raw = record[fieldName];
-      const parsed = this.parseNumericValue(raw);
-      if (parsed !== null) {
-        return { status: 'valid', value: parsed };
+    // Case-insensitive property lookup
+    const lowerTarget = fieldName.toLowerCase();
+    for (const [key, raw] of Object.entries(record)) {
+      if (key.toLowerCase() === lowerTarget) {
+        const parsed = this.parseNumericValue(raw);
+        if (parsed !== null) {
+          return { status: 'valid', value: parsed };
+        }
+        return { status: 'invalid', rawValue: raw };
       }
-      return { status: 'invalid', rawValue: raw };
     }
 
     for (const val of Object.values(record)) {
