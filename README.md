@@ -12,11 +12,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
-[![Tests](https://img.shields.io/badge/tests-266%2F266%20passing-brightgreen.svg)](#)
-[![Adversarial Benchmark](https://img.shields.io/badge/F1%20Score-100.0%25-brightgreen.svg)](./packages/evals)
-[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Native-purple.svg)](./packages/core/src/telemetry/otel.ts)
-[![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Audit%20Ready-emerald.svg)](./docs/COMPLIANCE_CERTIFICATION_REPORT.md)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
+[![Tests](https://img.shields.io/badge/tests-288%2F288%20passing-brightgreen.svg)](#)
+[![Coverage](https://img.shields.io/badge/coverage-82%25%20stmts%2F83%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
+[![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
+[![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
+[![OpenTelemetry](https://img.shields.io/badge/OTel-Conventions%20Helper-purple.svg)](./packages/core/src/telemetry/otel.ts)
+[![Compliance Controls](https://img.shields.io/badge/SOC2%20%7C%20HIPAA-Self%20Assessment%20%28not%20certified%29-orange.svg)](./docs/COMPLIANCE_SELF_ASSESSMENT.md)
 
 
 🌐 **Languages:** [English](./README.md) • [Español](./README.es.md) • [简体中文](./README.zh-CN.md) • [日本語](./README.ja.md) • [Deutsch](./README.de.md)
@@ -35,7 +37,7 @@ Test real-world adversarial attacks (SQL comment evasion, zero-width token leaks
 
 ## 🚀 Overview
 
-**Aegis** is an ultra-fast, in-process safety clearance kernel that protects production environments from rogue AI agent actions. It intercepts agent tool calls (database queries, financial payouts, external HTTP requests, file modifications) and enforces deterministic AST and state invariants in **<1.5ms** before the command reaches your database or API.
+**Aegis** is an ultra-fast, in-process safety clearance kernel that protects production environments from rogue AI agent actions. It intercepts agent tool calls (database queries, financial payouts, external HTTP requests, file modifications) and enforces deterministic AST and state invariants in **<1.5ms for typical single-statement calls** (multi-statement SQL can take tens of ms) before the command reaches your database or API.
 
 ```mermaid
 flowchart TD
@@ -53,7 +55,7 @@ flowchart TD
         direction TB
         T1_1["Aho-Corasick Streaming Interceptor<br/><i>(Sliding window token secret scanner)</i>"]
         T1_2["Unicode NFKD Sanitizer<br/><i>(Homoglyph & zero-width character stripper)</i>"]
-        T1_3["Zero-Egress Prompt Injection Classifier<br/><i>(Local linguistic instruction override analyzer)</i>"]
+            T1_3["Zero-Egress Prompt-Injection Heuristic<br/><i>(Local regex/linguistic pattern analyzer — not ML)</i>"]
         
         T1_1 --> T1_2 --> T1_3
     end
@@ -82,7 +84,7 @@ flowchart TD
         end
 
         subgraph T2_POL["Policy & Plugins"]
-            R1["Cedar / Rego Policy AST Engine"]
+            R1["Custom Policy DSL<br/>(Cedar/Rego-inspired syntax)"]
             R2["WASM Sandbox Validator Runner"]
             R1 --> R2
         end
@@ -119,7 +121,7 @@ flowchart TD
         
         subgraph T4_CRYPTO["Cryptographic Integrity"]
             CR1["SHA-256 ProofHash Commitment Generator"]
-            CR2["Append-Only Merkle Audit Ledger<br/><i>(Chained previousRootHash for SOC2/HIPAA)</i>"]
+            CR2["Tamper-Evident Event Ledger<br/><i>(SHA-256 commitments; Merkle root export for audits)</i>"]
             CR1 --> CR2
         end
 
@@ -140,11 +142,11 @@ flowchart TD
 
 ### Why Aegis?
 
-1. **Deterministic Invariant Enforcement**: Evaluates compiled SQL ASTs, numeric ranges, PII/secret patterns, and state transitions in **<1.5ms** without making external LLM calls.
+1. **Deterministic Invariant Enforcement**: Evaluates compiled SQL ASTs, numeric ranges, PII/secret patterns, and state transitions in **<1.5ms for typical single-statement calls** without making external LLM calls. Complex multi-statement SQL can take tens of milliseconds (full AST parsing); see the [benchmark methodology](./docs/LIMITATIONS_AND_BOUNDARIES.md).
 2. **Cryptographic Proofs**: Emits a 14-field privacy-safe event log with immutable SHA-256 `proofHash` commitments binding tool arguments to policy hashes.
-3. **Enterprise Compliance Evidence**: Generates cryptographically verifiable [SOC2 & HIPAA Audit Reports](./docs/COMPLIANCE_CERTIFICATION_REPORT.md) for security and compliance teams.
+3. **Compliance Evidence Tooling**: Generates SOC 2 / HIPAA control **self-assessments** and audit-evidence exports for security teams. **Note: this is not a certification** — SOC 2 certification requires an independent licensed CPA audit; see [Compliance Self-Assessment](./docs/COMPLIANCE_SELF_ASSESSMENT.md).
 4. **Universal Framework Support**: Native drop-in adapters for **Model Context Protocol (MCP)**, **LangChain / CrewAI / AutoGen**, **OpenAI Function Calling**, and **Anthropic Claude**.
-5. **Multi-Language SDKs**: First-class support across **TypeScript / Node.js (>=18.0)** and **Python 3.9+** (zero dependencies).
+5. **Multi-Language SDKs**: First-class support across **TypeScript / Node.js (>=18.0)** and **Python 3.9+** (zero dependencies). Go and Rust SDKs are **minimal reference implementations** covering a subset of checks — not full ports of the engine.
 
 ---
 
@@ -152,20 +154,34 @@ flowchart TD
 
 | Capability | Aegis Invariant Kernel | NVIDIA NeMo Guardrails | Lakera Guard | Guardrails AI |
 | :--- | :--- | :--- | :--- | :--- |
-| **P50 Evaluation Latency** | **<0.25 ms (In-Memory)** | 150 – 500 ms (LLM Calls) | 40 – 80 ms (Cloud API) | 50 – 200 ms (Python regex/LLM) |
+| **P50 Evaluation Latency** | **~0.3 – 0.4 ms (in-memory, simple calls)** | 150 – 500 ms (LLM Calls) | 40 – 80 ms (Cloud API) | 50 – 200 ms (Python regex/LLM) |
 | **Clearance Mechanism** | **Deterministic AST & Schemas** | Heuristic / Colang | Cloud ML Classifiers | RAIL regex / LLM Judge |
 | **Model Context Protocol (MCP)** | **Native JSON-RPC 2.0 Hook** | ❌ No native MCP | ❌ No native MCP | ❌ No native MCP |
 | **Zero Network Egress** | **100% In-Process / Local** | ❌ Cloud LLM dependent | ❌ Cloud API egress | ❌ Cloud LLM dependent |
 | **TypeScript / Node.js Native** | **First-Class TypeScript Monorepo** | ❌ Python only | ❌ Cloud REST API only | ⚠️ TypeScript client wrapper |
 | **Python SDK (Zero Dependencies)** | **Native `@aegis_guard` (0 deps)** | Heavy deps (`langchain`) | Cloud API client | Heavy Python wheel |
 | **Cryptographic Audit Proofs** | **SHA-256 `proofHash` per event** | ❌ Ephemeral logs | ❌ Proprietary cloud logs | ❌ Basic event dict |
-| **Empirical F1 Benchmark** | **100.0% (100-Vector Testbed)** | ~86.4% | ~91.2% | ~88.0% |
+| **Empirical F1 Benchmark** | **100% on internal 100-vector testbed** | Not independently verified | Not independently verified | Not independently verified |
 
-> *Trademark Disclaimer: NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement. Comparative metrics reflect reproducible empirical tests on the open-source 100-vector testbed on Apple M-series hardware (Node.js 22).*
+> *Trademark Disclaimer: NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement.*
+>
+> *Benchmark Honesty Note: Aegis F1 figures are measured on the **internal curated 100-vector testbed** (`packages/evals`). Aegis has NOT yet been evaluated on public datasets such as InjecAgent, AgentDojo, or MCPTox. Competitor figures shown are vendor-published numbers, not independently verified here. Latency figures for Aegis are end-to-end CPU time measured via `performance.now()` (mean ~0.36ms, P99 up to ~50ms on multi-statement SQL; see `.aegis` benchmark workflow).*
 
 ---
 
 ## 📦 Monorepo Packages & Installation
+
+> **⚠️ Publication status (updated 2026-08-16):** the packages are **not yet published** to npm, PyPI, or Homebrew — `npm install @aegis-kernel/core` and `pip install aegis-kernel` currently return 404. Until release, install from source:
+
+```bash
+git clone https://github.com/Snehgabani/aegis-kernel.git
+cd aegis-kernel
+npm install
+npm run build        # builds all TypeScript workspace packages (tsup)
+npm test             # 266/266 tests
+```
+
+Once published, the commands below will work:
 
 ### TypeScript / Node.js (`>=18.0.0`)
 
@@ -226,6 +242,37 @@ const protectedTool = guard.wrap(myExistingTool);
 
 ---
 
+## 🔬 Verification & Benchmarking (measured, reproducible)
+
+Run the entire verification stack end-to-end and get a machine-generated evidence report:
+
+```bash
+node scripts/verify.mjs          # tests + coverage + fuzz + mutation + benchmark gate
+```
+
+| Layer | What it proves | Latest measured result |
+| :--- | :--- | :--- |
+| Test suite (50 files) | Functional correctness | **288 / 288 passing** |
+| Coverage (core src, CI-gated) | How much of the engine the tests exercise | **82% stmts / 70% branches / 86% funcs / 83% lines** |
+| Adversarial fuzz corpus (seeded) | Zero bypasses (FN) and zero false positives (FP) over generated obfuscations | **433 vectors: 300 malicious / 133 benign — 0 bypasses, 0 FPs** |
+| Property tests (fast-check, seeded) | Idempotence, determinism, representation invariance, redaction completeness, no-throw | **7 properties, 2,300+ random cases** |
+| Mutation testing | The suite actually *catches* injected faults | **100% mutation score (17/17 killed)** |
+| Statistical benchmark | Per-workload percentiles + throughput + regression gate vs committed baseline | **P50: SQL 1.1ms · benign 0.04ms · PII 0.06ms** (see report) |
+
+Artifacts: [`docs/VERIFICATION_REPORT.md`](./docs/VERIFICATION_REPORT.md) · `.benchmark/baseline.json` (regression gate) · `.benchmark/verification-evidence.json`.
+
+**How this found real bugs:** the fuzz + property + mutation stack discovered and fixed four genuine defects — (1) zero-width/fullwidth-unicode obfuscation bypassing destructive-SQL detection, (2) `WHERE id IS NOT NULL` tautology gap, (3) credit-card PANs leaking through audit-log redaction, and (4) a 100× hot-path regression where every non-SQL tool call paid full SQL AST parsing (fixed via a SQL-tool gate). Each fix is locked in by regression tests.
+
+---
+
+## 🔒 Security Defaults
+
+- **Fail policy:** the engine defaults to **`fail-closed`** — if evaluation throws an internal error, the tool call is BLOCKED. (Set `failPolicy: 'fail-open'` explicitly only if availability trumps safety for a given pack.)
+- **Zero network egress:** the clearance hot path makes no outbound calls.
+- **WASM plugins** are fail-closed: a module that does not export `validate()` is treated as invalid.
+
+---
+
 ## 🚀 GitHub Action CI/CD Gate
 
 Audit AI agent tool invariants and generate compliance evidence directly in your GitHub pull requests:
@@ -274,7 +321,7 @@ npx aegis pack validate custom-pack.yaml
 - **Interactive Playground:** [Live Browser Sandbox](./site/playground.html) — Test invariants live in browser.
 - **Documentation Hub:** [Interactive Documentation Site](./docs/README.md) — Searchable technical API & policy reference.
 - **Auditor Console:** [Live Audit Dashboard](./site/dashboard/index.html) — Live audit stream & one-click CSV export.
-- **GitHub Action Guide:** [Marketplace Action Integration Guide](./docs/MARKETPLACE_ACTION_GUIDE.md) — CI/CD integration and parameters.
+- **GitHub Action:** [`action.yml`](./action.yml) — CI/CD integration and parameters (guide in [`CONTRIBUTING.md`](./CONTRIBUTING.md)).
 - **Enterprise Buyer's Guide:** [Enterprise Buyer's Guide & ROI Matrix](./docs/compliance/ENTERPRISE_BUYERS_GUIDE.md) — TCO, ROI calculation & SLAs.
 - **Formal Specification & Invariant Model:** [Formal Specification & LaTeX Architecture](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations and canonical citations.
 - **2026 Threat Landscape Report:** [2026 Agent Security Threat Report](./docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md) — OWASP MCP & agent attack vectors.
@@ -320,7 +367,9 @@ dag.addAction({ id: 'act_1', toolName: 'read_file', params: { path: '/etc/passwd
 const anomalies = dag.detectAnomalousPatterns();
 ```
 
-### 4. Declarative Policy-as-Code Engine (Cedar / Rego AST)
+### 4. Declarative Policy-as-Code Engine (custom DSL — Cedar/Rego-inspired syntax)
+
+> **Honest note:** this is a small built-in policy DSL with Cedar-like `permit`/`forbid` effects and a simple AST condition evaluator. It does **not** parse AWS Cedar or OPA Rego syntax — it is *inspired by* them.
 ```typescript
 import { PolicyEngine } from '@aegis-kernel/core';
 

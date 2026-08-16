@@ -95,8 +95,8 @@
 - **Decision:** 
   1. Built `AegisLicenseManager` using offline HMAC-SHA256 / Ed25519 token signatures (`aegis_lic_...`) validated in memory with zero network delay.
   2. Built `@aegis-kernel/gateway` as a zero-cost Cloudflare Worker service providing asynchronous batch telemetry ingestion and automated Stripe `checkout.session.completed` license issuance.
-  3. Created `packages/python` (`aegis-kernel` on PyPI) providing `@aegis_guard` decorator with zero external dependencies in pure Python 3.9+.
-  4. Added `@aegis-kernel/evals` package for standardized public benchmark execution against InjecAgent, AgentDojo, and MCPTox datasets.
-- **Consequences:** Enables zero-touch commercial monetization with 95%+ gross margins and complete multi-language ecosystem coverage.
+  3. Created `packages/python` (`aegis-kernel` source package — **PyPI publication pending**) providing `@aegis_guard` decorator with zero external dependencies in pure Python 3.9+.
+  4. Added `@aegis-kernel/evals` package with an internal curated 100-vector testbed. **Correction (2026-08-16):** the original journal entry claimed standardized execution against InjecAgent, AgentDojo, and MCPTox datasets — this was premature. Those public benchmarks are planned, not yet implemented; all published metrics come from the internal testbed.
+- **Consequences:** Enables a potential commercial licensing path; the monetization model is not yet finalized and the codebase remains MIT-licensed.
 
 

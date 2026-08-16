@@ -68,7 +68,7 @@
 2. **Biscuit Token Attenuation**:
    - Monotonic attenuation guarantee: child tokens can only narrow permissions, never expand. Every block in the chain is validated against parent rights.
 3. **Immutable Audit Trail**:
-   - `computeEventChainMerkleRoot` links successive event trees with `previousRootHash` for non-repudiable SOC 2 Type II and ISO 42001 compliance dossiers.
+   - `computeEventChainMerkleRoot` (in `grc-exporter.ts`) chains ordered events with `previousRootHash` into a Merkle root for tamper-evident GRC dossier exports. **Scope note:** this runs on the GRC export path — the main event ledger stores per-event SHA-256 `proofHash` commitments rather than a continuous Merkle chain.
 4. **Zero-Egress Assurance**:
    - The core clearance pipeline performs zero outbound network calls by default, guaranteeing zero latency jitter and zero conversational prompt leakage.
 

@@ -81,7 +81,7 @@ To ensure empirical validity and prevent Goodhart's Law (where a metric ceases t
 1. **Separation of Concerns**:
    - **Internal Taxonomy Regression Suite** (`packages/core/__tests__/internal-taxonomy-suite.test.ts`): Hand-authored unit tests designed to prevent regression on known issues.
    - **Adversarial Stress Testbed** (`packages/evals/src/tricky-100-dataset.ts`): 100 independently constructed vectors covering subtle bypasses across 10 distinct threat domains.
-   - **External Benchmark Adapters** (`packages/evals/src/external-benchmarks.ts`): Standardized harness for ingestion of public datasets (InjecAgent, AgentDojo, MCPTox).
+   - **External Benchmark Adapters**: *Planned, not yet implemented.* A standardized ingestion harness for public datasets (InjecAgent, AgentDojo, MCPTox) does not exist yet; all published metrics are measured on the internal `tricky-100` testbed only, not on those public benchmarks.
 2. **Transparent Latency Reporting**:
    - Latency figures represent end-to-end CPU time measured via `performance.now()` across 10,000 real iterations on commodity hardware, including standard deviation and 99th percentile metrics.
 
