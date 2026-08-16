@@ -6,8 +6,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  platform: 'node',
-  target: 'node18',
-  shims: true,
-  noExternal: [/@aegis-kernel\/.*/, 'commander', 'picocolors', 'yaml'],
+  noExternal: [/@aegis-kernel\/.*/],
 });
