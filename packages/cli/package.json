@@ -55,13 +55,14 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@aegis-kernel/core": "*",
-    "@aegis-kernel/evals": "*",
-    "@aegis-kernel/mcp": "*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
+    "@aegis-kernel/core": "*",
+    "@aegis-kernel/diagnostics": "*",
+    "@aegis-kernel/evals": "*",
+    "@aegis-kernel/mcp": "*",
     "@types/node": "^26.2.0",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",

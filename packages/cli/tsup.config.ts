@@ -6,6 +6,6 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  noExternal: ['@aegis-kernel/core', '@aegis-kernel/evals'],
+  noExternal: [/@aegis-kernel\/.*/],
 });
 
