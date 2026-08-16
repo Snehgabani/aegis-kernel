@@ -20,6 +20,16 @@ class AegisVerdict:
     policy_commitment_hash: str = ""
     suggested_fix: Optional[str] = None
 
+    @property
+    def valid(self) -> bool:
+        return self.allowed
+
+@dataclass
+class AegisConfig:
+    mode: Literal["enforce", "monitor", "simulate"] = "enforce"
+    fail_policy: Literal["fail-closed", "fail-open"] = "fail-closed"
+    rules: Optional[List[Dict[str, Any]]] = None
+
 @dataclass
 class ToolCall:
     tool: str

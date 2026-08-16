@@ -3,7 +3,7 @@ Aegis Invariant Kernel for Python
 Deterministic, sub-2ms safety clearance gateway for AI Agent tool execution.
 """
 
-from .types import AegisVerdict, AegisViolation, ToolCall
+from .types import AegisVerdict, AegisViolation, ToolCall, AegisConfig
 from .engine import AegisEngine
 from .decorator import aegis_guard, AegisBlockedError
 from .adapters import AegisCrewAITool, wrap_autogen_function
@@ -12,6 +12,7 @@ __all__ = [
     "AegisVerdict",
     "AegisViolation",
     "ToolCall",
+    "AegisConfig",
     "AegisEngine",
     "aegis_guard",
     "AegisBlockedError",

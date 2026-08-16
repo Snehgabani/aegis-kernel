@@ -1,10 +1,10 @@
 2baad81c03a74499db27a8bb6e034f38c12cf863b7c11b9282d97c5ef580927b  aegis-kernel-anthropic-1.0.0.tgz
-72b8d81ceebb7909af0285c3225c6ab09b3bd3532af71553e64cb7ed1d7ca63e  aegis-kernel-cli-1.0.0.tgz
+efcbf978b4262580ccb507dda524702c7f88cb9890c8e3411c4c3cb4d099d93f  aegis-kernel-cli-1.0.0.tgz
 abe4b2572bb3c518777eab8b1b5840a1f9e3747b97fdf66f9e48dbb8ce032ef3  aegis-kernel-core-1.0.0.tgz
 14a9f078e0a6b607cd663811a33dae498e026e3e0735e66a2fa390a7e356e9c9  aegis-kernel-diagnostics-1.0.0.tgz
 c3f3b6aa6d19c503836d56691ab7507ee0d9587afe00ef2197c7606cb4604721  aegis-kernel-evals-1.0.0.tgz
 da47227ee972962ac6fb0794d1cb5452c69d17110052215599681defb611c9e3  aegis-kernel-langchain-1.0.0.tgz
 c5d2f79a9b93af3941a139e1b7516b0980eeb4680982ea0c04ae5ef549ceb5fc  aegis-kernel-mcp-1.0.0.tgz
 7d6e61c2c6f5ed791099f46d54c7c706167da4c68204e50f1a79fea929a5f9e7  aegis-kernel-openai-1.0.0.tgz
-8c5ddb924306d4aded3c931d654ac32a1cdc33cfb507717e9d9efdc6d156c1b8  aegis_kernel-1.0.0-py3-none-any.whl
-11a04cbed081d148fc87b0d2a2f5da9a5e0d7c4a6e4b8ca6ddd8dc88d1225e43  aegis_kernel-1.0.0.tar.gz
+ec2aa9ce414253337b214f22626f707b1625191177617777790922cb975f3947  aegis_kernel-1.0.0-py3-none-any.whl
+b16ba434b51fb7229c5826afbbf69ed83c45ce365a7b2e789874998e5ab7f45a  aegis_kernel-1.0.0.tar.gz

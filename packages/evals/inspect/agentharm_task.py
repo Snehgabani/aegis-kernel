@@ -17,13 +17,26 @@ try:
 except ImportError:
     def task(func):
         return func
-    Task = Any
-    Sample = Any
-    MemoryDataset = Any
+    class Task:
+        def __init__(self, dataset=None, solver=None, scorer=None, **kwargs):
+            self.dataset = dataset
+            self.solver = solver
+            self.scorer = scorer
+    class Sample:
+        def __init__(self, id=None, input=None, target=None, metadata=None, **kwargs):
+            self.id = id
+            self.input = input
+            self.target = target
+            self.metadata = metadata or {}
+    class MemoryDataset(list):
+        pass
     includes = lambda x: None
     exact = lambda: None
 
-from .aegis_solver import aegis_guard_solver
+try:
+    from .aegis_solver import aegis_guard_solver
+except (ImportError, ValueError):
+    from aegis_solver import aegis_guard_solver
 
 AGENTHARM_SAMPLES: List[Dict[str, Any]] = [
     {

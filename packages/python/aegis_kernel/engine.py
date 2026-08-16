@@ -1,8 +1,8 @@
 import time
 import hashlib
 import json
-from typing import Any, Dict, List, Optional
-from .types import AegisVerdict, AegisViolation, ToolCall
+from typing import Any, Dict, List, Optional, Union
+from .types import AegisVerdict, AegisViolation, ToolCall, AegisConfig
 from .checkers import PythonSqlChecker, PythonPiiChecker, PythonNumericChecker
 
 BUILTIN_RULES = [
@@ -55,9 +55,26 @@ BUILTIN_RULES = [
 ]
 
 class AegisEngine:
-    def __init__(self, mode: str = "enforce", rules: Optional[List[Dict[str, Any]]] = None):
-        self.mode = mode
-        self.rules = rules or BUILTIN_RULES
+    def __init__(
+        self,
+        config: Optional[Union[AegisConfig, str]] = None,
+        rules: Optional[List[Dict[str, Any]]] = None,
+        mode: str = "enforce",
+        fail_policy: str = "fail-closed",
+        packs: Optional[List[str]] = None,
+    ):
+        if isinstance(config, AegisConfig):
+            self.mode = config.mode
+            self.fail_policy = config.fail_policy
+            self.rules = config.rules or rules or BUILTIN_RULES
+        elif isinstance(config, str):
+            self.mode = config
+            self.fail_policy = fail_policy
+            self.rules = rules or BUILTIN_RULES
+        else:
+            self.mode = mode
+            self.fail_policy = fail_policy
+            self.rules = rules or BUILTIN_RULES
         self.policy_hash = hashlib.sha256(json.dumps(self.rules, sort_keys=True).encode()).hexdigest()
 
     def evaluate(self, tool_call: ToolCall) -> AegisVerdict:

@@ -255,7 +255,7 @@ describe('Aegis CLI Package', () => {
       expect(fs.existsSync(binPath)).toBe(true);
       const binContent = fs.readFileSync(binPath, 'utf8');
       expect(binContent).toContain('#!/usr/bin/env node');
-      expect(binContent).toMatch(/(\.\.\/dist\/index\.js)/);
+      expect(binContent).toMatch(/(\.\.\/dist\/index\.(js|cjs))/);
     });
   });
 });
