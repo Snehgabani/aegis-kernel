@@ -17,24 +17,24 @@ This document provides a comprehensive technical analysis of the 2026 agent thre
 
 ```mermaid
 flowchart TD
-    subgraph Attack Vectors
-        A1[Indirect Prompt Injection] --> B[Compromised Tool / Context]
-        A2[MCP Tool Poisoning] --> B
-        A3[Confused Deputy Attack] --> B
+    subgraph AttackVectors["Attack Vectors"]
+        A1["Indirect Prompt Injection"] --> B["Compromised Tool / Context"]
+        A2["MCP Tool Poisoning"] --> B
+        A3["Confused Deputy Attack"] --> B
     end
 
-    B --> C[AI Agent LLM Planner]
-    C -->|Rogue Tool Call Intent| D{Clearance Gateway}
+    B --> C["AI Agent LLM Planner"]
+    C -->|"Rogue Tool Call Intent"| D{"Clearance Gateway"}
 
-    subgraph Aegis Defense-in-Depth
-        D -->|AST Verification| E1[SQL Parser & Constant Fold]
-        D -->|Numeric Invariant| E2[Ceiling & Velocity Bounds]
-        D -->|Data Protection| E3[PII / Secret Masker & JWTs]
-        D -->|Integrity Check| E4[MCP Schema Pinning]
+    subgraph Defense["Aegis Defense-in-Depth"]
+        D -->|"AST Verification"| E1["SQL Parser & Constant Fold"]
+        D -->|"Numeric Invariant"| E2["Ceiling & Velocity Bounds"]
+        D -->|"Data Protection"| E3["PII / Secret Masker & JWTs"]
+        D -->|"Integrity Check"| E4["MCP Schema Pinning"]
     end
 
-    E1 & E2 & E3 & E4 -->|VERDICT: ALLOWED| F[(Target Enterprise Infrastructure)]
-    E1 & E2 & E3 & E4 -->|VERDICT: BLOCKED| G[Automated Model Self-Healing Feedback]
+    E1 & E2 & E3 & E4 -->|"VERDICT: ALLOWED"| F[("Target Enterprise Infrastructure")]
+    E1 & E2 & E3 & E4 -->|"VERDICT: BLOCKED"| G["Automated Model Self-Healing Feedback"]
 ```
 
 ### 1. Model Context Protocol (MCP) Tool Poisoning

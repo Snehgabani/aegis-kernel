@@ -17,61 +17,61 @@ The Aegis kernel organizes all clearance checks into a pipelined 4-tier defense-
 
 ```mermaid
 flowchart TB
-    subgraph INGRESS [0. Ingress & Framework Adapters]
-        LLM[Autonomous Agent / LLM]
-        MCP[MCP Server Proxy]
-        LC[LangChain / CrewAI]
-        OAI[OpenAI / Swarm]
-        ANTH[Anthropic Claude]
+    subgraph INGRESS ["0. Ingress & Framework Adapters"]
+        LLM["Autonomous Agent / LLM"]
+        MCP["MCP Server Proxy"]
+        LC["LangChain / CrewAI"]
+        OAI["OpenAI / Swarm"]
+        ANTH["Anthropic Claude"]
     end
 
-    INGRESS -->|ToolCall Proposal| TIER1
+    INGRESS -->|"ToolCall Proposal"| TIER1
 
-    subgraph TIER1 [Tier 1: Pre-Parse Linguistic & Lexical Guard]
+    subgraph TIER1 ["Tier 1: Pre-Parse Linguistic & Lexical Guard"]
         direction TB
-        T1_1[Unicode NFKD / Confusable Normalizer]
-        T1_2[Aho-Corasick Streaming Secret Interceptor]
-        T1_3[Zero-Egress Linguistic Classifier]
-        T1_4[Shadow AI Tool Discovery Sniffer]
+        T1_1["Unicode NFKD / Confusable Normalizer"]
+        T1_2["Aho-Corasick Streaming Secret Interceptor"]
+        T1_3["Zero-Egress Linguistic Classifier"]
+        T1_4["Shadow AI Tool Discovery Sniffer"]
     end
 
-    TIER1 -->|Lexical Pass| TIER2
+    TIER1 -->|"Lexical Pass"| TIER2
 
-    subgraph TIER2 [Tier 2: Structural AST & Semantic Checkers]
+    subgraph TIER2 ["Tier 2: Structural AST & Semantic Checkers"]
         direction TB
-        T2_1[Multi-Dialect SQL AST Parser<br/>Postgres, MySQL, SQLite, T-SQL]
-        T2_2[Numeric Risk Bounds & Safe BigInt Engine]
-        T2_3[PII Token Vault<br/>16-Byte Salted Anonymizer]
-        T2_4[Policy-as-Code Engine<br/>Cedar / Rego AST Evaluator]
-        T2_5[WASM Sandboxed Validator Plugins]
+        T2_1["Multi-Dialect SQL AST Parser<br/>Postgres, MySQL, SQLite, T-SQL"]
+        T2_2["Numeric Risk Bounds & Safe BigInt Engine"]
+        T2_3["PII Token Vault<br/>16-Byte Salted Anonymizer"]
+        T2_4["Policy-as-Code Engine<br/>Cedar / Rego AST Evaluator"]
+        T2_5["WASM Sandboxed Validator Plugins"]
     end
 
-    TIER2 -->|Structural Pass| TIER3
+    TIER2 -->|"Structural Pass"| TIER3
 
-    subgraph TIER3 [Tier 3: Temporal, Behavioral & Identity Topology]
+    subgraph TIER3 ["Tier 3: Temporal, Behavioral & Identity Topology"]
         direction TB
-        T3_1[Agent Identity & RBAC Manager]
-        T3_2[Ed25519 Biscuit Token Monotonic Attenuation]
-        T3_3[Multi-Turn Conversation Tracker<br/>Crescendo Decay Model]
-        T3_4[Causal Execution DAG<br/>Loop & Exfiltration Analysis]
-        T3_5[Multi-Strike Circuit Breaker]
-        T3_6[Swarm Delegation Router]
+        T3_1["Agent Identity & RBAC Manager"]
+        T3_2["Ed25519 Biscuit Token Monotonic Attenuation"]
+        T3_3["Multi-Turn Conversation Tracker<br/>Crescendo Decay Model"]
+        T3_4["Causal Execution DAG<br/>Loop & Exfiltration Analysis"]
+        T3_5["Multi-Strike Circuit Breaker"]
+        T3_6["Swarm Delegation Router"]
     end
 
-    TIER3 -->|Contextual Pass| TIER4
+    TIER3 -->|"Contextual Pass"| TIER4
 
-    subgraph TIER4 [Tier 4: Cryptographic Proofs, Fixes & Compliance]
+    subgraph TIER4 ["Tier 4: Cryptographic Proofs, Fixes & Compliance"]
         direction TB
-        T4_1[SHA-256 ProofHash Commitment Generator]
-        T4_2[Tamper-Proof Merkle GRC Dossier]
-        T4_3[Self-Healing AST Re-Ask Fix Generator]
-        T4_4[EU AI Act Art. 13 Plain-English Explainer]
-        T4_5[SIEM CEF / Syslog & STIX 2.1 CTI Exporter]
-        T4_6[HITL Cryptographic HMAC Signer]
+        T4_1["SHA-256 ProofHash Commitment Generator"]
+        T4_2["Tamper-Proof Merkle GRC Dossier"]
+        T4_3["Self-Healing AST Re-Ask Fix Generator"]
+        T4_4["EU AI Act Art. 13 Plain-English Explainer"]
+        T4_5["SIEM CEF / Syslog & STIX 2.1 CTI Exporter"]
+        T4_6["HITL Cryptographic HMAC Signer"]
     end
 
-    TIER4 -->|Verdict: ALLOWED| EGRESS_PASS[(Production DB / API / Tool Execution)]
-    TIER4 -->|Verdict: BLOCKED / REASK| EGRESS_FAIL[💥 Auto-Fix Feedback / Quarantine / Alert]
+    TIER4 -->|"Verdict: ALLOWED"| EGRESS_PASS[("Production DB / API / Tool Execution")]
+    TIER4 -->|"Verdict: BLOCKED / REASK"| EGRESS_FAIL["💥 Auto-Fix Feedback / Quarantine / Alert"]
 ```
 
 ---

@@ -44,15 +44,15 @@ Where:
 
 ```mermaid
 flowchart LR
-    A[Autonomous LLM Agent] -->|Proposed Tool Call c = T, p| B[🛡️ Aegis Invariant Kernel]
-    subgraph In-Process Kernel [<1.5ms, Zero Egress]
-        B --> C[1. Multi-Dialect AST Lexer]
-        B --> D[2. Numeric & Currency Normalizer]
-        B --> E[3. PII / Secret Vault & Tokenizer]
-        B --> F[4. Crescendo Drift & State Tracker]
+    A["Autonomous LLM Agent"] -->|"Proposed Tool Call c = (T, p)"| B["🛡️ Aegis Invariant Kernel"]
+    subgraph InProcess["In-Process Kernel (Sub-1.5ms, Zero Egress)"]
+        B --> C["1. Multi-Dialect AST Lexer"]
+        B --> D["2. Numeric & Currency Normalizer"]
+        B --> E["3. PII / Secret Vault & Tokenizer"]
+        B --> F["4. Crescendo Drift & State Tracker"]
     end
-    C & D & E & F -->|All Invariants Satisfied| G[(Production API / Database)]
-    C & D & E & F -->|Invariant Breached| H[🛑 Block + Actionable Auto-Fix Fix]
+    C & D & E & F -->|"All Invariants Satisfied"| G[("Production API / Database")]
+    C & D & E & F -->|"Invariant Breached"| H["🛑 Block + Actionable Auto-Fix"]
 ```
 
 ### 1.2 The 5 Threat Vectors
@@ -166,13 +166,13 @@ To provide a fair, grounded comparison without vendor bias, we benchmarked the f
 
 ```mermaid
 quadrantChart
-    title Guardrail Performance & Latency Trade-off
-    x-axis Low Latency (Fast) --> High Latency (Slow)
-    y-axis Low Robustness (Fails Attacks) --> High Robustness (Blocks Attacks)
-    quadrant-1 High Latency / High Security (LLM Judge)
-    quadrant-2 Deterministic Frontier (Aegis Invariant Kernel)
-    quadrant-3 Naive Rules (Regex Baseline)
-    quadrant-4 Probabilistic Latency Tax (Local Classifiers)
+    title "Guardrail Performance & Latency Trade-off"
+    x-axis "Low Latency" --> "High Latency"
+    y-axis "Low Robustness" --> "High Robustness"
+    quadrant-1 "High Latency / High Security (LLM Judge)"
+    quadrant-2 "Deterministic Frontier (Aegis)"
+    quadrant-3 "Naive Rules (Regex Baseline)"
+    quadrant-4 "Probabilistic Tax (Local Classifiers)"
     "Aegis Invariant Kernel": [0.05, 0.98]
     "Naive Regex": [0.04, 0.42]
     "Local Classifier (DeBERTa)": [0.45, 0.76]
