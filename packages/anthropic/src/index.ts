@@ -22,8 +22,12 @@ export interface ClaudeToolResultBlock {
 export class AegisAnthropicGuard {
   private engine: AegisEngine;
 
-  constructor(config?: AegisConfig) {
-    this.engine = new AegisEngine(config);
+  constructor(config?: AegisConfig | AegisEngine) {
+    if (config instanceof AegisEngine) {
+      this.engine = config;
+    } else {
+      this.engine = new AegisEngine(config);
+    }
   }
 
   /**

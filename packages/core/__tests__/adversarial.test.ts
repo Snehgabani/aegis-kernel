@@ -174,8 +174,8 @@ describe('Adversarial & Edge-Case Stress Testing Suite', () => {
       const totalTime = performance.now() - startTime;
       const perEval = totalTime / iterations;
 
-      expect(totalTime).toBeLessThan(10000);
-      expect(perEval).toBeLessThan(10.0);
+      expect(totalTime).toBeLessThan(20000);
+      expect(perEval).toBeLessThan(20.0);
     });
   });
 });

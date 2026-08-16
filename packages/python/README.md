@@ -5,7 +5,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://pypi.org/project/aegis-kernel/)
-[![Tests](https://img.shields.io/badge/tests-9%2F9%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-11%2F11%20passing-brightgreen.svg)](#)
 
 ---
 

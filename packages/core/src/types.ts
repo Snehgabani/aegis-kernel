@@ -153,6 +153,7 @@ export interface JsonSchemaCondition {
 
 export interface RegexConditionParams {
   patterns: string[];
+  field?: string;
   targets?: ('params' | 'body' | 'url' | 'headers' | '*')[];
   match_action?: 'block' | 'warn';
 }

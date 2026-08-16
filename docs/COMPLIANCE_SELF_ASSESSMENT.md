@@ -35,9 +35,9 @@ These numbers are produced by the repository's own test and benchmark suites; ru
 
 | Metric | Value | How to reproduce |
 | :--- | :--- | :--- |
-| Unit/integration tests (TypeScript) | 366 / 366 passing (66 files) | `npm install && npm test` |
-| Python SDK tests | 9 / 9 passing | `python3 -m pytest packages/python/tests/` |
-| Go SDK tests | 12 / 12 passing | `cd packages/go && go test -v ./...` |
+| Unit/integration tests (TypeScript) | 509 / 509 passing (67 files) | `npm install && npm test` |
+| Python SDK tests | 11 / 11 passing | `python3 -m unittest discover -s packages/python/tests -p "test_*.py"` |
+| Go SDK tests | 17 / 17 passing | `cd packages/go && go test -v ./...` |
 | Rust Crate tests | 8 / 8 passing | `cd packages/rust && cargo test` |
 | Internal adversarial testbed (100 vectors) | 100% F1 (malicious blocked, benign passed) | `npx vitest run packages/evals` |
 | Auditor 25-vector reproduction suite | 32 / 32 passing (100% F1, 0 bypasses) | `node scripts/auditor-25-vectors.mjs` |
@@ -68,7 +68,7 @@ The repository is public and reproducible. An auditor (or you) can independently
 git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
-npm test                                  # 266/266 tests
+npm test                                  # 509/509 tests (67 suites)
 npx vitest run packages/evals             # internal 100-vector adversarial testbed
 npx aegis benchmark --tricky              # latency + F1
 ```

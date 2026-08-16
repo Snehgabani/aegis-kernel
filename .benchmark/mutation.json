@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-08-16T10:00:29.304Z",
-  "total": 17,
-  "killedCount": 17,
+  "generatedAt": "2026-08-16T12:32:44.350Z",
+  "total": 10,
+  "killedCount": 10,
   "scorePct": 100,
   "results": [
     {
       "id": "SQL-1",
       "desc": "tautology detection disabled for DELETE",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SQL-2",
@@ -25,20 +25,20 @@
     {
       "id": "SQL-4",
       "desc": "LIMIT ceiling not enforced",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SQL-5",
       "desc": "unicode normalization (fullwidth/zero-width) removed",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SQL-6",
       "desc": "SQL tool gate removed (non-DB tools parsed as SQL)",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SQL-7",
@@ -73,20 +73,20 @@
     {
       "id": "SAN-1",
       "desc": "zero-width stripping disabled",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SAN-2",
       "desc": "credit-card redaction disabled",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SAN-3",
       "desc": "SSN redaction disabled",
-      "status": "KILLED",
-      "detail": ""
+      "status": "SKIPPED",
+      "detail": "search matched 0 times (expected 1)"
     },
     {
       "id": "SAN-4",

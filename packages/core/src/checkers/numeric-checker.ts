@@ -7,6 +7,10 @@ export class NumericChecker {
     this.rateLimitWindows = new Map();
   }
 
+  public resetRateLimits(): void {
+    this.rateLimitWindows.clear();
+  }
+
   public evaluate(
     ruleId: string,
     packId: string,

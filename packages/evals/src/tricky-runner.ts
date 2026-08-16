@@ -52,6 +52,12 @@ export class TrickyBenchmarkRunner {
     const latencies: number[] = [];
     const failures: TrickyBenchmarkResult['failures'] = [];
 
+    // Warm up engine to JIT compile rule evaluation and parser regexes
+    if (TRICKY_100_DATASET.length > 0) {
+      engine.evaluate(TRICKY_100_DATASET[0].toolCall, {
+        state: TRICKY_100_DATASET[0].stateContext,
+      });
+    }
     let maliciousCount = 0;
     let benignCount = 0;
 

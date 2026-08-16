@@ -5,7 +5,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aegis-kernel/aegis-go)](https://goreportcard.com/report/github.com/aegis-kernel/aegis-go)
-[![Tests](https://img.shields.io/badge/tests-12%2F12%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-17%2F17%20passing-brightgreen.svg)](#)
 
 ---
 
@@ -38,20 +38,13 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	aegis "github.com/aegis-kernel/aegis-go"
 )
 
 func main() {
 	// Initialize the Aegis Engine with default guard packs
-	engine, err := aegis.NewEngine(&aegis.Config{
-		FailPolicy: "fail-closed",
-		Packs:      []string{"@aegis/sql-guard", "@aegis/finance-guard", "@aegis/data-guard"},
-	})
-	if err != nil {
-		log.Fatalf("Failed to initialize engine: %v", err)
-	}
+	engine := aegis.NewDefaultEngine()
 
 	// 1. Evaluate a dangerous mass DELETE tool call
 	maliciousCall := aegis.ToolCall{
@@ -60,7 +53,7 @@ func main() {
 			"query": "DELETE FROM users WHERE 1=1",
 		},
 	}
-	verdict := engine.Evaluate(maliciousCall, nil)
+	verdict := engine.Evaluate(maliciousCall)
 	fmt.Printf("Malicious Call Allowed: %v (Violations: %d, Latency: %s)\n",
 		verdict.Allowed, len(verdict.Violations), verdict.Latency)
 	// Output: Malicious Call Allowed: false (Violations: 1, Latency: 450µs)
@@ -72,7 +65,7 @@ func main() {
 			"query": "SELECT id, name FROM users WHERE id = 42",
 		},
 	}
-	verdict = engine.Evaluate(benignCall, nil)
+	verdict = engine.Evaluate(benignCall)
 	fmt.Printf("Benign Call Allowed: %v (Latency: %s)\n",
 		verdict.Allowed, verdict.Latency)
 	// Output: Benign Call Allowed: true (Latency: 120µs)

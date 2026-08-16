@@ -19,7 +19,18 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@aegis-kernel/core": ["packages/core/src/index.ts"],
+      "@aegis-kernel/evals": ["packages/evals/src/index.ts"],
+      "@aegis-kernel/mcp": ["packages/mcp/src/index.ts"],
+      "@aegis-kernel/anthropic": ["packages/anthropic/src/index.ts"],
+      "@aegis-kernel/openai": ["packages/openai/src/index.ts"],
+      "@aegis-kernel/langchain": ["packages/langchain/src/index.ts"],
+      "@aegis-kernel/diagnostics": ["packages/diagnostics/src/index.ts"],
+      "@aegis-kernel/cli": ["packages/cli/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "dist"]
 }

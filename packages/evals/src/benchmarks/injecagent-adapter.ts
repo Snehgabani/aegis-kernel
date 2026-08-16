@@ -378,6 +378,7 @@ export class InjecAgentAdapter {
 
     // Evaluate each test case
     for (const testCase of testCases) {
+      this.engine.resetState?.();
       const start = performance.now();
       const verdict = this.engine.evaluate(testCase.injectedToolCall);
       const end = performance.now();

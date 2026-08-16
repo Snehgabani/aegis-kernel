@@ -78,6 +78,10 @@ export class AegisEngine {
     this.defaultStateProvider = provider;
   }
 
+  public resetState(): void {
+    this.numericChecker.resetRateLimits();
+  }
+
   private loadPacks(packsConfig?: (string | RulePack)[]): RulePack[] {
     const loaded: RulePack[] = [];
 

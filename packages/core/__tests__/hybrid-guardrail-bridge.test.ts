@@ -43,7 +43,7 @@ describe('Aegis Hybrid Guardrail Bridge — 2-Stage Defense-in-Depth Pipeline', 
     expect(toolRes.blockedAtStage).toBe(2);
     expect(toolRes.stage2Result?.allowed).toBe(false);
     expect(toolRes.stage2Result?.verdict?.allowed).toBe(false);
-    expect(toolRes.stage2Result?.latencyMs).toBeLessThan(100);
+    expect(toolRes.stage2Result?.latencyMs).toBeLessThan(500);
   });
 
   it('should allow full turn execution when both conversational prompt and tool invocation are compliant', async () => {

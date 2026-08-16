@@ -1,4 +1,4 @@
-import type { AegisViolation, RegexConditionParams, ToolCall } from '../types.js';
+import type { AegisSeverity, AegisViolation, RegexConditionParams, ToolCall } from '../types.js';
 
 // Pre-compiled high-recall regex patterns for PII, Secrets, and Compliance Invariants
 export const DEFAULT_PII_PATTERNS = {
@@ -16,7 +16,7 @@ export const DEFAULT_PII_PATTERNS = {
   GCP_SERVICE_ACCOUNT: /"type":\s*"service_account"/,
   DATABASE_URI_SECRET: /\b(?:postgres|postgresql|mysql|mongodb|redis):\/\/[^:\s]+:[^@\s]+@[^\s]+\b/,
   SLACK_TOKEN: /\bxox[baprs]-[0-9a-zA-Z-]{10,64}\b/,
-  SENDGRID_KEY: /\bSG\.[0-9a-zA-Z_-]{16,32}\.[0-9a-zA-Z_-]{32,64}\b/,
+  SENDGRID_KEY: /\bSG\.[0-9a-zA-Z_-]{10,64}\.[0-9a-zA-Z_-]{10,64}\b/,
   AZURE_KEY: /\b(?:secret|api_key)_[a-zA-Z0-9_]{10,}\b/i,
 
   // Global & Compliance Patterns (HIPAA, PCI-DSS, GDPR)
@@ -55,10 +55,12 @@ export class PiiChecker {
     packId: string,
     params: RegexConditionParams,
     toolCall: ToolCall,
-    severity: import("../types.js").AegisSeverity = "critical"
+    severity: AegisSeverity = 'critical'
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
-    const textValues = this.collectStringValues(toolCall.params);
+    const textValues = params.field
+      ? (typeof (toolCall.params as any)?.[params.field] === 'string' ? [(toolCall.params as any)[params.field]] : [])
+      : this.collectStringValues(toolCall.params);
 
     for (const patternStr of params.patterns) {
       let regex = this.compiledPatterns.get(patternStr);

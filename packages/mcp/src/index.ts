@@ -7,7 +7,7 @@ export interface MCPToolDefinition {
   inputSchema?: Record<string, unknown>;
 }
 
-export interface AegisMCPOptions {
+export interface AegisMCPOptions extends Partial<AegisConfig> {
   engine?: AegisEngine;
   config?: AegisConfig;
   sanitizeOutputs?: boolean; // Scans and redacts leaked secrets from tool outputs
@@ -22,12 +22,17 @@ export class AegisMCPMiddleware {
   private enableSchemaPinning: boolean;
   private callerId?: string;
 
-  constructor(options?: AegisMCPOptions) {
-    this.engine = options?.engine ?? new AegisEngine(options?.config);
+  constructor(options?: AegisMCPOptions | AegisConfig) {
+    if (options && 'evaluate' in (options as any)) {
+      this.engine = options as unknown as AegisEngine;
+    } else {
+      const config = (options as AegisMCPOptions)?.config ?? options;
+      this.engine = (options as AegisMCPOptions)?.engine ?? new AegisEngine(config as AegisConfig);
+    }
     this.pinnedSchemas = new Map();
-    this.sanitizeOutputs = options?.sanitizeOutputs ?? true;
-    this.enableSchemaPinning = options?.enableSchemaPinning ?? true;
-    this.callerId = options?.callerId;
+    this.sanitizeOutputs = (options as AegisMCPOptions)?.sanitizeOutputs ?? true;
+    this.enableSchemaPinning = (options as AegisMCPOptions)?.enableSchemaPinning ?? true;
+    this.callerId = (options as AegisMCPOptions)?.callerId;
   }
 
   /**

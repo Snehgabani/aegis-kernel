@@ -38,34 +38,30 @@ serde_json = "1.0"
 ## ⚡ Quickstart
 
 ```rust
-use aegis_kernel::{AegisEngine, Config, ToolCall};
+use aegis_kernel::{AegisEngine, ToolCall};
 use serde_json::json;
+use std::collections::HashMap;
 
 fn main() {
     // 1. Initialize the Aegis Engine with default guard packs
-    let config = Config::default();
-    let engine = AegisEngine::new(Some(config));
+    let engine = AegisEngine::new_default();
 
     // 2. Evaluate a dangerous mass DELETE tool call
-    let malicious_call = ToolCall {
-        tool: "database_exec".to_string(),
-        params: json!({
-            "query": "DELETE FROM users WHERE 1=1"
-        }),
-    };
-    let verdict = engine.evaluate(&malicious_call, None);
+    let mut args = HashMap::new();
+    args.insert("query".to_string(), json!("DELETE FROM users WHERE 1=1"));
+    let malicious_call = ToolCall::new("database_exec", args);
+
+    let verdict = engine.evaluate(&malicious_call);
     println!("Malicious Call Allowed: {} (Violations: {})", 
         verdict.allowed, verdict.violations.len());
     assert!(!verdict.allowed);
 
     // 3. Evaluate a safe targeted SELECT
-    let benign_call = ToolCall {
-        tool: "database_exec".to_string(),
-        params: json!({
-            "query": "SELECT id, email FROM users WHERE id = 42"
-        }),
-    };
-    let verdict = engine.evaluate(&benign_call, None);
+    let mut args2 = HashMap::new();
+    args2.insert("query".to_string(), json!("SELECT id, email FROM users WHERE id = 42"));
+    let benign_call = ToolCall::new("database_exec", args2);
+
+    let verdict = engine.evaluate(&benign_call);
     println!("Benign Call Allowed: {}", verdict.allowed);
     assert!(verdict.allowed);
 }

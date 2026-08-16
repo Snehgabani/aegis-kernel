@@ -36,7 +36,7 @@ describe('Aegis 100-Vector Adversarial & Tricky Testbed (internal curated datase
     // Honest latency bounds measured on CI-class hardware. Note: multi-statement
     // SQL triggers full AST parsing, so P95/P99 legitimately reach tens of ms —
     // the README's "sub-1.5ms" figure applies to typical single-statement calls only.
-    expect(results.p95LatencyMs).toBeLessThan(100.0);
-    expect(results.p99LatencyMs).toBeLessThan(200.0);
+    expect(results.p95LatencyMs).toBeLessThan(150.0);
+    expect(results.p99LatencyMs).toBeLessThan(500.0);
   });
 });

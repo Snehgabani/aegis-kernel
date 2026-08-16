@@ -65,3 +65,15 @@ rules:
         patterns:
           - DESTRUCTIVE_COMMAND
         match_action: block
+
+  - id: SOC2-007
+    severity: critical
+    description: Block zero-width invisible unicode characters in tool names and identifiers
+    condition:
+      type: regex
+      params:
+        field: tool_name
+        patterns:
+          - ZERO_WIDTH_TOOL
+        match_action: block
+

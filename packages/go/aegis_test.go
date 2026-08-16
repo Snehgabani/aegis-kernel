@@ -322,4 +322,165 @@ rules:
 			t.Errorf("Expected valid Merkle root hash")
 		}
 	})
+
+	t.Run("SQL Limit Ceiling & Prohibited Statements", func(t *testing.T) {
+		// LIMIT exceeding 10000
+		v1 := engine.Evaluate(ToolCall{Tool: "db_query", Params: map[string]interface{}{"query": "SELECT * FROM logs LIMIT 50000"}})
+		if v1.Allowed {
+			t.Errorf("Expected query with LIMIT 50000 to exceed max limit 10000")
+		}
+
+		// Blocked statement types in custom pack
+		customPack := RulePack{
+			ID:      "strict-sql-pack",
+			Version: "1.0.0",
+			Rules: []Rule{
+				{
+					ID:       "SQL-BLOCK-INSERT",
+					Severity: SeverityCritical,
+					Condition: RuleCondition{
+						Type: "sql_ast",
+						Params: map[string]interface{}{
+							"block_statements": []string{"INSERT", "EXEC"},
+						},
+					},
+				},
+			},
+		}
+		strictEngine := NewEngineWithPacks(customPack)
+		v2 := strictEngine.Evaluate(ToolCall{Tool: "db_query", Params: map[string]interface{}{"query": "INSERT INTO users (name) VALUES ('alice')"}})
+		if v2.Allowed {
+			t.Errorf("Expected INSERT to be blocked by strict policy")
+		}
+	})
+
+	t.Run("Sliding Window Rate Limiting", func(t *testing.T) {
+		ratePack := RulePack{
+			ID:      "rate-pack",
+			Version: "1.0.0",
+			Rules: []Rule{
+				{
+					ID:       "RATE-001",
+					Severity: SeverityCritical,
+					Condition: RuleCondition{
+						Type: "numeric",
+						Params: map[string]interface{}{
+							"field": "amount",
+							"rate_limit": map[string]interface{}{
+								"max_per_minute": 2,
+							},
+						},
+					},
+				},
+			},
+		}
+		rateEngine := NewEngineWithPacks(ratePack)
+
+		// 1st call
+		v1 := rateEngine.Evaluate(ToolCall{Tool: "payout", Params: map[string]interface{}{"amount": 100.0}})
+		if !v1.Allowed {
+			t.Errorf("1st payout should be allowed")
+		}
+		// 2nd call
+		v2 := rateEngine.Evaluate(ToolCall{Tool: "payout", Params: map[string]interface{}{"amount": 100.0}})
+		if !v2.Allowed {
+			t.Errorf("2nd payout should be allowed")
+		}
+		// 3rd call -> exceeds max 2/min
+		v3 := rateEngine.Evaluate(ToolCall{Tool: "payout", Params: map[string]interface{}{"amount": 100.0}})
+		if v3.Allowed {
+			t.Errorf("3rd payout should be rate limited")
+		}
+	})
+
+	t.Run("State DSL Arithmetic & Complex Invariants", func(t *testing.T) {
+		dslPack := RulePack{
+			ID:      "dsl-pack",
+			Version: "1.0.0",
+			Rules: []Rule{
+				{
+					ID:       "DSL-001",
+					Severity: SeverityCritical,
+					Condition: RuleCondition{
+						Type: "state_invariant",
+						Params: map[string]interface{}{
+							"precondition": "state.is_vip == 'true' || state.tier == 'premium'",
+							"assertion":    "params.qty * params.unit_price <= state.max_order_value",
+						},
+					},
+				},
+			},
+		}
+		dslEngine := NewEngineWithPacks(dslPack)
+
+		stateVIP := map[string]interface{}{
+			"is_vip":          "true",
+			"max_order_value": 1000.0,
+		}
+
+		// Valid: 10 * 50 = 500 <= 1000
+		v1 := dslEngine.Evaluate(
+			ToolCall{Tool: "place_order", Params: map[string]interface{}{"qty": 10.0, "unit_price": 50.0}},
+			WithState(stateVIP),
+		)
+		if !v1.Allowed {
+			t.Errorf("Valid order arithmetic should pass: %v", v1.Violations)
+		}
+
+		// Breach: 30 * 50 = 1500 > 1000
+		v2 := dslEngine.Evaluate(
+			ToolCall{Tool: "place_order", Params: map[string]interface{}{"qty": 30.0, "unit_price": 50.0}},
+			WithState(stateVIP),
+		)
+		if v2.Allowed {
+			t.Errorf("Breached order arithmetic should fail")
+		}
+
+		// Precondition failure: non-VIP
+		stateGuest := map[string]interface{}{
+			"is_vip":          "false",
+			"tier":            "standard",
+			"max_order_value": 1000.0,
+		}
+		v3 := dslEngine.Evaluate(
+			ToolCall{Tool: "place_order", Params: map[string]interface{}{"qty": 10.0, "unit_price": 50.0}},
+			WithState(stateGuest),
+		)
+		if v3.Allowed {
+			t.Errorf("Precondition failure should flag violation")
+		}
+	})
+
+	t.Run("Shadow Mode and Evaluation Options", func(t *testing.T) {
+		shadowEngine := NewEngine(Config{
+			Mode: ModeShadow,
+			RulePacks: []RulePack{
+				BuiltinPacks["sql-guard"],
+			},
+		})
+
+		// Destructive call in Shadow mode should have Allowed=true but report Violations
+		v := shadowEngine.Evaluate(ToolCall{Tool: "db_query", Params: map[string]interface{}{"query": "DROP TABLE users"}})
+		if !v.Allowed {
+			t.Errorf("Shadow mode should allow execution")
+		}
+		if len(v.Violations) == 0 {
+			t.Errorf("Shadow mode should record violations")
+		}
+		if v.Mode != ModeShadow {
+			t.Errorf("Verdict mode should be shadow")
+		}
+	})
+
+	t.Run("Fail-Closed vs Fail-Open Policies", func(t *testing.T) {
+		// Custom engine with fail-closed default
+		fcEngine := NewEngine(Config{
+			Mode:       ModeEnforce,
+			FailPolicy: FailClosed,
+		})
+		vfc := fcEngine.Evaluate(ToolCall{Tool: "test_tool", Params: map[string]interface{}{"num": 10}})
+		if !vfc.Allowed {
+			t.Errorf("Standard call should be allowed")
+		}
+	})
 }

@@ -7,29 +7,38 @@ const ParserClass: any =
   (NodeSqlParser as any).default?.Parser ??
   NodeSqlParser;
 
-const HOMOGLYPH_DECODE_MAP: Record<string, string> = {
-  '\u0430': 'a', '\u0410': 'A',
-  '\u0432': 'b', '\u0412': 'B',
-  '\u0441': 'c', '\u0421': 'C',
-  '\u0435': 'e', '\u0415': 'E',
-  '\u0456': 'i', '\u0406': 'I',
-  '\u0458': 'j', '\u0408': 'J',
-  '\u043A': 'k', '\u041A': 'K',
-  '\u041C': 'M',
-  '\u041D': 'H',
-  '\u043E': 'o', '\u041E': 'O',
-  '\u0440': 'p', '\u0420': 'P',
-  '\u0455': 's', '\u0405': 'S',
-  '\u0422': 'T',
-  '\u0443': 'y',
-  '\u0445': 'x', '\u0425': 'X',
-  '\u0391': 'A', '\u03B1': 'a',
-  '\u0392': 'B',
-  '\u0395': 'E', '\u03B5': 'e',
-  '\u039F': 'O', '\u03BF': 'o',
-  '\u03A1': 'P', '\u03C1': 'p',
-  '\u03A4': 'T',
-  '\u03A7': 'X', '\u03C7': 'x',
+export const HOMOGLYPH_DECODE_MAP: Record<string, string> = {
+  // Cyrillic Lowercase
+  '\u0430': 'a', '\u0431': 'b', '\u0432': 'b', '\u0433': 'r', '\u0434': 'd',
+  '\u0435': 'e', '\u0451': 'e', '\u0454': 'e', '\u0436': 'z', '\u0437': 'z',
+  '\u0438': 'u', '\u0456': 'i', '\u0457': 'i', '\u0458': 'j', '\u043A': 'k',
+  '\u043B': 'l', '\u043C': 'm', '\u043D': 'n', '\u043E': 'o', '\u0440': 'p',
+  '\u0441': 'c', '\u0442': 't', '\u0443': 'y', '\u0444': 'f', '\u0445': 'x',
+  '\u0455': 's', '\u0491': 'g', '\u04bb': 'h', '\u04cf': 'l', '\u044c': 'b',
+  '\u0501': 'd',
+
+  // Cyrillic Uppercase
+  '\u0410': 'A', '\u0411': 'B', '\u0412': 'B', '\u0413': 'R', '\u0414': 'D',
+  '\u0415': 'E', '\u0401': 'E', '\u0404': 'E', '\u0416': 'Z', '\u0417': 'Z',
+  '\u0418': 'U', '\u0406': 'I', '\u0407': 'I', '\u0408': 'J', '\u041A': 'K',
+  '\u041B': 'L', '\u041C': 'M', '\u041D': 'H', '\u041E': 'O', '\u0420': 'P',
+  '\u0421': 'C', '\u0422': 'T', '\u0423': 'Y', '\u0424': 'F', '\u0425': 'X',
+  '\u0405': 'S', '\u0490': 'G', '\u04ba': 'H', '\u04c0': 'I', '\u042c': 'B',
+  '\u0500': 'D',
+
+  // Greek Lowercase
+  '\u03B1': 'a', '\u03B2': 'b', '\u03B3': 'g', '\u03B4': 'd', '\u03B5': 'e',
+  '\u03F5': 'e', '\u03B6': 'z', '\u03B7': 'h', '\u03B8': 'o', '\u03B9': 'i',
+  '\u03BA': 'k', '\u03BB': 'l', '\u03BC': 'm', '\u03BD': 'n', '\u03BF': 'o',
+  '\u03C0': 'p', '\u03C1': 'p', '\u03C2': 's', '\u03C3': 's', '\u03F2': 'c',
+  '\u03C4': 't', '\u03C5': 'u', '\u03C7': 'x', '\u03C9': 'w',
+
+  // Greek Uppercase
+  '\u0391': 'A', '\u0392': 'B', '\u0393': 'G', '\u0394': 'D', '\u0395': 'E',
+  '\u0396': 'Z', '\u0397': 'H', '\u0398': 'O', '\u0399': 'I', '\u039A': 'K',
+  '\u039B': 'L', '\u039C': 'M', '\u039D': 'N', '\u039F': 'O', '\u03A0': 'P',
+  '\u03A1': 'P', '\u03A3': 'S', '\u03F9': 'C', '\u03A4': 'T', '\u03A5': 'Y',
+  '\u03A7': 'X', '\u03A9': 'O',
 };
 
 export class SqlChecker {
@@ -74,7 +83,17 @@ export class SqlChecker {
     try {
       // 1. Multi-Dialect AST Parsing (Try PostgreSQL -> MySQL -> SQLite -> TransactSQL)
       const ast = this.parseWithDialects(cleanedSql);
-      const astList = Array.isArray(ast) ? ast : [ast];
+      const rawAstList = Array.isArray(ast) ? (ast as any[]).flat(Infinity) : [ast];
+      const astList = rawAstList.map((s: any) => (s && s.stmt ? s.stmt : s)).filter(Boolean);
+
+      // Check if AST has assign/set or empty statement while query contains DDL tokens
+      const hasDdlTokens = /\b(DROP|TRUNCATE|ALTER|GRANT|REVOKE)\b/i.test(cleanedSql);
+      const hasAssignOrEmpty = astList.some((s: any) => !s.type || s.type === 'assign' || s.type === 'set');
+      if (hasDdlTokens && hasAssignOrEmpty) {
+        // Fallback to token inspection for obscure DDL syntax not natively AST-modeled
+        const fallbackViolations = this.evaluateRegexFallback(ruleId, packId, params, cleanedSql, severity);
+        violations.push(...fallbackViolations);
+      }
 
       for (const statement of astList) {
         if (!statement || typeof statement !== 'object') continue;
@@ -82,9 +101,10 @@ export class SqlChecker {
 
         // Check for mutating statements hidden inside CTEs or subqueries
         const nestedMutations = this.detectNestedMutatingStatements(statement);
+        const nestedTypes = nestedMutations.map((m) => m.type);
 
         // 1. Block prohibited statement types (including nested in CTEs)
-        const allTypes = [stmtType, ...nestedMutations];
+        const allTypes = [stmtType, ...nestedTypes];
         for (const type of allTypes) {
           if (params.block_statements && params.block_statements.includes(type as any)) {
             violations.push({
@@ -99,7 +119,7 @@ export class SqlChecker {
         }
 
         // 2. Detect destructive ALTER TABLE DROP operations
-        if (stmtType === 'ALTER' || nestedMutations.includes('ALTER')) {
+        if (stmtType === 'ALTER' || nestedTypes.includes('ALTER')) {
           const sqlUpper = cleanedSql.toUpperCase();
           if (
             sqlUpper.includes('DROP COLUMN') ||
@@ -118,10 +138,19 @@ export class SqlChecker {
         }
 
         // 3. Prohibit DELETE without WHERE clause OR with tautological WHERE clause
-        if (stmtType === 'DELETE' || nestedMutations.includes('DELETE')) {
+        if (stmtType === 'DELETE' || nestedTypes.includes('DELETE')) {
           if (params.require === 'WHERE_CLAUSE') {
-            const hasWhere = Boolean((statement as any).where);
-            const isTautology = this.isTautologyWhere((statement as any).where, cleanedSql);
+            let hasWhere = Boolean((statement as any).where);
+            let isTautology = this.isTautologyWhere((statement as any).where, cleanedSql);
+
+            // If outer is not DELETE, check inner CTE DELETE where clause
+            if (stmtType !== 'DELETE') {
+              const deleteCte = nestedMutations.find((m) => m.type === 'DELETE');
+              if (deleteCte) {
+                hasWhere = Boolean(deleteCte.where);
+                isTautology = this.isTautologyWhere(deleteCte.where, cleanedSql);
+              }
+            }
 
             if (!hasWhere || isTautology) {
               violations.push({
@@ -139,10 +168,18 @@ export class SqlChecker {
         }
 
         // 4. Prohibit UPDATE without WHERE clause OR with tautological WHERE clause
-        if (stmtType === 'UPDATE' || nestedMutations.includes('UPDATE')) {
+        if (stmtType === 'UPDATE' || nestedTypes.includes('UPDATE')) {
           if (params.require === 'WHERE_CLAUSE') {
-            const hasWhere = Boolean((statement as any).where);
-            const isTautology = this.isTautologyWhere((statement as any).where, cleanedSql);
+            let hasWhere = Boolean((statement as any).where);
+            let isTautology = this.isTautologyWhere((statement as any).where, cleanedSql);
+
+            if (stmtType !== 'UPDATE') {
+              const updateCte = nestedMutations.find((m) => m.type === 'UPDATE');
+              if (updateCte) {
+                hasWhere = Boolean(updateCte.where);
+                isTautology = this.isTautologyWhere(updateCte.where, cleanedSql);
+              }
+            }
 
             if (!hasWhere || isTautology) {
               violations.push({
@@ -159,9 +196,18 @@ export class SqlChecker {
           }
         }
 
-        // 5. Enforce LIMIT ceilings on queries
-        if (params.max_limit && (statement as any).limit) {
-          const limitVal = (statement as any).limit?.value?.[0]?.value;
+        // 5. Enforce LIMIT / TOP ceilings on queries
+        if (params.max_limit) {
+          let limitVal: number | undefined;
+          if ((statement as any).limit) {
+            const limitObj = (statement as any).limit;
+            if (Array.isArray(limitObj.value)) {
+              const countItem = limitObj.value.length > 1 ? limitObj.value[1] : limitObj.value[0];
+              limitVal = typeof countItem?.value === 'number' ? countItem.value : undefined;
+            }
+          } else if ((statement as any).top?.value) {
+            limitVal = typeof (statement as any).top.value === 'number' ? (statement as any).top.value : undefined;
+          }
           if (typeof limitVal === 'number' && limitVal > params.max_limit) {
             violations.push({
               ruleId,
@@ -183,30 +229,51 @@ export class SqlChecker {
     return violations;
   }
 
+  private astCache = new Map<string, any>();
+  private static readonly MAX_CACHE_SIZE = 1024;
+
   private parseWithDialects(sql: string): any {
+    const cached = this.astCache.get(sql);
+    if (cached !== undefined) {
+      return cached;
+    }
+
     for (const dialect of SqlChecker.SUPPORTED_DIALECTS) {
       try {
-        return this.parser.astify(sql, { database: dialect });
+        const ast = this.parser.astify(sql, { database: dialect });
+        if (this.astCache.size >= SqlChecker.MAX_CACHE_SIZE) {
+          const firstKey = this.astCache.keys().next().value;
+          if (firstKey) this.astCache.delete(firstKey);
+        }
+        this.astCache.set(sql, ast);
+        return ast;
       } catch {
         // Try next dialect
       }
     }
     // Fallback to default astify
-    return this.parser.astify(sql);
+    const ast = this.parser.astify(sql);
+    if (this.astCache.size >= SqlChecker.MAX_CACHE_SIZE) {
+      const firstKey = this.astCache.keys().next().value;
+      if (firstKey) this.astCache.delete(firstKey);
+    }
+    this.astCache.set(sql, ast);
+    return ast;
   }
 
-  private detectNestedMutatingStatements(ast: any): string[] {
-    const mutations: string[] = [];
+  private detectNestedMutatingStatements(ast: any): { type: string; where?: any }[] {
+    const mutations: { type: string; where?: any }[] = [];
     if (!ast || typeof ast !== 'object') return mutations;
 
     // Check Common Table Expressions (CTEs: WITH ... AS (DELETE/UPDATE))
     const withList = ast.with ?? ast._with;
     if (Array.isArray(withList)) {
       for (const cte of withList) {
-        if (cte && cte.stmt) {
-          const cteType = (cte.stmt.type ?? '').toUpperCase();
+        const stmt = cte?.stmt?.ast ?? cte?.stmt;
+        if (stmt) {
+          const cteType = (stmt.type ?? '').toUpperCase();
           if (['DELETE', 'UPDATE', 'INSERT', 'DROP', 'ALTER', 'TRUNCATE'].includes(cteType)) {
-            mutations.push(cteType);
+            mutations.push({ type: cteType, where: stmt.where });
           }
         }
       }
@@ -539,9 +606,11 @@ export class SqlChecker {
    *    (U+2060), and soft hyphen (U+00AD).
    */
   public static normalizeUnicode(sql: string): string {
-    let normalized = sql
+    const pre = sql.replace(/\u03F2/g, 'c').replace(/\u03F9/g, 'C');
+    const normalized = pre
       .normalize('NFKD')
-      .replace(/[\u200b-\u200d\u2060\u2061\u2062\u2063\u2064\u200e\u200f\u202a-\u202e\uFEFF\u00ad]/g, '');
+      .replace(/[\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\uFFA0\uFFF9-\uFFFB]/g, '')
+      .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' ');
 
     // Decode homoglyphs
     let decoded = '';
@@ -597,14 +666,40 @@ export class SqlChecker {
         continue;
       }
 
-      // Block comment /* ... */ outside quotes
-      if (char === '/' && nextChar === '*') {
-        i += 2;
-        while (i + 1 < len && !(sql[i] === '*' && sql[i + 1] === '/')) {
+      // MySQL Executable Comments /*!50000 ... */ or /*! ... */
+      // UNWRAP them so their executable SQL payload is retained and inspected!
+      if (char === '/' && nextChar === '*' && i + 2 < len && sql[i + 2] === '!') {
+        i += 3;
+        while (i < len && sql[i] >= '0' && sql[i] <= '9') {
           i++;
         }
-        i += 2; // skip */
         result += ' ';
+        continue;
+      }
+
+      // Block comment /* ... */ outside quotes (with nested depth tracking)
+      if (char === '/' && nextChar === '*') {
+        let depth = 1;
+        i += 2;
+        while (i < len && depth > 0) {
+          if (sql[i] === '/' && i + 1 < len && sql[i + 1] === '*') {
+            depth++;
+            i += 2;
+          } else if (sql[i] === '*' && i + 1 < len && sql[i + 1] === '/') {
+            depth--;
+            i += 2;
+          } else {
+            i++;
+          }
+        }
+        result += ' ';
+        continue;
+      }
+
+      // Bare residual */ outside comment / quotes
+      if (char === '*' && nextChar === '/') {
+        result += ' ';
+        i += 2;
         continue;
       }
 
@@ -623,15 +718,21 @@ export class SqlChecker {
     }
 
     let cleaned = result.replace(/\s+/g, ' ').trim();
+    
     // Normalize comment-injected keyword splits (e.g. DEL/**/ETE -> DELETE, D R O P -> DROP)
-    cleaned = cleaned
-      .replace(/\bD\s*E\s*L\s*E\s*T\s*E\b/gi, 'DELETE')
-      .replace(/\bD\s*R\s*O\s*P\b/gi, 'DROP')
-      .replace(/\bT\s*R\s*U\s*N\s*C\s*A\s*T\s*E\b/gi, 'TRUNCATE')
-      .replace(/\bU\s*P\s*D\s*A\s*T\s*E\b/gi, 'UPDATE')
-      .replace(/\bA\s*L\s*T\s*E\s*R\b/gi, 'ALTER')
-      .replace(/\bI\s*N\s*S\s*E\s*R\s*T\b/gi, 'INSERT')
-      .replace(/\bS\s*E\s*L\s*E\s*C\s*T\b/gi, 'SELECT');
+    const KEYWORDS_TO_RECONSTITUTE = [
+      'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE',
+      'EXECUTE', 'EXEC', 'GRANT', 'REVOKE', 'WITH', 'MERGE', 'CALL', 'REPLACE',
+      'BEGIN', 'COMMIT', 'ROLLBACK',
+      'FROM', 'WHERE', 'SET', 'TABLE', 'DATABASE', 'SCHEMA', 'VIEW', 'INDEX',
+      'PROCEDURE', 'FUNCTION', 'TRIGGER', 'USER', 'ROLE', 'EXTENSION',
+      'MATERIALIZED', 'COLUMN', 'CONSTRAINT'
+    ];
+
+    for (const kw of KEYWORDS_TO_RECONSTITUTE) {
+      const pattern = '\\b' + kw.split('').join('[\\s/]*') + '\\b';
+      cleaned = cleaned.replace(new RegExp(pattern, 'gi'), kw);
+    }
 
     return cleaned;
   }
@@ -685,28 +786,28 @@ export class SqlChecker {
     const violations: AegisViolation[] = [];
     const rawTokens = processedSql
       .toUpperCase()
-      .replace(/([(),;])/g, ' $1 ')
+      .replace(/['"(),;]/g, ' $1 ')
       .split(/\s+/)
       .filter(Boolean);
-    const tokens = rawTokens.map((t) => (t.endsWith(';') ? t.slice(0, -1) : t));
+    const tokens = rawTokens.map((t) => t.replace(/^['"`]+|['"`]+$/g, '').replace(/;$/, '')).filter(Boolean);
 
     // 1. Comprehensive DDL Detection
     const dropIdx = tokens.indexOf('DROP');
     if (dropIdx !== -1 && dropIdx + 1 < tokens.length) {
-      const next = tokens[dropIdx + 1];
+      const remaining = tokens.slice(dropIdx + 1);
       const prohibitedTargets = [
         'TABLE', 'DATABASE', 'SCHEMA', 'VIEW', 'INDEX',
         'PROCEDURE', 'FUNCTION', 'TRIGGER', 'USER', 'ROLE',
         'EXTENSION', 'MATERIALIZED'
       ];
-      if (prohibitedTargets.includes(next)) {
+      if (remaining.some((t) => prohibitedTargets.includes(t))) {
         violations.push({
           ruleId,
           packId,
           severity,
           message: `Destructive DROP statement detected via safety fallback filter.`,
           suggestedFix: `Destructive DROP commands are blocked.`,
-          context: { fallbackUsed: true, pattern: `DROP ${next}` },
+          context: { fallbackUsed: true, pattern: `DROP ${remaining[0]}` },
         });
       }
     }
@@ -799,7 +900,7 @@ export class SqlChecker {
       });
     }
 
-    // 6. UPDATE without WHERE
+    // 6. UPDATE without WHERE or with tautology
     const updateIdx = tokens.indexOf('UPDATE');
     if (updateIdx !== -1) {
       const updateWhereIdx = tokens.indexOf('WHERE', updateIdx);
@@ -812,6 +913,36 @@ export class SqlChecker {
           suggestedFix: `Add a specific WHERE clause to your UPDATE query.`,
           context: { fallbackUsed: true, pattern: 'UPDATE_NO_WHERE' },
         });
+      } else {
+        const whereClause = tokens.slice(updateWhereIdx + 1).join(' ');
+        
+        const isTautology = 
+          whereClause === 'TRUE' ||
+          whereClause === '1' ||
+          whereClause.startsWith('TRUE') ||
+          whereClause.startsWith('1 ') ||
+          /\bIS\s+NOT\s+NULL\b/i.test(whereClause) ||
+          /(\d+)\s*=\s*\1\b/.test(whereClause) ||
+          /(\d+)\s*!=\s*(\d+)/.test(whereClause) ||
+          /'([^']+)'\s*=\s*'\1'/i.test(whereClause) ||
+          /\b[a-zA-Z_]\w*\s*>\s*0\b/i.test(whereClause) ||
+          /\b[a-zA-Z_]\w*\s*(?:<>|!=)\s*-\d+\b/i.test(whereClause) ||
+          /\bIN\s*\(\s*SELECT\b/i.test(whereClause) ||
+          /\bOR\s+(?:1\s*=\s*1|TRUE|1|\d+\s*>\s*\d+|'[^']+'\s*=\s*'[^']+')/i.test(whereClause) ||
+          ['1=1', '1 = 1', '2=2', '2 = 2', '0=0', '0 = 0', '100=100', '100 = 100', '2>1', '2 > 1', '1'].some(
+            t => whereClause === t || whereClause.startsWith(t + ' ') || whereClause.includes(t)
+          );
+
+        if (isTautology) {
+          violations.push({
+            ruleId,
+            packId,
+            severity,
+            message: `Mass UPDATE statement detected via fallback filter with tautological condition.`,
+            suggestedFix: `Add a specific targeted WHERE clause to your UPDATE query.`,
+            context: { fallbackUsed: true, pattern: 'UPDATE_TAUTOLOGY' },
+          });
+        }
       }
     }
 
@@ -830,3 +961,5 @@ export class SqlChecker {
     return violations;
   }
 }
+
+

@@ -5,7 +5,18 @@ import os
 # Add package directory to path for testing
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from aegis_kernel import AegisEngine, ToolCall, aegis_guard, AegisBlockedError, AegisCrewAITool, wrap_autogen_function
+from aegis_kernel import (
+    AegisEngine,
+    ToolCall,
+    aegis_guard,
+    AegisBlockedError,
+    AegisCrewAITool,
+    wrap_autogen_function,
+    AegisLangChainTool,
+    wrap_langchain_tool,
+    PythonStateChecker,
+    PythonPiiTokenVault,
+)
 
 class TestAegisPythonKernel(unittest.TestCase):
     def setUp(self):
@@ -122,6 +133,62 @@ class TestAegisPythonKernel(unittest.TestCase):
         res = safe_transfer(amount=100, recipient="alice")
         self.assertEqual(res, "Transferred $100 to alice")
 
+    def test_langchain_adapter(self):
+        class MockLangChainTool:
+            name = "sql_db_query"
+            description = "Executes SQL queries against the database"
+
+            def run(self, query: str) -> str:
+                return f"Result: {query}"
+
+            def _run(self, query: str) -> str:
+                return f"Result: {query}"
+
+        mock_tool = MockLangChainTool()
+        
+        # 1. Error string mode (handle_tool_error=True)
+        guarded_lc = wrap_langchain_tool(mock_tool, engine=self.engine, handle_tool_error=True)
+        self.assertEqual(guarded_lc.name, "sql_db_query")
+        
+        # Blocked query returns self-healing error string
+        blocked_res = guarded_lc.run(query="DROP TABLE users")
+        self.assertTrue("Error: [Aegis Policy Blocked] SQL-002" in blocked_res)
+
+        # Runnable .invoke() support
+        invoke_blocked = guarded_lc.invoke({"query": "DELETE FROM users"})
+        self.assertTrue("Error: [Aegis Policy Blocked] SQL-001" in invoke_blocked)
+
+        # Allowed query succeeds
+        allowed_res = guarded_lc.run("SELECT * FROM users WHERE id = 42")
+        self.assertEqual(allowed_res, "Result: SELECT * FROM users WHERE id = 42")
+
+        # 2. Strict exception mode (handle_tool_error=False)
+        strict_lc = AegisLangChainTool(mock_tool, engine=self.engine, handle_tool_error=False)
+        with self.assertRaises(AegisBlockedError):
+            strict_lc.run(query="DROP TABLE orders")
+
+        # 3. Async Runnable .ainvoke() support
+        import asyncio
+
+        class MockAsyncLangChainTool:
+            name = "async_sql"
+            async def ainvoke(self, input_dict: dict, config=None) -> str:
+                await asyncio.sleep(0.001)
+                return f"Async: {input_dict.get('query')}"
+
+        async_tool = MockAsyncLangChainTool()
+        guarded_async_lc = wrap_langchain_tool(async_tool, engine=self.engine)
+
+        async def run_async_tests():
+            # Blocked
+            res_b = await guarded_async_lc.ainvoke({"query": "DROP TABLE critical_data"})
+            self.assertTrue("Error: [Aegis Policy Blocked] SQL-002" in res_b)
+            # Allowed
+            res_a = await guarded_async_lc.ainvoke({"query": "SELECT count(*) FROM items WHERE status = 'active'"})
+            self.assertEqual(res_a, "Async: SELECT count(*) FROM items WHERE status = 'active'")
+
+        asyncio.run(run_async_tests())
+
     def test_async_python_decorator(self):
         import asyncio
 
@@ -144,8 +211,6 @@ class TestAegisPythonKernel(unittest.TestCase):
         asyncio.run(run_allowed())
 
     def test_state_invariants(self):
-        from aegis_kernel import PythonStateChecker
-
         # Cross-tenant mismatch test
         rule_params = {"tenant_field": "tenantId"}
         call = ToolCall(tool="update_profile", params={"tenantId": "tenant-attacker", "name": "Eve"})
@@ -161,8 +226,6 @@ class TestAegisPythonKernel(unittest.TestCase):
         self.assertEqual(violations2[0].rule_id, "SOC2-005")
 
     def test_pii_token_vault(self):
-        from aegis_kernel import PythonPiiTokenVault
-
         vault = PythonPiiTokenVault(salt="test-fixed-salt")
         raw_ssn = "123-45-6789"
         token = vault.tokenize(raw_ssn, token_type="SSN")
@@ -178,12 +241,48 @@ class TestAegisPythonKernel(unittest.TestCase):
         restored = vault.detokenize(msg)
         self.assertEqual(restored, "User profile SSN is 123-45-6789")
 
-    def test_sub_millisecond_latency(self):
+    def test_zero_dependencies(self):
+        """Verify that aegis_kernel relies only on Python standard library."""
+        import aegis_kernel
+        import inspect
+
+        # Inspect all modules in aegis_kernel
+        for name in dir(aegis_kernel):
+            item = getattr(aegis_kernel, name)
+            if inspect.ismodule(item):
+                # Ensure no external third-party packages are loaded as package dependencies
+                mod_file = getattr(item, "__file__", "")
+                if mod_file:
+                    self.assertTrue(
+                        "site-packages" not in mod_file or "aegis" in mod_file,
+                        f"Non-stdlib dependency detected: {item}"
+                    )
+
+    def test_sub_100_microsecond_performance(self):
+        """Verify deterministic sub-0.1ms (< 100μs) evaluation latency."""
+        import time
+
         call = ToolCall(tool="fast_eval", params={"query": "SELECT * FROM items WHERE id = 1"})
-        v = self.engine.evaluate(call)
-        self.assertTrue(v.allowed)
-        self.assertLess(v.latency_ms, 2.0)
+        
+        # Warmup
+        for _ in range(500):
+            self.engine.evaluate(call)
+
+        # Benchmark 5,000 iterations
+        N = 5000
+        start = time.perf_counter()
+        for _ in range(N):
+            self.engine.evaluate(call)
+        total_time_ms = (time.perf_counter() - start) * 1000.0
+        avg_latency_ms = total_time_ms / N
+
+        self.assertLess(
+            avg_latency_ms,
+            0.10,
+            f"Average evaluation latency {avg_latency_ms:.4f} ms exceeded sub-0.1ms budget!"
+        )
 
 if __name__ == "__main__":
     unittest.main()
+
 
