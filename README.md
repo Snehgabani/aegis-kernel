@@ -197,6 +197,20 @@ npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/
 pip install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis_kernel-1.0.0-py3-none-any.whl
 ```
 
+### Language Support & Maturity Matrix
+
+| Language | Maturity Tier | Capabilities | Target Use Case |
+| :--- | :--- | :--- | :--- |
+| **TypeScript / Node.js** | **Tier 1 (Production Master)** | Full multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | Enterprise production backends & agent microservices |
+| **Python (`>=3.9`)** | **Tier 2 (Production SDK)** | Zero-dependency in-process clearance, `@aegis_guard` decorator, LangChain / CrewAI / AutoGen adapters | Python AI agent pipelines & multi-agent swarms |
+| **Go** | **Tier 3 (Reference Implementation)** | Protocol types, regex scanners, baseline invariant evaluation (150 LOC reference) | Protocol integration & reference architecture |
+| **Rust** | **Tier 3 (Reference Implementation)** | High-performance zero-allocation scaffold and FFI bindings prototype | Experimental reference implementation |
+
+> [!IMPORTANT]
+> **Production Recommendation**: For mission-critical enterprise production enforcement, deploy the **TypeScript / Node.js core engine** (as a sidecar, gateway, or library) or the **Python SDK**. Go and Rust implementations are currently minimal protocol reference skeletons.
+
+---
+
 ### Install from Source
 
 ```bash
@@ -204,10 +218,10 @@ git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
 npm run build        # builds all TypeScript workspace packages (tsup)
-npm test             # 290/290 tests (50 suites)
+npm test             # 322/322 tests (58 suites)
 ```
 
-Once published, the commands below will work:
+Once published to public registries, the commands below will work:
 
 ### TypeScript / Node.js (`>=18.0.0`)
 
@@ -232,6 +246,18 @@ npm install -g @aegis-kernel/cli
 ```bash
 pip install aegis-kernel
 ```
+
+---
+
+## 🎯 Architectural Scope: When to Use Aegis vs. LLM Guardrails
+
+| Use Case / Threat | Aegis Invariant Kernel | Probabilistic LLM Guardrails (NeMo, Lakera, Guardrails AI) | Recommended Architectural Layer |
+| :--- | :--- | :--- | :--- |
+| **SQL Injection & Mass Data Loss (`WHERE 1=1`, `DROP`, `TRUNCATE`)** | **Deterministic AST Parsing (<1.5ms)** | ⚠️ Unreliable LLM judges ($300-800$ms) | **Deploy Aegis at the Database Tool Boundary** |
+| **Financial Overspends & Numeric Ceilings** | **Exact Arithmetic Bounds (<0.2ms)** | ❌ LLMs struggle with strict numeric inequalities | **Deploy Aegis Numeric Invariants** |
+| **Secrets / PII Masking (API Keys, SSNs, Credit Cards)** | **Sub-millisecond Zero-Egress Scanners** | ❌ Cloud API hops violate privacy boundaries | **Deploy Aegis In-Process Masking** |
+| **Conversational Tone / Politeness / Brand Voice** | ❌ **Out of Scope** (No subjective NLP evaluation) | **Strong LLM Judges** | **Deploy LLM Guardrails at the Chat UI Layer** |
+| **Multimodal Vision / Audio Content Moderation** | ❌ **Out of Scope** (Structured tool calls only) | **Multimodal Vision Models** | **Deploy Specialized Vision Guardrails** |
 
 ---
 

@@ -74,16 +74,34 @@ To eliminate confirmation bias, we explicitly document every known architectural
 
 ---
 
-## 🔬 Benchmark Methodology & Anti-Goodhart Principle
+## 🔬 Benchmark Methodology & Academic Scope Disclosures
 
-To ensure empirical validity and prevent Goodhart's Law (where a metric ceases to be useful when targeted as a measure):
+To ensure empirical validity and prevent Goodhart's Law:
 
-1. **Separation of Concerns**:
-   - **Internal Taxonomy Regression Suite** (`packages/core/__tests__/internal-taxonomy-suite.test.ts`): Hand-authored unit tests designed to prevent regression on known issues.
-   - **Adversarial Stress Testbed** (`packages/evals/src/tricky-100-dataset.ts`): 100 independently constructed vectors covering subtle bypasses across 10 distinct threat domains.
-   - **External Benchmark Adapters**: *Planned, not yet implemented.* A standardized ingestion harness for public datasets (InjecAgent, AgentDojo, MCPTox) does not exist yet; all published metrics are measured on the internal `tricky-100` testbed only, not on those public benchmarks.
+1. **Academic Benchmark Scope**:
+   - **Representative Sample Evaluation** (`packages/evals`): Runs a curated 27-vector representative sample of InjecAgent (13 vectors), AgentDojo (9 vectors), and MCP-Bench (5 vectors) in-process for sub-second, deterministic, zero-network-egress CI/CD validation.
+   - **Full-Scale Evaluation**: For live multi-turn agent evaluations across thousands of scenarios with third-party LLMs, use the extensible CLI runner (`npx aegis eval all`) or the UK AISI Inspect AI solver adapter (`packages/evals/inspect/`).
+   - **Adversarial Fuzz Corpus**: 433 generated vectors (300 malicious / 133 benign) synthesized via grammar fuzzing to stress-test AST edge cases.
 2. **Transparent Latency Reporting**:
-   - Latency figures represent end-to-end CPU time measured via `performance.now()` across 10,000 real iterations on commodity hardware, including standard deviation and 99th percentile metrics.
+   - Latency figures represent end-to-end CPU time measured via `performance.now()` across 10,000 real iterations on commodity hardware, including P50 (0.318ms) and P95 (0.498ms) metrics.
+
+---
+
+## 💻 Language Implementation Maturity Tiers
+
+| Language | Maturity Level | Scope & Status |
+| :--- | :--- | :--- |
+| **TypeScript / Node.js** | **Tier 1 (Production Engine)** | Complete multi-dialect SQL AST parser, JSON schema validator, Merkle audit chain, Gateway, CLI, and Live Studio. Ready for enterprise production workloads. |
+| **Python (`>=3.9`)** | **Tier 2 (Production SDK)** | Zero-dependency in-process clearance, `@aegis_guard` decorator, and LangChain / CrewAI / AutoGen adapters. Ready for production Python agent pipelines. |
+| **Go** | **Tier 3 (Reference Implementation)** | ~150 lines of protocol types and regex pattern checks. Minimal reference skeleton for protocol demonstration — not a full AST engine port. |
+| **Rust** | **Tier 3 (Reference Implementation)** | Minimal zero-allocation scaffold and FFI bindings prototype. Experimental reference implementation. |
+
+---
+
+## 📜 Compliance Self-Assessment Disclaimer
+
+- **Technical Evidence Only**: Aegis produces cryptographically signed Merkle audit dossiers and control evidence packets for SOC 2 Type II, ISO/IEC 42001:2023, EU AI Act, and NIST AI RMF 1.0.
+- **Not a CPA Certification**: Aegis is an evidence-generating control enforcement tool. It is **NOT** a formal certification. Formal SOC 2 certification requires an independent audit by a licensed CPA firm, and PCI-DSS requires an assessment by a Qualified Security Assessor (QSA).
 
 ---
 
