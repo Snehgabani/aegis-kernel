@@ -65,8 +65,36 @@ jobs:
           (cd release-artifacts && sha256sum * > SHA256SUMS.txt)
           cat release-artifacts/SHA256SUMS.txt
 
-      - name: Upload Release Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Publish to npm Registry (if NPM_TOKEN is provided)
+        if: env.NPM_TOKEN != ''
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          for pkg in core cli mcp langchain openai anthropic diagnostics evals; do
+            if [ -d "packages/$pkg" ]; then
+              echo "Publishing @aegis-kernel/$pkg to npm..."
+              (cd "packages/$pkg" && npm publish --access public) || echo "Failed to publish $pkg or already published"
+            fi
+          done
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to PyPI (if PYPI_API_TOKEN is provided)
+        if: env.PYPI_API_TOKEN != ''
+        run: |
+          python -m pip install --upgrade twine
+          twine upload packages/python/dist/* --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} --non-interactive || echo "PyPI upload failed or already exists"
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: aegis-release-artifacts
-          path: release-artifacts/
+          files: |
+            packages/python/dist/*
+            release-artifacts/SHA256SUMS.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
