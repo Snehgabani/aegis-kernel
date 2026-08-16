@@ -143,6 +143,41 @@ class TestAegisPythonKernel(unittest.TestCase):
         asyncio.run(run_blocked())
         asyncio.run(run_allowed())
 
+    def test_state_invariants(self):
+        from aegis_kernel import PythonStateChecker
+
+        # Cross-tenant mismatch test
+        rule_params = {"tenant_field": "tenantId"}
+        call = ToolCall(tool="update_profile", params={"tenantId": "tenant-attacker", "name": "Eve"})
+        violations = PythonStateChecker.evaluate("SOC2-004", "soc2-guard", rule_params, call, state={"tenantId": "tenant-legit"})
+        self.assertEqual(len(violations), 1)
+        self.assertEqual(violations[0].rule_id, "SOC2-004")
+
+        # Entity cancelled status test
+        rule_params2 = {"target_field": "order_id", "assertion": "state.order_status != 'cancelled'"}
+        call2 = ToolCall(tool="ship_order", params={"order_id": "ORD-999"})
+        violations2 = PythonStateChecker.evaluate("SOC2-005", "soc2-guard", rule_params2, call2, state={"order_status": "cancelled"})
+        self.assertEqual(len(violations2), 1)
+        self.assertEqual(violations2[0].rule_id, "SOC2-005")
+
+    def test_pii_token_vault(self):
+        from aegis_kernel import PythonPiiTokenVault
+
+        vault = PythonPiiTokenVault(salt="test-fixed-salt")
+        raw_ssn = "123-45-6789"
+        token = vault.tokenize(raw_ssn, token_type="SSN")
+        
+        self.assertTrue(token.startswith("<AEGIS_SSN_"))
+        self.assertNotIn("123-45-6789", token)
+
+        # Deterministic mapping within session
+        self.assertEqual(vault.tokenize(raw_ssn, token_type="SSN"), token)
+
+        # Detokenization
+        msg = f"User profile SSN is {token}"
+        restored = vault.detokenize(msg)
+        self.assertEqual(restored, "User profile SSN is 123-45-6789")
+
     def test_sub_millisecond_latency(self):
         call = ToolCall(tool="fast_eval", params={"query": "SELECT * FROM items WHERE id = 1"})
         v = self.engine.evaluate(call)

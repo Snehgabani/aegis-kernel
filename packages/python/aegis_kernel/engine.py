@@ -3,7 +3,7 @@ import hashlib
 import json
 from typing import Any, Dict, List, Optional, Union
 from .types import AegisVerdict, AegisViolation, ToolCall, AegisConfig
-from .checkers import PythonSqlChecker, PythonPiiChecker, PythonNumericChecker
+from .checkers import PythonSqlChecker, PythonPiiChecker, PythonNumericChecker, PythonStateChecker, PythonPiiTokenVault
 
 BUILTIN_RULES = [
     # SQL Guard
@@ -77,7 +77,7 @@ class AegisEngine:
             self.rules = rules or BUILTIN_RULES
         self.policy_hash = hashlib.sha256(json.dumps(self.rules, sort_keys=True).encode()).hexdigest()
 
-    def evaluate(self, tool_call: ToolCall) -> AegisVerdict:
+    def evaluate(self, tool_call: ToolCall, state: Optional[Dict[str, Any]] = None) -> AegisVerdict:
         start_time = time.perf_counter()
         violations: List[AegisViolation] = []
 
@@ -87,12 +87,14 @@ class AegisEngine:
             pack_id = rule.get("pack_id", "custom")
             params = rule.get("params", {})
 
-            if rule_type == "sql":
+            if rule_type == "sql" or rule_type == "sql_ast":
                 violations.extend(PythonSqlChecker.evaluate(rule_id, pack_id, params, tool_call))
-            elif rule_type == "pii":
+            elif rule_type == "pii" or rule_type == "regex":
                 violations.extend(PythonPiiChecker.evaluate(rule_id, pack_id, params, tool_call))
             elif rule_type == "numeric":
                 violations.extend(PythonNumericChecker.evaluate(rule_id, pack_id, params, tool_call))
+            elif rule_type == "state" or rule_type == "state_invariant":
+                violations.extend(PythonStateChecker.evaluate(rule_id, pack_id, params, tool_call, state))
 
         latency_ms = (time.perf_counter() - start_time) * 1000.0
 

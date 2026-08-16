@@ -90,16 +90,59 @@ program
     process.exitCode = runBenchmark(options);
   });
 
-program
-  .command('eval [dataset]')
-  .description('Run standardized academic and double-blind benchmarks (injecagent, agentdojo, mcp, or all)')
+const evalCmd = program
+  .command('eval')
+  .description('Run standardized academic benchmarks (injecagent, agentdojo, mcptox, all) and double-blind protocols');
+
+evalCmd
+  .command('injecagent')
+  .description('Run InjecAgent benchmark (ACL 2024 Indirect Prompt Injection & Direct Harm / Data Exfiltration)')
+  .option('-d, --dataset <path>', 'Path to dataset file (JSON or JSONL)')
+  .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .action(async (options) => {
+    process.exitCode = await runPublicEval({
+      benchmark: 'injecagent',
+      datasetPath: options.dataset,
+      outputPath: options.output,
+    });
+  });
+
+evalCmd
+  .command('agentdojo')
+  .description('Run AgentDojo benchmark (NeurIPS 2024 Dynamic Multi-Domain Benchmark across Banking, Workspace, Slack, Travel)')
+  .option('-d, --dataset <path>', 'Path to dataset file (JSON or JSONL)')
+  .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .action(async (options) => {
+    process.exitCode = await runPublicEval({
+      benchmark: 'agentdojo',
+      datasetPath: options.dataset,
+      outputPath: options.output,
+    });
+  });
+
+evalCmd
+  .command('mcptox')
+  .description('Run MCPTox / MCP-Bench tool poisoning and schema rug-pull benchmark')
+  .option('-d, --dataset <path>', 'Path to dataset file (JSON or JSONL)')
+  .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .action(async (options) => {
+    process.exitCode = await runPublicEval({
+      benchmark: 'mcptox',
+      datasetPath: options.dataset,
+      outputPath: options.output,
+    });
+  });
+
+evalCmd
+  .command('all', { isDefault: true })
+  .description('Run all standardized academic benchmarks (InjecAgent, AgentDojo, MCPTox) with aggregate attestation')
   .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
   .option('--blinded', 'Execute cryptographic double-blind evaluation with sealed oracle and Merkle trace')
   .option('--adaptive', 'Run dynamic Tree-of-Attacks (TAP) automated red-teaming fuzzer')
-  .action(async (dataset, options) => {
+  .action(async (options) => {
     process.exitCode = await runPublicEval({
-      dataset,
-      output: options.output,
+      benchmark: 'all',
+      outputPath: options.output,
       blinded: options.blinded,
       adaptive: options.adaptive,
     });
@@ -200,7 +243,3 @@ program
   });
 
 program.parse(process.argv);
-
-
-
-

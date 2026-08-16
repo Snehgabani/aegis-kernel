@@ -23,7 +23,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
-[![Tests](https://img.shields.io/badge/tests-327%2F327%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Tests](https://img.shields.io/badge/tests-366%2F366%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![Coverage](https://img.shields.io/badge/coverage-84%25%20stmts%2F85%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
 [![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
 [![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
@@ -199,15 +199,12 @@ pip install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/
 
 ### Language Support & Maturity Matrix
 
-| Language | Maturity Tier | Capabilities | Target Use Case |
+| Language | Engine Architecture | Invariant Capabilities | Test Suite Status |
 | :--- | :--- | :--- | :--- |
-| **TypeScript / Node.js** | **Tier 1 (Production Master)** | Full multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | Enterprise production backends & agent microservices |
-| **Python (`>=3.9`)** | **Tier 2 (Production SDK)** | Zero-dependency in-process clearance, `@aegis_guard` decorator, LangChain / CrewAI / AutoGen adapters | Python AI agent pipelines & multi-agent swarms |
-| **Go** | **Tier 3 (Reference Implementation)** | Protocol types, regex scanners, baseline invariant evaluation (150 LOC reference) | Protocol integration & reference architecture |
-| **Rust** | **Tier 3 (Reference Implementation)** | High-performance zero-allocation scaffold and FFI bindings prototype | Experimental reference implementation |
-
-> [!IMPORTANT]
-> **Production Recommendation**: For mission-critical enterprise production enforcement, deploy the **TypeScript / Node.js core engine** (as a sidecar, gateway, or library) or the **Python SDK**. Go and Rust implementations are currently minimal protocol reference skeletons.
+| **TypeScript / Node.js** | **Native Core Engine** | Multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | **366/366 tests (66 suites)** |
+| **Python (`>=3.9`)** | **Native Zero-Dep Engine** | Multi-dialect SQL token parsing, financial aliases, PII salted token vault, State DSL, CrewAI/AutoGen/LangChain adapters | **9/9 tests (100% Green)** |
+| **Go (`>=1.21`)** | **Native Go Engine (`packages/go`)** | Multi-dialect SQL token & AST validator, comment de-obfuscation, tautology engine, currency parser, salted PII vault, State DSL, `Guard` wrapper | **12/12 tests (100% Green)** |
+| **Rust (`>=1.75`)** | **Native Rust Crate (`packages/rust`)** | Zero-allocation SQL AST/token invariant validator, tautology constant-folding, financial aliases, salted HMAC token vault, ZK policy circuits & Nitro attestation | **8/8 integration tests (100% Green)** |
 
 ---
 
@@ -218,46 +215,59 @@ git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
 npm run build        # builds all TypeScript workspace packages (tsup)
-npm test             # 322/322 tests (58 suites)
+npm test             # 366/366 tests (66 suites)
 ```
 
-Once published to public registries, the commands below will work:
+### Multi-Language Packages
 
-### TypeScript / Node.js (`>=18.0.0`)
-
-```bash
-# Core Invariant Engine
-npm install @aegis-kernel/core
-
-# Model Context Protocol (MCP) Middleware
-npm install @aegis-kernel/mcp
-
-# Framework Adapters
-npm install @aegis-kernel/langchain
-npm install @aegis-kernel/openai
-npm install @aegis-kernel/anthropic
-
-# Developer CLI
-npm install -g @aegis-kernel/cli
-```
-
-### Python (`3.9+`, Zero External Dependencies)
-
-```bash
-pip install aegis-kernel
-```
+- **TypeScript / Node.js**: `npm install @aegis-kernel/core @aegis-kernel/mcp @aegis-kernel/cli`
+- **Python (Zero Dependencies)**: `pip install aegis-kernel` (or `cd packages/python && pip install -e .`)
+- **Go**: `go get github.com/aegis-kernel/aegis-go` (in `packages/go`)
+- **Rust**: `cargo add aegis-kernel --path packages/rust`
 
 ---
 
-## 🎯 Architectural Scope: When to Use Aegis vs. LLM Guardrails
+## 🎯 Architectural Scope: Hybrid Defense-in-Depth Pipeline
 
-| Use Case / Threat | Aegis Invariant Kernel | Probabilistic LLM Guardrails (NeMo, Lakera, Guardrails AI) | Recommended Architectural Layer |
+Aegis is purpose-built to operate alongside conversational LLM moderation frameworks in a **2-stage defense-in-depth pipeline**:
+
+```
+[ User Input ]
+      │
+      ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STAGE 1: Conversational / Tone Moderation (LLM Judge)       │
+│ • Natural language toxicity, hate speech, brand tone        │
+│ • Powered by Llama Guard, NeMo Guardrails, or LLM-as-Judge  │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ (Clean Prompt Passed)
+                               ▼
+                        [ LLM Agent ]
+                               │ (Proposes Tool Action)
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STAGE 2: Aegis Deterministic Invariant Clearance (<1.5ms)   │
+│ • Multi-dialect SQL AST mutations (DROP, TRUNCATE, DELETE)  │
+│ • Deep tautology constant-folding (WHERE 1, id>0, 2>1)      │
+│ • Exact numeric ceilings & currency aliasing (total, price) │
+│ • Salted PII/Secret token vaults & zero-egress data bounds  │
+│ • State invariants & multi-tenant isolation                 │
+│ • Cryptographically signed Merkle audit ledger (Ed25519)    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+               ┌───────────────┴───────────────┐
+               ▼                               ▼
+       [ BLOCKED (<1ms) ]              [ ALLOWED (<1ms) ]
+   Deterministic Self-Healing         Execute Tool Action
+```
+
+| Threat / Operational Domain | Aegis Invariant Kernel | Conversational LLM Guardrails (NeMo, Llama Guard) | Recommended Architecture |
 | :--- | :--- | :--- | :--- |
-| **SQL Injection & Mass Data Loss (`WHERE 1=1`, `DROP`, `TRUNCATE`)** | **Deterministic AST Parsing (<1.5ms)** | ⚠️ Unreliable LLM judges ($300-800$ms) | **Deploy Aegis at the Database Tool Boundary** |
-| **Financial Overspends & Numeric Ceilings** | **Exact Arithmetic Bounds (<0.2ms)** | ❌ LLMs struggle with strict numeric inequalities | **Deploy Aegis Numeric Invariants** |
-| **Secrets / PII Masking (API Keys, SSNs, Credit Cards)** | **Sub-millisecond Zero-Egress Scanners** | ❌ Cloud API hops violate privacy boundaries | **Deploy Aegis In-Process Masking** |
-| **Conversational Tone / Politeness / Brand Voice** | ❌ **Out of Scope** (No subjective NLP evaluation) | **Strong LLM Judges** | **Deploy LLM Guardrails at the Chat UI Layer** |
-| **Multimodal Vision / Audio Content Moderation** | ❌ **Out of Scope** (Structured tool calls only) | **Multimodal Vision Models** | **Deploy Specialized Vision Guardrails** |
+| **SQL Injections & Mass Data Loss (`DROP`, `TRUNCATE`, `WHERE 1=1`)** | **Deterministic AST & Token Clearance (<1.5ms)** | ⚠️ Unreliable ($300-800$ms) | **Deploy Aegis at the Database Boundary** |
+| **Financial Overspends & Price Breaches** | **Exact Arithmetic & Alias Bounds (<0.2ms)** | ❌ LLMs struggle with arithmetic inequalities | **Deploy Aegis Numeric Invariants** |
+| **Secrets & PII Exfiltration (API Keys, SSNs, Credentials)** | **Zero-Egress Salted In-Process Scanners (<0.3ms)** | ❌ Cloud API hops breach compliance boundaries | **Deploy Aegis In-Process Masking** |
+| **Conversational Tone / Subjective Politeness / Brand Voice** | ❌ **Out of Scope by Design** | **Strong Natural Language Judges** | **Deploy LLM Guardrails at the Chat UI Layer** |
+| **Multimodal Vision / Audio Stream Filtering** | ❌ **Out of Scope by Design** | **Multimodal Vision Guardrails** | **Deploy Vision Guardrails at Ingestion** |
 
 ---
 

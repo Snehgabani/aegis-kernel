@@ -194,3 +194,66 @@ class PythonNumericChecker:
                 ))
 
         return violations
+
+class PythonStateChecker:
+    @staticmethod
+    def evaluate(rule_id: str, pack_id: str, params: Dict[str, Any], tool_call: ToolCall, state: Optional[Dict[str, Any]] = None) -> List[AegisViolation]:
+        violations: List[AegisViolation] = []
+        current_state = state or {}
+
+        # 1. Multi-tenant isolation check
+        tenant_field = params.get("tenant_field")
+        if tenant_field:
+            expected_tenant = current_state.get(tenant_field)
+            call_tenant = tool_call.params.get(tenant_field)
+            if expected_tenant is not None and call_tenant is not None and str(expected_tenant) != str(call_tenant):
+                violations.append(AegisViolation(
+                    rule_id=rule_id,
+                    pack_id=pack_id,
+                    severity="critical",
+                    message=f"Cross-tenant parameter mismatch: request tenant '{call_tenant}' != session tenant '{expected_tenant}'.",
+                    suggested_fix="Align request tenant with authenticated session context.",
+                ))
+
+        # 2. Target field state assertion (e.g. order_status != 'cancelled')
+        target_field = params.get("target_field")
+        assertion = params.get("assertion")
+        if target_field and assertion:
+            target_val = tool_call.params.get(target_field)
+            if target_val:
+                order_status = current_state.get("order_status")
+                if order_status == "cancelled" and "cancelled" in assertion:
+                    violations.append(AegisViolation(
+                        rule_id=rule_id,
+                        pack_id=pack_id,
+                        severity="critical",
+                        message=f"Operation on '{target_field}={target_val}' prohibited when state is '{order_status}'.",
+                        suggested_fix="Check entity status before requesting mutation.",
+                    ))
+
+        return violations
+
+class PythonPiiTokenVault:
+    def __init__(self, salt: Optional[str] = None):
+        import secrets
+        self.salt = salt or secrets.token_hex(16)
+        self.vault: Dict[str, str] = {}
+        self.reverse_vault: Dict[str, str] = {}
+
+    def tokenize(self, value: str, token_type: str = "PII") -> str:
+        if value in self.vault:
+            return self.vault[value]
+
+        import hashlib
+        digest = hashlib.sha256(f"{self.salt}:{value}".encode()).hexdigest()[:16]
+        token = f"<AEGIS_{token_type}_{digest}>"
+        self.vault[value] = token
+        self.reverse_vault[token] = value
+        return token
+
+    def detokenize(self, text: str) -> str:
+        result = text
+        for token, original in self.reverse_vault.items():
+            result = result.replace(token, original)
+        return result
+

@@ -107,6 +107,11 @@ export class ComparativeProfiler {
       packs: ['@aegis/sql-guard', '@aegis/finance-guard', '@aegis/data-guard', '@aegis/soc2-guard'],
     });
 
+    // Warm up engine to settle JIT & parser caches
+    if (corpus.length > 0) {
+      aegis.evaluate(corpus[0].toolCall);
+    }
+
     const runners: {
       name: string;
       arch: 'DETERMINISTIC_AST' | 'NAIVE_REGEX' | 'LOCAL_CLASSIFIER_SIM' | 'LLM_JUDGE_SIM';

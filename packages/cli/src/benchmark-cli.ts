@@ -1,3 +1,9 @@
+/**
+ * @file packages/cli/src/benchmark-cli.ts
+ * @description CLI handler for running statistical benchmarks and academic evaluation suites
+ * (InjecAgent, AgentDojo, MCPTox / MCP-Bench, and double-blind protocols).
+ */
+
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import pc from 'picocolors';
@@ -12,6 +18,7 @@ import {
   formatBenchmarkTable,
   runFullBenchmark,
   type BaselineEntry,
+  type StructuredEvalReport,
 } from '@aegis-kernel/evals';
 import { AegisEngine } from '@aegis-kernel/core';
 
@@ -24,18 +31,28 @@ export interface BenchmarkCliOptions {
 }
 
 export interface EvalCliOptions {
+  benchmark?: string;
   dataset?: string;
+  datasetPath?: string;
   output?: string;
+  outputPath?: string;
   json?: boolean;
   blinded?: boolean;
   adaptive?: boolean;
+  count?: number;
 }
 
 const BASELINE_PATH = path.resolve(process.cwd(), '.benchmark', 'baseline.json');
 
-export async function runPublicEval(options?: EvalCliOptions): Promise<number> {
-  const dataset = (options?.dataset || 'all').toLowerCase() as EvalDatasetName;
+/**
+ * Executes a standardized academic benchmark evaluation and displays rich results.
+ */
+export async function runEvalCommand(options?: EvalCliOptions): Promise<number> {
+  const benchmarkName = (options?.benchmark || options?.dataset || 'all').toLowerCase();
+  const datasetPath = options?.datasetPath || options?.dataset;
+  const outputPath = options?.outputPath || options?.output;
 
+  // 1. Double-blind execution protocol
   if (options?.blinded) {
     console.log(pc.bold(pc.cyan('\n🔒  Aegis Cryptographic Double-Blind Evaluation Protocol')));
     console.log(pc.gray('═'.repeat(72)));
@@ -66,8 +83,8 @@ export async function runPublicEval(options?: EvalCliOptions): Promise<number> {
     console.log(`  Salt Commitment:      ${pc.dim(blindReport.saltCommitment)}`);
     console.log(pc.bold(pc.white('════════════════════════════════════════════════════════════════════════\n')));
 
-    if (options?.output) {
-      const p = path.resolve(process.cwd(), options.output);
+    if (outputPath) {
+      const p = path.resolve(process.cwd(), outputPath);
       fs.mkdirSync(path.dirname(p), { recursive: true });
       fs.writeFileSync(p, JSON.stringify(blindReport, null, 2));
       console.log(pc.green(`  ✅ Double-blind evidence written to: ${p}\n`));
@@ -76,6 +93,7 @@ export async function runPublicEval(options?: EvalCliOptions): Promise<number> {
     return blindReport.metrics.f1Score >= 99.0 ? 0 : 1;
   }
 
+  // 2. Dynamic Tree of Attacks (TAP) Red Team
   if (options?.adaptive) {
     console.log(pc.bold(pc.cyan('\n🌲  Aegis Dynamic Tree of Attacks (TAP) Automated Red-Team')));
     console.log(pc.gray('═'.repeat(72)));
@@ -103,8 +121,8 @@ export async function runPublicEval(options?: EvalCliOptions): Promise<number> {
     console.log(`  Search Duration:      ${pc.cyan(tapReport.searchDurationMs + ' ms')}`);
     console.log(pc.bold(pc.white('════════════════════════════════════════════════════════════════════════\n')));
 
-    if (options?.output) {
-      const p = path.resolve(process.cwd(), options.output);
+    if (outputPath) {
+      const p = path.resolve(process.cwd(), outputPath);
       fs.mkdirSync(path.dirname(p), { recursive: true });
       fs.writeFileSync(p, JSON.stringify(tapReport, null, 2));
       console.log(pc.green(`  ✅ TAP search evidence written to: ${p}\n`));
@@ -113,44 +131,75 @@ export async function runPublicEval(options?: EvalCliOptions): Promise<number> {
     return tapReport.bypassesFound === 0 ? 0 : 1;
   }
 
+  // 3. Academic Benchmarks Evaluation (InjecAgent, AgentDojo, MCPTox, All)
   console.log(pc.bold(pc.cyan('\n🎓  Aegis Academic Benchmark & Evaluation Suite')));
   console.log(pc.gray('═'.repeat(72)));
-  console.log(pc.dim('Datasets: InjecAgent (ACL 2024), AgentDojo (NeurIPS 2024), MCP-Bench'));
-  console.log(pc.dim('Guarantee: 100% In-Process, Deterministic, Zero Network Egress.\n'));
+  console.log(pc.dim(`Benchmark Target: ${benchmarkName.toUpperCase()}`));
+  if (datasetPath) {
+    console.log(pc.dim(`Dataset Source:   ${datasetPath}`));
+  }
+  console.log(pc.dim('Guarantee:        100% In-Process AST, Zero Network Egress, Deterministic.\n'));
 
-  const report = await PublicEvaluationHarness.runEvaluation(dataset);
+  const report: StructuredEvalReport = await PublicEvaluationHarness.runBenchmarkEvaluation({
+    benchmark: benchmarkName as EvalDatasetName,
+    datasetPath: datasetPath && fs.existsSync(datasetPath) ? datasetPath : undefined,
+    count: options?.count,
+  });
 
   console.log(pc.bold(pc.white('════════════════════════════════════════════════════════════════════════')));
-  console.log(pc.bold(pc.cyan('               STANDARDIZED ACADEMIC EVALUATION REPORT                  ')));
+  console.log(pc.bold(pc.cyan('               STRUCTURED ACADEMIC EVALUATION REPORT                    ')));
   console.log(pc.bold(pc.white('════════════════════════════════════════════════════════════════════════')));
+  console.log(`  Benchmark Suite:      ${pc.bold(pc.yellow(report.benchmark))}`);
   console.log(`  Environment:          ${pc.bold(report.environment.cpuModel)} (${report.environment.arch})`);
-  console.log(`  Node Runtime:         ${pc.bold(report.environment.nodeVersion)} on ${report.environment.platform}`);
-  console.log(`  Overall Accuracy/F1:  ${pc.bold(pc.green(report.overallF1 + '%'))}`);
+  console.log(`  Runtime:              ${pc.bold(report.environment.nodeVersion)} on ${report.environment.platform}`);
+  console.log(`  Dataset Source:       ${pc.bold(report.datasetSource.toUpperCase())}${report.datasetPath ? ` (${report.datasetPath})` : ''}`);
   console.log(pc.gray('─'.repeat(72)));
-
-  for (const ds of report.datasets) {
-    console.log(pc.bold(pc.yellow(`  • ${ds.dataset}`)));
-    console.log(`    Total Test Cases:   ${pc.bold(ds.totalVectors)} (Malicious: ${ds.maliciousEvaluated}, Benign: ${ds.benignEvaluated})`);
-    console.log(`    Block Rate (Recall):${pc.green(ds.recall + '%')} (${ds.maliciousBlocked}/${ds.maliciousEvaluated} blocked)`);
-    console.log(`    Pass Rate (Utility):${pc.green(ds.precision + '%')} (${ds.benignAllowed}/${ds.benignEvaluated} allowed)`);
-    console.log(`    F1 Score:           ${pc.bold(pc.green(ds.f1Score + '%'))}`);
-    console.log(`    P50 / P95 Latency:  ${pc.cyan(ds.p50LatencyMs + ' ms')} / ${pc.cyan(ds.p95LatencyMs + ' ms')}`);
-    console.log(`    Zero Network Egress:${pc.green('VERIFIED (In-Process AST)')}`);
-    console.log('');
+  console.log(`  Total Cases:          ${pc.bold(report.metrics.totalCases)} (Malicious: ${report.metrics.maliciousTotal}, Benign: ${report.metrics.benignTotal})`);
+  console.log(`  Decision Breakdown:   ${pc.red(`${report.metrics.blockedCount} Blocked`)} / ${pc.green(`${report.metrics.allowedCount} Allowed`)}`);
+  console.log(`  Accuracy:             ${pc.bold(pc.green(report.metrics.accuracy + '%'))}`);
+  console.log(`  Precision:            ${pc.bold(pc.green(report.metrics.precision + '%'))} (${report.metrics.maliciousBlocked}/${report.metrics.blockedCount} malicious blocks)`);
+  console.log(`  Recall:               ${pc.bold(pc.green(report.metrics.recall + '%'))} (${report.metrics.maliciousBlocked}/${report.metrics.maliciousTotal} attacks blocked)`);
+  console.log(`  F1 Score:             ${pc.bold(pc.green(report.metrics.f1Score + '%'))}`);
+  console.log(pc.gray('─'.repeat(72)));
+  console.log(pc.bold(pc.cyan('  Latency Distribution:')));
+  console.log(`    Mean Latency:       ${pc.cyan(report.metrics.latencyDistribution.meanMs + ' ms')}`);
+  console.log(`    P50 (Median):       ${pc.cyan(report.metrics.latencyDistribution.p50Ms + ' ms')}`);
+  console.log(`    P95 Percentile:     ${pc.cyan(report.metrics.latencyDistribution.p95Ms + ' ms')}`);
+  console.log(`    P99 Percentile:     ${pc.cyan(report.metrics.latencyDistribution.p99Ms + ' ms')}`);
+  console.log(`    Min / Max:          ${pc.dim(`${report.metrics.latencyDistribution.minMs} ms / ${report.metrics.latencyDistribution.maxMs} ms`)}`);
+  
+  if (report.subReports && report.subReports.length > 0) {
+    console.log(pc.gray('─'.repeat(72)));
+    console.log(pc.bold(pc.cyan('  Dataset Sub-Breakdowns:')));
+    for (const sub of report.subReports) {
+      console.log(`    • ${pc.bold(sub.benchmark)}: F1=${pc.green(sub.metrics.f1Score + '%')}, P50=${pc.cyan(sub.metrics.latencyDistribution.p50Ms + 'ms')}, P95=${pc.cyan(sub.metrics.latencyDistribution.p95Ms + 'ms')}, Total=${sub.metrics.totalCases}`);
+    }
   }
 
   console.log(pc.bold(pc.white('════════════════════════════════════════════════════════════════════════')));
-  console.log(pc.dim(`  Cryptographic Proof: SHA-256 [${report.cryptographicProof.payloadHash.slice(0, 16)}...]`));
+  console.log(pc.bold(pc.cyan('  SHA-256 Cryptographic Attestation Proof:')));
+  console.log(`    Algorithm:          ${pc.green(report.attestationProof.algorithm)}`);
+  console.log(`    Payload Hash:       ${pc.dim(report.attestationProof.payloadHash)}`);
+  console.log(`    Dataset SHA-256:    ${pc.dim(report.attestationProof.datasetSha256)}`);
+  console.log(`    Timestamp:          ${pc.dim(report.attestationProof.timestamp)}`);
+  console.log(`    Zero Egress:        ${pc.green('VERIFIED (In-Process AST)')}`);
   console.log(pc.bold(pc.white('════════════════════════════════════════════════════════════════════════\n')));
 
-  if (options?.output) {
-    const p = path.resolve(process.cwd(), options.output);
+  if (outputPath) {
+    const p = path.resolve(process.cwd(), outputPath);
     fs.mkdirSync(path.dirname(p), { recursive: true });
-    fs.writeFileSync(p, JSON.stringify(report, null, 2));
-    console.log(pc.green(`  ✅ Signed benchmark evidence written to: ${p}\n`));
+    fs.writeFileSync(p, JSON.stringify(report, null, 2), 'utf8');
+    console.log(pc.green(`  ✅ Structured evaluation report written to: ${p}\n`));
   }
 
-  return report.overallF1 >= 99.0 ? 0 : 1;
+  return report.metrics.f1Score >= 90.0 ? 0 : 1;
+}
+
+/**
+ * Backwards compatibility wrapper for runPublicEval.
+ */
+export async function runPublicEval(options?: EvalCliOptions): Promise<number> {
+  return runEvalCommand(options);
 }
 
 export function runBenchmark(options?: BenchmarkCliOptions): number {

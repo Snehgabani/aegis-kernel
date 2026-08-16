@@ -9,11 +9,20 @@ import {
   AegisEngine,
   generateComplianceDossier,
   renderComplianceMarkdown,
+  renderComplianceHTML,
+  renderCompliancePDF,
   generateHumanExplanation,
 } from '@aegis-kernel/core';
 import type { AegisEvent } from '@aegis-kernel/core';
 
-export function runComplianceExport(options: { output?: string; format?: string; limit?: number }) {
+export function runComplianceExport(options: {
+  output?: string;
+  format?: string;
+  limit?: number;
+  key?: string;
+  auditorFirm?: string;
+  leadAuditor?: string;
+}) {
   console.log('═══════════════════════════════════════════════════════════════');
   console.log('  🛡️  AEGIS GRC COMPLIANCE DOSSIER EXPORTER');
   console.log('═══════════════════════════════════════════════════════════════\n');
@@ -24,27 +33,43 @@ export function runComplianceExport(options: { output?: string; format?: string;
 
   console.log(`📥 Ingested ${events.length} recent audit events from event ledger.`);
 
-  const dossier = generateComplianceDossier(events, engine.getLoadedPacks());
+  const dossier = generateComplianceDossier(events, engine.getLoadedPacks(), '0'.repeat(64), {
+    includeEvents: true,
+    signKey: options.key,
+    auditorFirm: options.auditorFirm,
+    leadAuditor: options.leadAuditor,
+  });
+
   const format = options.format?.toLowerCase() || 'markdown';
 
-  let outputContent = '';
+  let outputContent: string | Buffer = '';
   let defaultFile = '';
 
   if (format === 'json') {
     outputContent = JSON.stringify(dossier, null, 2);
     defaultFile = `aegis-compliance-dossier-${Date.now()}.json`;
+  } else if (format === 'html') {
+    outputContent = renderComplianceHTML(dossier);
+    defaultFile = `aegis-compliance-dossier-${Date.now()}.html`;
+  } else if (format === 'pdf') {
+    outputContent = renderCompliancePDF(dossier);
+    defaultFile = `aegis-compliance-dossier-${Date.now()}.pdf`;
   } else {
     outputContent = renderComplianceMarkdown(dossier);
     defaultFile = `aegis-compliance-dossier-${Date.now()}.md`;
   }
 
   const outputPath = options.output || path.join(process.cwd(), defaultFile);
-  fs.writeFileSync(outputPath, outputContent, 'utf8');
+  fs.writeFileSync(outputPath, outputContent);
 
   console.log(`\n✅ Compliance dossier generated successfully!`);
-  console.log(`📄 Saved to: ${outputPath}`);
+  console.log(`📄 Saved to: ${outputPath} (${format.toUpperCase()})`);
   console.log(`🔐 Merkle Root Hash: ${dossier.merkleRootHash}`);
-  console.log(`📋 Mapped Standards: SOC 2 Type II, ISO/IEC 42001:2023, EU AI Act, NIST AI RMF 1.0\n`);
+  if (dossier.merkleRootSignature) {
+    console.log(`✍️  Cryptographic Signature: ${dossier.merkleRootSignature.slice(0, 32)}... (${dossier.signatureType})`);
+  }
+  console.log(`📋 Mapped Standards: SOC 2 Type II, ISO/IEC 42001:2023, HIPAA §164.312, NIST AI RMF 1.0, EU AI Act\n`);
+  return { ok: true, outputPath, dossier };
 }
 
 export function runExplainToolCall(toolName: string, queryOrParams: string) {

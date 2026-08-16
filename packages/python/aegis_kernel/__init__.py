@@ -6,6 +6,7 @@ Deterministic, sub-2ms safety clearance gateway for AI Agent tool execution.
 from .types import AegisVerdict, AegisViolation, ToolCall, AegisConfig
 from .engine import AegisEngine
 from .decorator import aegis_guard, AegisBlockedError
+from .checkers import PythonStateChecker, PythonPiiTokenVault
 from .adapters import AegisCrewAITool, wrap_autogen_function
 
 __all__ = [
@@ -18,6 +19,8 @@ __all__ = [
     "AegisBlockedError",
     "AegisCrewAITool",
     "wrap_autogen_function",
+    "PythonStateChecker",
+    "PythonPiiTokenVault",
 ]
 
 __version__ = "1.0.0"
