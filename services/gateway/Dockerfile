@@ -9,7 +9,7 @@ COPY packages/ ./packages/
 COPY services/ ./services/
 
 # Install dependencies and build monorepo packages
-RUN npm ci && npm run build
+RUN npm ci --include=dev && npx turbo run build --concurrency=1
 
 # Stage 2: Minimal Production Runtime
 FROM node:22-alpine AS runner

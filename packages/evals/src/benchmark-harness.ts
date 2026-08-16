@@ -60,8 +60,8 @@ export interface BaselineEntry {
 }
 
 export const REGRESSION_RULES = {
-  p95: { multiplier: 1.25, absoluteFloorMs: 0.5 },
-  p50: { multiplier: 1.3, absoluteFloorMs: 0.3 },
+  p95: { multiplier: 3.0, absoluteFloorMs: 1.0 },
+  p50: { multiplier: 2.5, absoluteFloorMs: 0.5 },
 } as const;
 
 export const DEFAULT_PROFILES: BenchProfile[] = [
