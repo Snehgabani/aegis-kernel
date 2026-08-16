@@ -12,11 +12,13 @@ export function runInit(): void {
 
   const defaultYaml = `# aegis.config.yaml — Aegis Invariant Kernel Configuration
 
+version: "1.0"
+
 # Operating mode: "enforce" (hard-block) or "shadow" (log-only audit)
 mode: "enforce"
 
 # Fail-safe behavior if engine evaluation encounters an unexpected error
-failPolicy: "fail-open"
+failPolicy: "fail-closed"
 
 # Pre-configured rule packs
 packs:

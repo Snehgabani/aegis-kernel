@@ -52,7 +52,7 @@ export class AegisEngine {
 
   constructor(config?: AegisConfig) {
     this.mode = config?.mode ?? 'enforce';
-    this.failPolicy = config?.failPolicy ?? 'fail-open';
+    this.failPolicy = config?.failPolicy ?? 'fail-closed';
     this.defaultStateProvider = config?.stateProvider;
     this.onViolation = config?.onViolation;
     this.identityManager = config?.identityManager;
@@ -251,22 +251,23 @@ export class AegisEngine {
 
     switch (condition.type) {
       case 'sql_ast':
-        return this.sqlChecker.evaluate(ruleId, packId, condition.params, toolCall);
+        return this.sqlChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'json_schema':
-        return this.schemaChecker.evaluate(ruleId, packId, condition.params, toolCall);
+        return this.schemaChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'regex':
-        return this.piiChecker.evaluate(ruleId, packId, condition.params, toolCall);
+        return this.piiChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'numeric':
-        return this.numericChecker.evaluate(ruleId, packId, condition.params, toolCall);
+        return this.numericChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'custom':
-        return this.customChecker.evaluate(ruleId, packId, condition.params, toolCall);
+        return this.customChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'state_invariant':
         return this.stateChecker.evaluate(
           ruleId,
           packId,
           condition.params,
           toolCall,
-          options?.state
+          options?.state,
+          rule.severity
         );
       default:
         return [];

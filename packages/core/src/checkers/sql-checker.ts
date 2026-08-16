@@ -1,5 +1,5 @@
 import NodeSqlParser from 'node-sql-parser';
-import type { AegisViolation, SqlAstConditionParams, ToolCall } from '../types.js';
+import type { AegisSeverity, AegisViolation, SqlAstConditionParams, ToolCall } from '../types.js';
 
 // Clean ESM/CJS interop for node-sql-parser
 const ParserClass: any =
@@ -11,6 +11,16 @@ export class SqlChecker {
   private parser: any;
   private static readonly SUPPORTED_DIALECTS = ['PostgreSQL', 'MySQL', 'SQLite', 'TransactSQL'] as const;
 
+  private static readonly DEFAULT_SQL_TOOLS = new Set([
+    'database_exec', 'execute_sql', 'exec_sql', 'run_sql', 'run_query',
+    'sql_query', 'query_database', 'query_db', 'db_query', 'mysql_query',
+    'postgres_query', 'sqlite_query', 'tsql_query', 'database_query',
+    'query_sql', 'sql', 'sql_exec', 'execute_query', 'exec_query',
+    'db_exec', 'sqlite_exec', 'query',
+  ]);
+
+  private static readonly SQL_TOOL_HINTS = ['sql', 'database', 'db_', '_db', 'dbquery', 'query_exec'];
+
   constructor() {
     this.parser = new ParserClass();
   }
@@ -20,6 +30,7 @@ export class SqlChecker {
     packId: string,
     params: SqlAstConditionParams,
     toolCall: ToolCall
+  , severity: AegisSeverity = 'critical'
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
     const sql = this.extractSqlString(toolCall, params.database_field);
@@ -28,7 +39,12 @@ export class SqlChecker {
       return violations;
     }
 
-    const cleanedSql = SqlChecker.stripSqlComments(sql);
+    // SECURITY: normalize BEFORE comment stripping / parsing / fallback.
+    // Without this, zero-width, bidi and fullwidth-unicode characters inside
+    // SQL keywords (D<ZW>ELETE, ＤＥＬＥＴＥ) defeat BOTH the AST parser and
+    // the regex fallback, turning destructive SQL into an ALLOWED verdict.
+    const normalizedSql = SqlChecker.normalizeUnicode(sql);
+    const cleanedSql = SqlChecker.stripSqlComments(normalizedSql);
 
     try {
       // 1. Multi-Dialect AST Parsing (Try PostgreSQL -> MySQL -> SQLite -> TransactSQL)
@@ -49,7 +65,7 @@ export class SqlChecker {
             violations.push({
               ruleId,
               packId,
-              severity: 'critical',
+              severity,
               message: `Statement type '${type}' is prohibited by security policy.`,
               suggestedFix: `Avoid using '${type}'. Use read-only queries or specific targeted updates instead.`,
               context: { statementType: type, sql: sql.slice(0, 120) },
@@ -68,7 +84,7 @@ export class SqlChecker {
             violations.push({
               ruleId,
               packId,
-              severity: 'critical',
+              severity,
               message: `Destructive schema modification 'ALTER TABLE ... DROP' detected.`,
               suggestedFix: `Destructive schema alterations are prohibited in production agent workflows.`,
               context: { statementType: 'ALTER_DROP', sql: sql.slice(0, 120) },
@@ -86,7 +102,7 @@ export class SqlChecker {
               violations.push({
                 ruleId,
                 packId,
-                severity: 'critical',
+                severity,
                 message: isTautology
                   ? `Mass DELETE statement detected with tautological WHERE clause (e.g. 1=1).`
                   : `Mass DELETE statement detected without WHERE clause.`,
@@ -107,7 +123,7 @@ export class SqlChecker {
               violations.push({
                 ruleId,
                 packId,
-                severity: 'critical',
+                severity,
                 message: isTautology
                   ? `Mass UPDATE statement detected with tautological WHERE clause (e.g. 1=1).`
                   : `Mass UPDATE statement detected without WHERE clause.`,
@@ -125,7 +141,7 @@ export class SqlChecker {
             violations.push({
               ruleId,
               packId,
-              severity: 'warning',
+              severity,
               message: `LIMIT ${limitVal} exceeds maximum permitted ceiling of ${params.max_limit}.`,
               suggestedFix: `Reduce LIMIT clause to ${params.max_limit} or less.`,
               context: { requestedLimit: limitVal, maxLimit: params.max_limit },
@@ -135,7 +151,7 @@ export class SqlChecker {
       }
     } catch {
       // Deterministic AST-free token inspection fallback
-      const fallbackViolations = this.evaluateRegexFallback(ruleId, packId, params, cleanedSql);
+      const fallbackViolations = this.evaluateRegexFallback(ruleId, packId, params, cleanedSql, severity);
       violations.push(...fallbackViolations);
     }
 
@@ -186,6 +202,17 @@ export class SqlChecker {
 
     // 1. Self column comparison: WHERE id = id or WHERE users.id = users.id
     if (this.isSelfColumnComparison(whereAst)) {
+      return true;
+    }
+
+    // 1b. Unconditional NULL test: WHERE id IS NOT NULL matches every row
+    //     whose column is non-null (effectively an unconstrained mass delete).
+    //     WHERE x IS NULL is NOT flagged (it only matches NULL rows).
+    if (
+      whereAst.type === 'binary_expr' &&
+      String(whereAst.operator).toUpperCase() === 'IS NOT' &&
+      whereAst.right?.type === 'null'
+    ) {
       return true;
     }
 
@@ -317,19 +344,57 @@ export class SqlChecker {
     return undefined;
   }
 
+  /**
+   * SQL tool gate: prevents non-database tools (search_kb, web_search, chat,
+   * file ops...) from paying the SQL AST parse cost and from false-positives
+   * when a generic `query` param merely CONTAINS SQL-looking text.
+   * AegisEngine emits a warning when a sql_ast rule skips a non-SQL tool.
+   */
+  public static isSqlTool(tool: string): boolean {
+    const t = (tool || '').toLowerCase();
+    if (SqlChecker.DEFAULT_SQL_TOOLS.has(t)) return true;
+    return SqlChecker.SQL_TOOL_HINTS.some((h) => t.includes(h));
+  }
+
+  /** Param names that are unambiguously SQL, even on oddly-named tools. */
+  public static isExplicitSqlField(field: string): boolean {
+    const f = (field || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+    return (
+      f === 'sql' ||
+      f === 'sql_query' ||
+      f === 'sqlquery' ||
+      f === 'sql_statement' ||
+      f === 'sqltext' ||
+      f === 'sql_text' ||
+      f === 'database_query' ||
+      f === 'query_string' ||
+      f === 'db_query' ||
+      f === 'query_sql'
+    );
+  }
+
   private extractSqlString(toolCall: ToolCall, databaseField?: string): string | null {
     if (!toolCall.params || typeof toolCall.params !== 'object') {
       return null;
     }
 
     const params = toolCall.params as Record<string, unknown>;
+    const tool = toolCall.tool ?? '';
 
-    // 1. Explicit database_field
+    // 1. Explicit database_field (rule-configured) always wins.
     if (databaseField && typeof params[databaseField] === 'string') {
       return params[databaseField] as string;
     }
 
-    // 2. Common top-level SQL field names
+    // 2. Tool gate. Generic `query`/`q` params on non-DB tools are NOT SQL:
+    //    parsing them costs ~2-3ms/call and can false-positive on natural
+    //    language that happens to look like SQL. Explicitly SQL-named params
+    //    (`sql`, `sql_query`, ...) are still honored at ANY nesting depth.
+    if (!SqlChecker.isSqlTool(tool)) {
+      return this.findNestedExplicitSql(params);
+    }
+
+    // 3. Common top-level SQL field names
     const commonFields = ['sql', 'query', 'statement', 'command', 'q', 'sql_query'];
     for (const field of commonFields) {
       if (typeof params[field] === 'string') {
@@ -337,8 +402,56 @@ export class SqlChecker {
       }
     }
 
-    // 3. Nested object extraction
+    // 4. Nested object extraction
     return this.findNestedSql(params);
+  }
+
+  /** Depth-limited recursive search for explicitly SQL-named params. */
+  private findNestedExplicitSql(params: Record<string, unknown>, depth = 0): string | null {
+    if (depth > 6) return null;
+    for (const [key, value] of Object.entries(params)) {
+      const explicit = SqlChecker.isExplicitSqlField(key);
+      if (typeof value === 'string' && explicit) {
+        return value;
+      }
+      // Explicitly SQL-named field wrapping a nested payload (config.sql.query):
+      // the field declared SQL, so ANY string inside its subtree is the SQL.
+      if (explicit && value && typeof value === 'object') {
+        const found = this.findFirstString(value, depth + 1);
+        if (found) return found;
+      }
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const found = this.findNestedExplicitSql(value as Record<string, unknown>, depth + 1);
+        if (found) return found;
+      } else if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item && typeof item === 'object') {
+            const found = this.findNestedExplicitSql(item as Record<string, unknown>, depth + 1);
+            if (found) return found;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private findFirstString(value: unknown, depth: number): string | null {
+    if (depth > 6) return null;
+    if (typeof value === 'string') return value;
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          const found = this.findFirstString(item, depth + 1);
+          if (found) return found;
+        }
+        return null;
+      }
+      for (const v of Object.values(value as Record<string, unknown>)) {
+        const found = this.findFirstString(v, depth + 1);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   /**
@@ -346,6 +459,22 @@ export class SqlChecker {
    * Preserves string literals while removing block and line comments.
    * Also normalizes comment-injected keyword splits (e.g. DE/*...*\/LETE).
    */
+
+  /**
+   * Unicode normalization for evasion-proof SQL inspection.
+   *
+   * 1. NFKD compatibility decomposition: fullwidth letters (ＤＥＬＥＴＥ), homoglyphs,
+   *    and other compatibility characters collapse to ASCII (DELETE). NBSP -> space.
+   * 2. Strips invisible/format control characters: zero-width (U+200B-200D),
+   *    BOM (U+FEFF), bidi controls (U+202A-202E, U+200E/200F), word joiner
+   *    (U+2060), and soft hyphen (U+00AD).
+   */
+  public static normalizeUnicode(sql: string): string {
+    return sql
+      .normalize('NFKD')
+      .replace(/[\u200b-\u200d\u2060\u2061\u2062\u2063\u2064\u200e\u200f\u202a-\u202e\uFEFF\u00ad]/g, '');
+  }
+
   public static stripSqlComments(sql: string): string {
     let result = '';
     let i = 0;
@@ -456,7 +585,8 @@ export class SqlChecker {
     ruleId: string,
     packId: string,
     _params: SqlAstConditionParams,
-    sql: string
+    sql: string,
+    severity: AegisSeverity = 'critical'
   ): AegisViolation[] {
     let processedSql = sql;
 
@@ -500,7 +630,7 @@ export class SqlChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `Destructive DROP statement detected via safety fallback filter.`,
           suggestedFix: `Destructive DROP commands are blocked.`,
           context: { fallbackUsed: true, pattern: `DROP ${next}` },
@@ -513,7 +643,7 @@ export class SqlChecker {
       violations.push({
         ruleId,
         packId,
-        severity: 'critical',
+        severity,
         message: `Destructive TRUNCATE statement detected via safety fallback filter.`,
         suggestedFix: `TRUNCATE is blocked by security policy.`,
         context: { fallbackUsed: true, pattern: 'TRUNCATE' },
@@ -529,7 +659,7 @@ export class SqlChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `Destructive ALTER TABLE DROP detected via safety fallback filter.`,
           suggestedFix: `Destructive schema modifications are blocked.`,
           context: { fallbackUsed: true, pattern: 'ALTER_DROP' },
@@ -545,7 +675,7 @@ export class SqlChecker {
         violations.push({
           ruleId,
           packId,
-          severity: 'critical',
+          severity,
           message: `Mass DELETE statement detected via fallback filter.`,
           suggestedFix: `Add a specific WHERE clause to your DELETE query.`,
           context: { fallbackUsed: true, pattern: 'DELETE_NO_WHERE' },
@@ -561,7 +691,7 @@ export class SqlChecker {
           violations.push({
             ruleId,
             packId,
-            severity: 'critical',
+            severity,
             message: `Mass DELETE statement detected via fallback filter with tautological condition.`,
             suggestedFix: `Add a specific targeted WHERE clause to your DELETE query.`,
             context: { fallbackUsed: true, pattern: 'DELETE_TAUTOLOGY' },

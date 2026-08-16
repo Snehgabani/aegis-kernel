@@ -35,7 +35,7 @@ func TestEvaluate(t *testing.T) {
 		},
 		{
 			name: "blocked pii",
-			call: ToolCall{Name: "send_message", Arguments: map[string]interface{}{"msg": "my ssn is 1234"}},
+			call: ToolCall{Name: "send_message", Arguments: map[string]interface{}{"msg": "my ssn is 123-45-6789"}},
 			allowed: false,
 		},
 		{

@@ -6,7 +6,7 @@ mode: "enforce"
 # Fail-safe behavior if engine internal evaluation encounters an error
 # "fail-open" = allow action + log error (recommended for general dev)
 # "fail-closed" = block action + log error (recommended for high-security production)
-failPolicy: "fail-open"
+failPolicy: "fail-closed"
 
 # Pre-configured rule packs
 packs:

@@ -3,16 +3,28 @@ import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AegisEvent, AegisFramework, AegisMode, AegisViolation } from './types.js';
 
-// Pre-compiled high-recall patterns for in-flight telemetry redaction
+// Pre-compiled high-recall patterns for in-flight telemetry redaction.
+// CARD patterns are separator-tolerant (spaces AND dashes) so formatted
+// PANs never reach the audit log.
 const REDACTION_PATTERNS = [
   { name: 'SSN', regex: /\b\d{3}-\d{2}-\d{4}\b/g, replacement: '[REDACTED_SSN]' },
-  { name: 'CARD', regex: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b/g, replacement: '[REDACTED_CARD]' },
+  {
+    name: 'CARD',
+    regex: /\b(?:\d{4}[ -]\d{4}[ -]\d{4}[ -]\d{4}|\d{16}|4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b/g,
+    replacement: '[REDACTED_CARD]',
+  },
   { name: 'KEY', regex: /\b(?:sk-[a-zA-Z0-9_-]{20,}|ghp_[a-zA-Z0-9]{36,}|AKIA[0-9A-Z]{16})\b/g, replacement: '[REDACTED_SECRET]' },
   { name: 'EMAIL', regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, replacement: '[REDACTED_EMAIL]' },
 ];
 
 export function redactPiiString(input: string): string {
-  let result = input;
+  // Normalize first (NFKD fullwidth/homoglyph collapse + strip zero-width &
+  // bidi controls) so obfuscated secrets are redacted too — same policy as
+  // AegisSanitizer. Audit logs must not leak what the hot path would mask.
+  const normalized = input
+    .normalize('NFKD')
+    .replace(/[\u200b-\u200d\u200e\u200f\u2060\uFEFF\u202a-\u202e\u00ad]/g, '');
+  let result = normalized;
   for (const { regex, replacement } of REDACTION_PATTERNS) {
     result = result.replace(regex, replacement);
   }

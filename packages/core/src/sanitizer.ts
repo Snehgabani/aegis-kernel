@@ -18,7 +18,7 @@ export class AegisSanitizer {
   // Non-backtracking, linear O(n) PII and Secret patterns
   private static readonly CC_REGEX = /\b\d{4}(?:[ -]\d{4}){3}\b|\b\d{16}\b/g;
   private static readonly SSN_REGEX = /\b\d{3}-\d{2}-\d{4}\b/g;
-  private static readonly ZERO_WIDTH_REGEX = /[\u200B-\u200D\uFEFF\u202A-\u202E]/g;
+  private static readonly ZERO_WIDTH_REGEX = /[\u200B-\u200D\u200E\u200F\u2060\uFEFF\u202A-\u202E]/g;
 
   /**
    * Sanitizes a tool call by mutating unsafe parameters in-place safely.
@@ -63,7 +63,15 @@ export class AegisSanitizer {
     if (typeof value === 'string') {
       let result = value;
 
-      // 1. Strip zero-width unicode
+      // 0. NFKD compatibility decomposition (fullwidth -> ASCII) BEFORE pattern
+      //    matching so obfuscated secrets are caught; NBSP -> space.
+      const decomposed = result.normalize('NFKD');
+      if (decomposed !== result) {
+        result = decomposed;
+        mods.push('Normalized unicode compatibility characters (fullwidth/homoglyphs)');
+      }
+
+      // 1. Strip zero-width unicode and bidi control chars
       if (this.ZERO_WIDTH_REGEX.test(result)) {
         result = result.replace(this.ZERO_WIDTH_REGEX, '');
         mods.push('Stripped hidden zero-width unicode evasion characters');

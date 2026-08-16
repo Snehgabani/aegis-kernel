@@ -33,7 +33,7 @@ type NumericLimit struct {
 	Max float64
 }
 
-var piiRegex = regexp.MustCompile(`(?i)(ssn|social security|credit card|cc)[\s\-:]*\d{4}`)
+var piiRegex = regexp.MustCompile(`(?i)(ssn|social security|credit card|cc)[\s\-:]*\d{4}|\b\d{3}-\d{2}-\d{4}\b`)
 
 func NewEngine(cfg Config) *AegisEngine {
 	return &AegisEngine{config: cfg}

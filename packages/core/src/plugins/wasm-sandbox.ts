@@ -67,16 +67,32 @@ export class WasmPluginRunner {
             isCompleted = true;
             clearTimeout(timer);
 
-            let isValid = true;
-            if (typeof instance.exports.validate === 'function') {
-              const validate = instance.exports.validate as Function;
-              validate(JSON.stringify(inputData));
+            // Fail-closed semantics: the verdict must come from the module's own
+            // validate() export. A module that cannot attest validity is NOT valid.
+            let isValid = false;
+            let message = '';
+
+            if (typeof instance.exports.validate !== 'function') {
+              message =
+                'WASM module does not export a validate() function; cannot attest validity';
+            } else {
+              try {
+                const result = instance.exports.validate(JSON.stringify(inputData));
+                // WASM i32 conventions: 1 = allow, 0 = deny (JS booleans also accepted)
+                isValid = result === true || result === 1 || result === 1n;
+                message = isValid
+                  ? 'WASM validator approved input'
+                  : 'WASM validator rejected input';
+              } catch (err) {
+                isValid = false;
+                message = `WASM validator threw during evaluation: ${(err as Error).message}`;
+              }
             }
 
             resolve({
               isValid: isValid,
-              score: 1.0,
-              message: "Execution completed",
+              score: isValid ? 1.0 : 0.0,
+              message,
               metadata: {
                 wasi: this.config.wasiEnabled,
                 inputKeys: Object.keys(inputData)
