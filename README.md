@@ -171,7 +171,22 @@ flowchart TD
 
 ## 📦 Monorepo Packages & Installation
 
-> **⚠️ Publication status (updated 2026-08-16):** the packages are **not yet published** to npm, PyPI, or Homebrew — `npm install @aegis-kernel/core` and `pip install aegis-kernel` currently return 404. Until release, install from source:
+### ⚡ 1-Line Install (from GitHub Release v1.0.0)
+
+You can install the official production distribution tarballs and wheels directly in any project:
+
+```bash
+# TypeScript / Node.js (Core Invariant Engine)
+npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis-kernel-core-1.0.0.tgz
+
+# Model Context Protocol (MCP) Middleware
+npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis-kernel-mcp-1.0.0.tgz
+
+# Python 3.9+ (Zero-Dependency Wheel)
+pip install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis_kernel-1.0.0-py3-none-any.whl
+```
+
+### Install from Source
 
 ```bash
 git clone https://github.com/Snehgabani/aegis-kernel.git
