@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-16T12:32:19.161Z",
-  "gitSha": "0a0c609",
+  "generatedAt": "2026-08-16T12:40:24.493Z",
+  "gitSha": "25a1f36",
   "node": "v22.23.2",
   "platform": "darwin/arm64",
   "sections": {
     "tests": {
       "ok": false,
-      "passed": 509,
+      "passed": 513,
       "failed": 0
     },
     "coverage": {
@@ -27,7 +27,7 @@
     },
     "benchmark": {
       "ok": true,
-      "tail": "652 | 2,883 |\n| sql-simple | 0.116 | 0.101 | 0.122 | 0.168 | 0.365 | 8,606 |\n| sql-complex | 0.141 | 0.131 | 0.148 | 0.165 | 0.330 | 7,080 |\n| sql-malicious | 0.113 | 0.100 | 0.116 | 0.148 | 0.345 | 8,850 |\n| pii-heavy | 0.058 | 0.048 | 0.068 | 0.077 | 0.158 | 17,264 |\n| numeric | 0.252 | 0.246 | 0.315 | 0.351 | 0.703 | 3,973 |\n| full-stack | 0.147 | 0.141 | 0.150 | 0.156 | 0.304 | 6,783 |\n  generatedAt=2026-08-16T12:33:16.155Z git=0a0c609 node=v22.23.2 platform=darwin/arm64\n\n  Evidence written: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/verification-evidence.json\n  Baseline saved: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/baseline.json\n"
+      "tail": "509 | 4,173 |\n| sql-simple | 0.103 | 0.100 | 0.108 | 0.112 | 0.149 | 9,678 |\n| sql-complex | 0.135 | 0.130 | 0.140 | 0.148 | 0.249 | 7,407 |\n| sql-malicious | 0.102 | 0.097 | 0.109 | 0.115 | 0.203 | 9,785 |\n| pii-heavy | 0.056 | 0.050 | 0.066 | 0.072 | 0.089 | 17,920 |\n| numeric | 0.243 | 0.244 | 0.328 | 0.343 | 0.527 | 4,118 |\n| full-stack | 0.148 | 0.144 | 0.152 | 0.160 | 0.272 | 6,774 |\n  generatedAt=2026-08-16T12:41:18.582Z git=25a1f36 node=v22.23.2 platform=darwin/arm64\n\n  Evidence written: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/verification-evidence.json\n  Baseline saved: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/baseline.json\n"
     }
   }
 }

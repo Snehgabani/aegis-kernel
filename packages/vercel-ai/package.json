@@ -36,7 +36,7 @@
   "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
   "license": "MIT",
   "dependencies": {
-    "@aegis-kernel/core": "workspace:*"
+    "@aegis-kernel/core": "*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
