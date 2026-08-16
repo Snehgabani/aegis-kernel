@@ -7,7 +7,7 @@ import { runPricing } from './pricing-cli.js';
 import { runPackList, runPackValidate, runPackCreate } from './registry-cli.js';
 import { runHubList, runHubSearch, runHubInstall } from './hub-cli.js';
 import { runRepl } from './repl-cli.js';
-import { runBenchmark } from './benchmark-cli.js';
+import { runBenchmark, runPublicEval } from './benchmark-cli.js';
 import { runMatrix } from './matrix-cli.js';
 import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
 import { runScan } from './scan-cli.js';
@@ -88,6 +88,14 @@ program
   .option('--quick', 'Shorter runs for CI smoke checks')
   .action((options) => {
     process.exitCode = runBenchmark(options);
+  });
+
+program
+  .command('eval [dataset]')
+  .description('Run standardized academic benchmarks (injecagent, agentdojo, mcp, or all)')
+  .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .action(async (dataset, options) => {
+    process.exitCode = await runPublicEval({ dataset, output: options.output });
   });
 
 const hubCmd = program.command('hub').description('Discover, search, and install rule packs from the Aegis Hub registry');

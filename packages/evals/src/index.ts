@@ -3,4 +3,8 @@ export * from './tricky-100-dataset.js';
 export * from './tricky-runner.js';
 export * from './evasion-generator.js';
 export * from './benchmark-harness.js';
-
+export * from './benchmarks/injecagent-dataset.js';
+export * from './benchmarks/agentdojo-adapter.js';
+export * from './benchmarks/mcp-bench-suite.js';
+export * from './head-to-head/comparative-profiler.js';
+export * from './public-eval-harness.js';

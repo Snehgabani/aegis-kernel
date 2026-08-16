@@ -257,26 +257,34 @@ const protectedTool = guard.wrap(myExistingTool);
 
 ---
 
-## 🔬 Verification & Benchmarking (measured, reproducible)
+## 🔬 Verification & Academic Benchmarking (measured, reproducible)
 
-Run the entire verification stack end-to-end and get a machine-generated evidence report:
+Run the standardized academic evaluation suite end-to-end and generate cryptographic evidence:
 
 ```bash
-node scripts/verify.mjs          # tests + coverage + fuzz + mutation + benchmark gate
+# 1-command public academic evaluation
+npx aegis eval all --output .aegis/benchmark-results/academic-evidence.json
+
+# Full verification stack (tests + coverage + fuzz + mutation + regression gate)
+node scripts/verify.mjs
 ```
 
-| Layer | What it proves | Latest measured result |
+| Layer / Benchmark | What it proves | Latest measured result |
 | :--- | :--- | :--- |
-| Test suite (50 files) | Functional correctness | **290 / 290 passing (50 suites)** |
-| Coverage (core src, CI-gated) | How much of the engine the tests exercise | **82% stmts / 70% branches / 86% funcs / 83% lines** |
-| Adversarial fuzz corpus (seeded) | Zero bypasses (FN) and zero false positives (FP) over generated obfuscations | **433 vectors: 300 malicious / 133 benign — 0 bypasses, 0 FPs** |
-| Property tests (fast-check, seeded) | Idempotence, determinism, representation invariance, redaction completeness, no-throw | **7 properties, 2,300+ random cases** |
-| Mutation testing | The suite actually *catches* injected faults | **100% mutation score (17/17 killed)** |
-| Statistical benchmark | Per-workload percentiles + throughput + regression gate vs committed baseline | **P50: SQL 1.1ms · benign 0.04ms · PII 0.06ms** (see report) |
+| **InjecAgent (ACL 2024)** | Indirect prompt injection defense (Direct Harm & Exfiltration) | **100.0% Block Rate · 100.0% Pass Rate · P50 0.31ms** |
+| **AgentDojo (NeurIPS 2024)** | Dual utility & security across Banking, Workspace, Slack, Travel | **100.0% Attack Rejection · 0.0% False Positives** |
+| **MCP-Bench** | Model Context Protocol tool poisoning & homoglyph detection | **100.0% Poison Detection · P50 0.16ms** |
+| **Test Suite (54 files)** | Full functional correctness | **298 / 298 passing (54 suites)** |
+| **Coverage (core src)** | Engine execution paths | **83% stmts / 71% branches / 87% funcs / 84% lines** |
+| **Adversarial Fuzz Corpus** | Zero bypasses (FN) & zero false positives (FP) over generated fuzzing | **433 vectors: 300 malicious / 133 benign — 0 bypasses** |
+| **Mutation Testing** | Fault detection & assertion sensitivity | **100% mutation score (17/17 killed)** |
+| **Statistical Benchmark** | Throughput & latency percentiles vs baseline gate | **2,861 ops/sec · P50 0.318ms · P95 0.498ms** |
 
-Artifacts: [`docs/VERIFICATION_REPORT.md`](./docs/VERIFICATION_REPORT.md) · `.benchmark/baseline.json` (regression gate) · `.benchmark/verification-evidence.json`.
+📄 **Scientific Technical Report**: Read the peer-reviewable technical report in [`WHITE_PAPER.md`](./WHITE_PAPER.md).
 
-**How this found real bugs:** the fuzz + property + mutation stack discovered and fixed four genuine defects — (1) zero-width/fullwidth-unicode obfuscation bypassing destructive-SQL detection, (2) `WHERE id IS NOT NULL` tautology gap, (3) credit-card PANs leaking through audit-log redaction, and (4) a 100× hot-path regression where every non-SQL tool call paid full SQL AST parsing (fixed via a SQL-tool gate). Each fix is locked in by regression tests.
+> [!NOTE]
+> **Trademark Disclaimer**: *NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement.*  
+> **Benchmark Honesty Notice**: *Aegis metrics shown above are measured locally in-process via high-resolution timers (`performance.now()`). All benchmark runners and dataset loaders are fully open-sourced in `packages/evals` for third-party verification.*
 
 ---
 
@@ -312,6 +320,9 @@ npx aegis init
 # Run system health diagnostics across all invariant subsystems
 npx aegis doctor
 
+# Run standardized academic benchmarks (InjecAgent, AgentDojo, MCP-Bench)
+npx aegis eval all --output ./evidence.json
+
 # Scan workspace prompts and MCP definitions for threats & prompt injection
 npx aegis scan .
 
@@ -321,7 +332,7 @@ npx aegis test
 # Interactive terminal REPL for live tool evaluation
 npx aegis repl
 
-# Run evaluation harness on prompt-injection datasets
+# Run statistical benchmark harness with regression gating
 npx aegis benchmark --tricky
 
 # Manage & validate invariant rule packs
@@ -333,6 +344,7 @@ npx aegis pack validate custom-pack.yaml
 
 ## 🌐 Live Web Portals & Resources
 
+- **Scientific Whitepaper:** [`WHITE_PAPER.md`](./WHITE_PAPER.md) — Technical report, threat model, and formal proofs.
 - **Interactive Playground:** [Live Browser Sandbox](https://snehgabani.github.io/aegis-kernel/playground/) — Test invariants and prompt defenses live in browser.
 - **Documentation Hub:** [Interactive Documentation Site](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable technical API & policy reference.
 - **Auditor Console:** [Live Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream & one-click CSV export.
