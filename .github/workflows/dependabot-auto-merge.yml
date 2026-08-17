@@ -35,10 +35,11 @@ jobs:
         run: |
           UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
           DEP_TYPE="${{ steps.metadata.outputs.dependency-type }}"
-          echo "Evaluating update: Type=$UPDATE_TYPE, DepType=$DEP_TYPE"
+          PKG_ECO="${{ steps.metadata.outputs.package-ecosystem }}"
+          echo "Evaluating update: Type=$UPDATE_TYPE, DepType=$DEP_TYPE, Ecosystem=$PKG_ECO"
           
-          # Auto-merge is permitted for dev dependencies, patch updates, and minor updates
-          if [[ "$UPDATE_TYPE" == "version-update:semver-patch" || "$UPDATE_TYPE" == "version-update:semver-minor" || "$DEP_TYPE" == "development" ]]; then
+          # Auto-merge is permitted for github-actions, dev dependencies, patch updates, and minor updates
+          if [[ "$PKG_ECO" == "github_actions" || "$DEP_TYPE" == "development" || "$UPDATE_TYPE" == "version-update:semver-patch" || "$UPDATE_TYPE" == "version-update:semver-minor" ]]; then
             echo "can_automerge=true" >> $GITHUB_OUTPUT
           else
             echo "can_automerge=false" >> $GITHUB_OUTPUT

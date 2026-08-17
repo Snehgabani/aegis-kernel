@@ -99,9 +99,4 @@ updates:
     groups:
       actions-dependencies:
         patterns:
-          - "actions/*"
-          - "github/*"
-          - "dependabot/*"
-    ignore:
-      - dependency-name: "actions/*"
-        update-types: ["version-update:semver-major"]
+          - "*"

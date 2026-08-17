@@ -28,7 +28,7 @@ jobs:
           output-file: 'aegis-spdx-sbom.json'
 
       - name: Scan SBOM with Anchore Grype
-        uses: anchore/scan-action@v3
+        uses: anchore/scan-action@v7
         with:
           sbom: 'aegis-spdx-sbom.json'
           fail-build: false
