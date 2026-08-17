@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Lint Gateway Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: 'services/gateway/Dockerfile'
           ignore: 'DL3018,DL3008'
