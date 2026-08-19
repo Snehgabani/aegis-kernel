@@ -5,3 +5,5 @@ b91d0098979b318e9dc8e2e7e02d9001cfe8d90a2d5ce6c6cd050c77eaf5ea9c  aegis-kernel-c
 a65e33bb49f3f3856cb8f18686acc556e0ae69a0119c7dc00e2ec6397f1b216e  aegis-kernel-mcp-1.0.0.tgz
 c7e0b7530b32c3610f0624d50da4968ca7c020a0ba9b97290f60fac2d7b980ce  aegis-kernel-openai-1.0.0.tgz
 e22ff72763fc96606675987feda8e23ba45ab4463f246e6d4235bdbb76212338  aegis-kernel-vercel-ai-1.0.0.tgz
+292afd150a3bd0898ab9cbb27b772996971fce87336ec2caf2f725753e99299a  aegis_kernel-1.0.0-py3-none-any.whl
+24e09b33c4f174afa2df9ba74245f6da4c7923406aa97eff373efee07a08e0d0  aegis_kernel-1.0.0.tar.gz
