@@ -7,6 +7,7 @@ import {
   AegisEvent
 } from '@aegis-kernel/core';
 import { CloudMarketplaceMeter } from './metering/marketplace-metering.js';
+import { GRCSyncDispatcher } from './grc-sync/grc-sync-dispatcher.js';
 
 export interface ControlPlaneConfig {
   port?: number;
@@ -157,6 +158,28 @@ export class AegisControlPlaneServer {
       const stixFeed = this.getStixThreatFeed(tenantId);
       res.writeHead(200);
       res.end(JSON.stringify({ tenantId, count: stixFeed.length, stixBundle: stixFeed }));
+      return;
+    }
+
+    // 5. Continuous GRC Sync (Drata / Vanta): POST /v1/compliance/sync-grc
+    if (pathname === '/v1/compliance/sync-grc' && method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        try {
+          const config = JSON.parse(body || '{}');
+          const tenantId = config.tenantId || url.searchParams.get('tenantId') || 'default';
+          const events = this.auditEvents.get(tenantId) || [];
+          const payload = GRCSyncDispatcher.buildSyncPayload(tenantId, events, config);
+          res.writeHead(200);
+          res.end(JSON.stringify({ success: true, syncPayload: payload }));
+        } catch (err: any) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: `Invalid GRC sync request: ${err.message}` }));
+        }
+      });
       return;
     }
 
