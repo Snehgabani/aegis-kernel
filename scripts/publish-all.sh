@@ -26,9 +26,15 @@ PACKAGES=(
   "packages/anthropic"
 )
 
+OTP_ARG=""
+if [ -n "$1" ]; then
+  OTP_ARG="--otp=${1#--otp=}"
+  echo "Using OTP token: $OTP_ARG"
+fi
+
 for PKG in "${PACKAGES[@]}"; do
   echo "📦 Publishing $PKG..."
-  (cd "$PKG" && npm publish --access public)
+  (cd "$PKG" && npm publish --access public $OTP_ARG)
   echo "   ✅ $PKG published successfully!"
   echo ""
 done
