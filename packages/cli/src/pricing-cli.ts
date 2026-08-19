@@ -42,6 +42,7 @@ export function runPricing(): void {
       features: [
         'Everything in Pro tier',
         'SOC 2 Type II System Invariants (@aegis/soc2-guard)',
+        'Cloud & K8s Safety Guard (@aegis/cloud-infra-guard)',
         'Centralized team dashboard & triage management',
         'Slack & PagerDuty webhook alert dispatch',
         'Up to 1,000,000 checks/month',
@@ -50,22 +51,24 @@ export function runPricing(): void {
     },
     {
       name: 'ENTERPRISE',
-      price: '$499 / month (or custom contract)',
+      price: 'Custom (from $18k/yr)',
       badge: pc.magenta('ENTERPRISE GRADE'),
       target: 'Regulated enterprises, banks, & healthcare systems',
       features: [
         'Everything in Scale tier',
+        'ISO/IEC 42001 AI Management Guard (@aegis/iso42001-guard)',
         'Unlimited throughput & custom high-volume SLA',
         'Custom proprietary Rule Pack development & validation',
         'Air-gapped on-premise verification & dedicated license server',
-        'Security compliance attestation package (SOC 2, HIPAA, ISO 42001)',
+        'Security compliance attestation package (SOC 2, HIPAA, ISO 42001, EU AI Act)',
+        'Signed Business Associate Agreement (BAA for HIPAA) & $1M warranty',
         'Dedicated Slack support channel & 1-hour critical SLA',
       ],
     },
   ];
 
   for (const t of tiers) {
-    console.log(`\n${pc.bold(pc.white(t.name.padEnd(14)))} ${pc.bold(t.price.padEnd(16))} ${t.badge}`);
+    console.log(`\n${pc.bold(pc.white(t.name.padEnd(14)))} ${pc.bold(t.price.padEnd(26))} ${t.badge}`);
     console.log(pc.dim(`Target: ${t.target}`));
     for (const f of t.features) {
       console.log(`  ${pc.green('✓')} ${f}`);
@@ -74,8 +77,9 @@ export function runPricing(): void {
 
   console.log('\n' + pc.gray('═'.repeat(70)));
   console.log(pc.bold('\n🚀 Get Started & Upgrade:'));
-  console.log(`  • Self-Serve Pro ($49/mo):     ${pc.cyan('https://buy.stripe.com/aegis_pro_checkout')}`);
-  console.log(`  • Scale ($199/mo):             ${pc.cyan('https://buy.stripe.com/aegis_scale_checkout')}`);
-  console.log(`  • Enterprise Contract:         ${pc.cyan('mailto:enterprise@aegis-kernel.dev')}`);
-  console.log(`  • Activate License:            ${pc.bold('npx aegis license activate <your-key>')}\n`);
+  console.log(`  • GitHub Sponsors ($49-$199/mo): ${pc.cyan('https://github.com/sponsors/Snehgabani')}`);
+  console.log(`  • Self-Serve Pro ($49/mo):       ${pc.cyan('https://buy.stripe.com/aegis_pro_checkout')}`);
+  console.log(`  • Scale ($199/mo):               ${pc.cyan('https://buy.stripe.com/aegis_scale_checkout')}`);
+  console.log(`  • Enterprise Contract:           ${pc.cyan('mailto:sneh.gabani1999@gmail.com')}`);
+  console.log(`  • Activate License:              ${pc.bold('npx aegis license activate <your-key>')}\n`);
 }

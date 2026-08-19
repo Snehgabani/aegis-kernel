@@ -114,6 +114,20 @@ export interface DossierVerificationReport {
   findings: DossierVerificationFinding[];
 }
 
+export interface MerkleProofStep {
+  position: 'left' | 'right';
+  hash: string;
+}
+
+export interface MerkleInclusionProof {
+  eventId: string;
+  leafIndex: number;
+  leafHash: string;
+  previousRootHash: string;
+  auditPath: MerkleProofStep[];
+  merkleRoot: string;
+}
+
 /**
  * Computes a Merkle root hash across an array of ordered events for WORM tamper-evidence.
  */
@@ -149,6 +163,95 @@ export function computeEventChainMerkleRoot(events: AegisEvent[], previousRootHa
   }
 
   return leaves[0];
+}
+
+/**
+ * Generates an O(log N) Merkle Inclusion Proof (SPV) for a specific event in the audit trail.
+ * Allows independent CPA auditors to verify single transactions without processing millions of records.
+ */
+export function generateMerkleInclusionProof(
+  eventIndex: number,
+  events: AegisEvent[],
+  previousRootHash: string = '0'.repeat(64)
+): MerkleInclusionProof {
+  if (eventIndex < 0 || eventIndex >= events.length) {
+    throw new Error(`Invalid event index ${eventIndex}. Events count: ${events.length}`);
+  }
+
+  let leaves: string[] = [];
+  let prevEventHash = previousRootHash;
+  for (const e of events) {
+    const eventHash = createHash('sha256')
+      .update(`${e.id}:${e.timestamp}:${e.toolName}:${e.verdict}:${e.proofHash}:${prevEventHash}`)
+      .digest('hex');
+    leaves.push(eventHash);
+    prevEventHash = eventHash;
+  }
+
+  // Include previous root hash in the initial leaf level mixing
+  leaves.push(previousRootHash);
+
+  const targetEvent = events[eventIndex];
+  const targetLeafHash = leaves[eventIndex];
+  const auditPath: MerkleProofStep[] = [];
+  let currentIndex = eventIndex;
+
+  while (leaves.length > 1) {
+    const nextLevel: string[] = [];
+    for (let i = 0; i < leaves.length; i += 2) {
+      if (i + 1 < leaves.length) {
+        const left = leaves[i];
+        const right = leaves[i + 1];
+
+        // If current target is the left sibling
+        if (i === currentIndex) {
+          auditPath.push({ position: 'right', hash: right });
+        }
+        // If current target is the right sibling
+        else if (i + 1 === currentIndex) {
+          auditPath.push({ position: 'left', hash: left });
+        }
+
+        const combined = left + right;
+        nextLevel.push(createHash('sha256').update(combined).digest('hex'));
+      } else {
+        // Lone odd leaf without sibling
+        nextLevel.push(leaves[i]);
+      }
+    }
+
+    currentIndex = Math.floor(currentIndex / 2);
+    leaves = nextLevel;
+  }
+
+  return {
+    eventId: targetEvent.id,
+    leafIndex: eventIndex,
+    leafHash: targetLeafHash,
+    previousRootHash,
+    auditPath,
+    merkleRoot: leaves[0],
+  };
+}
+
+/**
+ * Verifies a Merkle Inclusion Proof (SPV) in O(log N) operations against an expected root hash.
+ */
+export function verifyMerkleInclusionProof(
+  proof: MerkleInclusionProof,
+  expectedRoot: string = proof.merkleRoot
+): boolean {
+  let currentHash = proof.leafHash;
+
+  for (const step of proof.auditPath) {
+    if (step.position === 'right') {
+      currentHash = createHash('sha256').update(currentHash + step.hash).digest('hex');
+    } else {
+      currentHash = createHash('sha256').update(step.hash + currentHash).digest('hex');
+    }
+  }
+
+  return currentHash === expectedRoot;
 }
 
 /**
