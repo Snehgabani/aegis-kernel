@@ -1,0 +1,15 @@
+- id: aegis-scan
+  name: Aegis AI Invariant & Secret Scanner
+  description: Scan codebase for hardcoded LLM secrets and poisoned MCP tool definitions
+  entry: npx --yes @aegis-kernel/cli scan
+  language: system
+  files: \.(ts|js|py|json|yaml|yml)$
+  pass_filenames: false
+
+- id: aegis-test
+  name: Aegis Policy Invariant Test
+  description: Execute deterministic invariant tests on tool definitions
+  entry: npx --yes @aegis-kernel/cli test
+  language: system
+  files: (aegis\.config\.yaml|packs/.*\.yaml)$
+  pass_filenames: false
