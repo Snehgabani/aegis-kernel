@@ -1,28 +1,19 @@
-# Smithery.ai & Open MCP Registry Manifest
-# Enables 1-click installation in Claude Desktop, Cursor, and Windsurf
+# Smithery configuration for Aegis Invariant Kernel MCP Gateway
+# https://smithery.ai/docs/config
 
-name: "@aegis-kernel/mcp"
-version: "1.0.0"
-description: "Deterministic tool-call clearance gateway and schema pinning firewall for Model Context Protocol (MCP)"
-license: "MIT"
-repository: "https://github.com/Snehgabani/aegis-kernel"
+startCommand:
+  type: stdio
+  config:
+    command: "npx"
+    args:
+      - "-y"
+      - "@aegis-kernel/mcp"
+      - "gateway"
 
-command:
-  type: "node"
-  entry: "node_modules/@aegis-kernel/cli/dist/index.js"
-  args: ["mcp", "--enforce"]
-
-categories:
-  - "security"
-  - "ai-safety"
-  - "mcp"
-  - "guardrails"
-
-capabilities:
-  tools: true
-  prompts: false
-  resources: true
-
-env:
-  AEGIS_MODE: "enforce"
-  AEGIS_POLICY_PACKS: "sql-guard,data-guard,finance-guard"
+tools:
+  - name: aegis_scan_tool
+    description: Deterministically scan and validate an MCP tool schema for prompt injection vectors and zero-width characters.
+  - name: aegis_intercept_call
+    description: Intercept and evaluate a tool call against discrete AST invariants (SQL, financial bounds, PII vault) in <0.25ms.
+  - name: aegis_verify_proof
+    description: Cryptographically verify an immutable SHA-256 Merkle audit proof for SOC 2 / ISO 42001 compliance.
