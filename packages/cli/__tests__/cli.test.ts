@@ -247,6 +247,23 @@ describe('Aegis CLI Package', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should generate executive AI risk assessment and Drata/Vanta upsell report via runAuditReport', async () => {
+      const { runAuditReport } = await import('../src/audit-report-cli.js');
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const result = runAuditReport(tempDir);
+
+      expect(result.ok).toBe(true);
+      expect(fs.existsSync(result.outputPath)).toBe(true);
+
+      const content = fs.readFileSync(result.outputPath, 'utf8');
+      expect(content).toContain('Executive GRC Compliance Dossier');
+      expect(content).toContain('Drata & Vanta Live Webhook Sync');
+      expect(content).toContain('Aegis Scale');
+
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('binary entrypoint validation', () => {

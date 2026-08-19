@@ -14,6 +14,7 @@ import { runVerifyProof } from './verify-proof-cli.js';
 import { runScan } from './scan-cli.js';
 import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
+import { runAuditReport } from './audit-report-cli.js';
 
 const program = new Command();
 
@@ -261,6 +262,15 @@ program
   .description('View commercial tiers, pricing math, and upgrade checkout links')
   .action(() => {
     runPricing();
+  });
+
+program
+  .command('audit-report [targetPath]')
+  .description('Generate instant executive SOC 2 / ISO 42001 AI Risk Assessment & CPA compliance report')
+  .option('-f, --format <format>', 'Report format: markdown or html', 'markdown')
+  .option('-o, --output <path>', 'Destination output file path')
+  .action((targetPath: string | undefined, options: { format?: string; output?: string }) => {
+    runAuditReport(targetPath || '.', options);
   });
 
 program.parse(process.argv);
