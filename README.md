@@ -470,6 +470,8 @@ npx aegis telemetry export --output ./aegis-telemetry.json
 - **CISO Compliance White Paper:** [CISO Security & Compliance White Paper](./docs/compliance/CISO_SECURITY_WHITE_PAPER.md) (SOC 2, HIPAA, PCI-DSS).
 - **EU AI Act & GDPR Mapping:** [EU AI Act & Regulatory Crosswalk](./docs/compliance/EU_AI_ACT_MAPPING.md) (Articles 9–15).
 - **Honest Boundaries & Limitations:** [Limitations & Architectural Boundaries](./docs/LIMITATIONS_AND_BOUNDARIES.md) — Unbiased scope and threat boundary map.
+- **Telemetry & Collective Threat Intelligence:** [Telemetry Policy & Opt-Out Guide](./TELEMETRY.md) — Anonymous operational metrics, error fingerprints & GDPR compliance.
+- **Privacy Statement:** [Privacy Policy & Zero-Egress Invariant](./PRIVACY.md).
 - **Responsible AI & Ethics Charter:** [Ethics & Responsible AI Charter](./ETHICS_AND_RESPONSIBLE_AI.md) — Dual-use policy, civil safety & ISO/IEC 29147 Safe Harbor.
 - **Legal & Ethical Disclaimers:** [Legal Disclaimer & Safe Harbor](./DISCLAIMER.md).
 
