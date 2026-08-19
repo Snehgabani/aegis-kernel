@@ -17,6 +17,7 @@
 [![npm @aegis-kernel/langchain](https://img.shields.io/npm/v/@aegis-kernel/langchain.svg?color=10b981&label=@aegis-kernel/langchain)](https://www.npmjs.com/package/@aegis-kernel/langchain)
 [![npm @aegis-kernel/mcp](https://img.shields.io/npm/v/@aegis-kernel/mcp.svg?color=10b981&label=@aegis-kernel/mcp)](https://www.npmjs.com/package/@aegis-kernel/mcp)
 [![npm @aegis-kernel/cli](https://img.shields.io/npm/v/@aegis-kernel/cli.svg?color=10b981&label=@aegis-kernel/cli)](https://www.npmjs.com/package/@aegis-kernel/cli)
+[![PyPI aegis-kernel](https://img.shields.io/pypi/v/aegis-kernel.svg?color=10b981&label=PyPI%20aegis-kernel)](https://pypi.org/project/aegis-kernel/)
 
 <br/>
 
