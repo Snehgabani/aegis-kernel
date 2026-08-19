@@ -35,7 +35,7 @@ These numbers are produced by the repository's own test and benchmark suites; ru
 
 | Metric | Value | How to reproduce |
 | :--- | :--- | :--- |
-| Unit/integration tests (TypeScript) | 509 / 509 passing (67 files) | `npm install && npm test` |
+| Unit/integration tests (TypeScript) | 513 / 513 passing (68 files) | `npm install && npm test` |
 | Python SDK tests | 11 / 11 passing | `python3 -m unittest discover -s packages/python/tests -p "test_*.py"` |
 | Go SDK tests | 17 / 17 passing | `cd packages/go && go test -v ./...` |
 | Rust Crate tests | 8 / 8 passing | `cd packages/rust && cargo test` |
@@ -52,11 +52,11 @@ These numbers are produced by the repository's own test and benchmark suites; ru
 ## 3. Known Gaps & Open Items (Disclosed, Not Hidden)
 
 1. **No independent security audit** has been performed (no third-party pentest, no CodeQL/Semgrep sign-off beyond CI scans).
-2. **No formal certification** of any kind (SOC 2 / ISO 27001 / PCI-DSS / HIPAA) exists.
-3. **Nothing is published** to npm/PyPI/Homebrew yet; consumers must build from source and pin a commit.
-4. **Single maintainer; ~24-hour commit history at time of writing.** The project has not demonstrated sustained maintenance.
+2. **No formal certification** of any kind (SOC 2 / ISO 27001 / PCI-DSS / HIPAA) exists; Aegis provides technical evidence tools for auditors.
+3. **Packages are officially published** to npm (`@aegis-kernel/core`, `@aegis-kernel/langchain`, `@aegis-kernel/mcp`, `@aegis-kernel/cli`) and PyPI (`aegis-kernel`) at version `1.0.0`.
+4. **Initial release maintenance.** The project is at version 1.0.0.
 5. **The WASM plugin runner and several "enterprise" subsystems are new and lightly exercised** in production-like conditions.
-6. **License-gating code** (HMAC license keys, Stripe billing hooks) exists in the repo even though the software is MIT-licensed — the commercial model is not yet finalized.
+6. **License-gating code** (HMAC license keys, Stripe billing hooks) exists in the repo even though the software is MIT-licensed — the commercial model is open-core.
 
 ---
 
