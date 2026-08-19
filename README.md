@@ -10,6 +10,7 @@
 [![Live Studio Demo](https://img.shields.io/badge/⚡_Live_Studio-Launch_Interactive_Playground-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground/)
 [![Documentation](https://img.shields.io/badge/📖_Documentation-View_Architecture_Guide-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/)
 [![Auditor Console](https://img.shields.io/badge/🛡️_Auditor_Console-View_Merkle_Dossier-8b5cf6?style=for-the-badge&logo=security&logoColor=white)](https://snehgabani.github.io/aegis-kernel/dashboard/)
+[![Sponsor](https://img.shields.io/badge/💖_Sponsor-Support_Aegis-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Snehgabani)
 
 <br/>
 
