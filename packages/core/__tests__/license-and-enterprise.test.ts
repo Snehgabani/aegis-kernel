@@ -89,6 +89,33 @@ describe('Aegis Enterprise Monetization & Compliance Layer', () => {
       expect(graceVerification.inGracePeriod).toBe(true);
       expect(graceVerification.graceDaysRemaining).toBeGreaterThan(0);
     });
+    it('should generate and verify Asymmetric Ed25519 signed license tokens offline', () => {
+      const { privateKey } = require('node:crypto').generateKeyPairSync('ed25519', {
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+      });
+
+      const payload = {
+        customerId: 'cust_enterprise_fintech',
+        customerEmail: 'compliance@fintech.io',
+        plan: 'enterprise' as const,
+        issuedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+        features: ['iso42001_guard', 'cloud_infra_guard', 'soc2_guard'],
+        maxMonthlyChecks: 'unlimited' as const,
+      };
+
+      const ed25519Token = licenseManager.generateEd25519LicenseKey(payload, privateKey);
+      expect(ed25519Token).toMatch(/^aegis_lic_ed25519_[a-zA-Z0-9_-]+\.[a-f0-9]+$/);
+
+      // Verify with matching public key
+      const customManager = new AegisLicenseManager('', (require('node:crypto').createPublicKey(privateKey)).export({ type: 'spki', format: 'pem' }).toString());
+      const verification = customManager.verifyLicenseKey(ed25519Token);
+      expect(verification.valid).toBe(true);
+      expect(verification.active).toBe(true);
+      expect(verification.tier).toBe('enterprise');
+      expect(verification.payload?.customerId).toBe('cust_enterprise_fintech');
+    });
   });
 
   describe('Enterprise Compliance Rule Packs Evaluation', () => {
@@ -98,6 +125,8 @@ describe('Aegis Enterprise Monetization & Compliance Layer', () => {
         '@aegis/hipaa-guard',
         '@aegis/pci-dss-guard',
         '@aegis/soc2-guard',
+        '@aegis/iso42001-guard',
+        '@aegis/cloud-infra-guard',
       ],
     });
 
@@ -144,6 +173,24 @@ describe('Aegis Enterprise Monetization & Compliance Layer', () => {
       });
       expect(ddlVerdict.allowed).toBe(false);
       expect(ddlVerdict.violations.some((v) => v.ruleId === 'SOC2-002')).toBe(true);
+    });
+
+    it('should enforce ISO42001-001 and CLOUD-001: block high-risk unapproved tools and kubectl delete all', () => {
+      // ISO 42001 HITL requirement
+      const hitlVerdict = engine.evaluate({
+        tool: 'deploy_untested_model',
+        params: { risk_level: 'HIGH' },
+      });
+      expect(hitlVerdict.allowed).toBe(false);
+      expect(hitlVerdict.violations.some((v) => v.ruleId === 'ISO-001')).toBe(true);
+
+      // Cloud Infrastructure destruction
+      const k8sVerdict = engine.evaluate({
+        tool: 'cluster_manager',
+        params: { command: 'kubectl delete all --all' },
+      });
+      expect(k8sVerdict.allowed).toBe(false);
+      expect(k8sVerdict.violations.some((v) => v.ruleId === 'CLOUD-001')).toBe(true);
     });
   });
 });

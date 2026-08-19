@@ -35,6 +35,11 @@ export const DEFAULT_PII_PATTERNS = {
   SENSITIVE_FILE_PATH: /(?:\/etc\/(?:shadow|passwd|sudoers)|\.ssh\/(?:id_rsa|authorized_keys)|\.env(?:\.[a-zA-Z0-9_-]+)?|\/proc\/self\/environ)/,
   DESTRUCTIVE_COMMAND: /\b(?:rm\s+-(?:r|f|rf|fr)\s+[\/\*]|mkfs|dd\s+if=|\:(){ \:\|\: & }\;:\b)/i,
   ZERO_WIDTH_TOOL: /[\u200B-\u200D\uFEFF\u200E\u200F\u2060\u00AD]/,
+  DYNAMIC_CODE_EXECUTION: /\b(?:eval\(|Function\(|exec\(|subprocess\.Popen\(|child_process\.exec\()/i,
+  K8S_DESTRUCTIVE_COMMAND: /\b(?:kubectl\s+delete\s+(?:all|namespace|ns|nodes|clusterrole)|\bhelm\s+uninstall)\b/i,
+  IAM_WILDCARD_GRANT: /"(?:Action|Resource)":\s*"\*"/i,
+  TERRAFORM_DESTROY_COMMAND: /\b(?:terraform\s+destroy|tofu\s+destroy)\b/i,
+  PUBLIC_BUCKET_ACL: /(?:--acl\s+public-read|"Principal":\s*"\*"|"Effect":\s*"Allow")/i,
 
   // OWASP LLM02 & LLM07: Conversational Prompt Leakage & Data Exfiltration
   SYSTEM_PROMPT_LEAKAGE: /(?:<\|im_start\|>system|<\|begin_of_text\|>|You are an AI assistant who must always|Internal system instructions:|=== SYSTEM INSTRUCTIONS ===)/i,

@@ -1,0 +1,47 @@
+id: iso42001-guard
+name: ISO/IEC 42001 AI Management System & Risk Boundary Guard
+version: 1.0.0
+description: Enforces continuous AI safety, transparency, and operational risk boundaries for ISO/IEC 42001:2023 Annex A.6, A.8, and A.9 compliance.
+
+rules:
+  - id: ISO-001
+    severity: critical
+    description: Enforce human-in-the-loop (HITL) step-up token requirement for high-risk tool operations
+    condition:
+      type: custom
+      params:
+        predicate: "risk_level == 'HIGH' && approval_token == null"
+    suggestedFix: Attach a cryptographically signed human approval token for high-risk operations.
+
+  - id: ISO-002
+    severity: critical
+    description: Prohibit automated execution of unverified third-party scripts or dynamic code evaluation
+    condition:
+      type: regex
+      params:
+        patterns:
+          - DYNAMIC_CODE_EXECUTION
+        match_action: block
+    suggestedFix: Dynamic runtime code generation and unverified script execution are prohibited under ISO 42001 A.6.2.
+
+  - id: ISO-003
+    severity: warning
+    description: Enforce tenant isolation and provenance tracking on AI tool parameters
+    condition:
+      type: state_invariant
+      params:
+        tenant_field: tenantId
+        assertion: "state.tenantId != null"
+    suggestedFix: Ensure valid tenant identification and context provenance are attached to tool state.
+
+  - id: ISO-004
+    severity: critical
+    description: Prevent automated mass record alteration without targeted primary-key scopes
+    condition:
+      type: sql_ast
+      params:
+        statements:
+          - DELETE
+          - UPDATE
+        require: WHERE_CLAUSE
+    suggestedFix: Scope database mutations with explicit targeted WHERE clauses.

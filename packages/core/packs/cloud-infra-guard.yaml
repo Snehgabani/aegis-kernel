@@ -1,0 +1,49 @@
+id: cloud-infra-guard
+name: Cloud & Kubernetes Infrastructure Safety Guard
+version: 1.0.0
+description: Enforces safety invariants against destructive cloud, Kubernetes, and container operations (kubectl delete all, terraform destroy, IAM wildcard escalations).
+
+rules:
+  - id: CLOUD-001
+    severity: critical
+    description: Block destructive Kubernetes cluster-wide commands (kubectl delete all, delete namespaces)
+    condition:
+      type: regex
+      params:
+        patterns:
+          - K8S_DESTRUCTIVE_COMMAND
+        match_action: block
+    suggestedFix: Mass Kubernetes resource deletion is prohibited. Target specific namespaced resources.
+
+  - id: CLOUD-002
+    severity: critical
+    description: Block unconstrained wildcard IAM policy grants (*:* or full AdministratorAccess)
+    condition:
+      type: regex
+      params:
+        patterns:
+          - IAM_WILDCARD_GRANT
+        match_action: block
+    suggestedFix: Use least-privilege scoped IAM actions and resource ARNs instead of wildcards.
+
+  - id: CLOUD-003
+    severity: critical
+    description: Block destructive Terraform and OpenTofu whole-state destruction commands
+    condition:
+      type: regex
+      params:
+        patterns:
+          - TERRAFORM_DESTROY_COMMAND
+        match_action: block
+    suggestedFix: Automated terraform destroy in production agent workflows is prohibited.
+
+  - id: CLOUD-004
+    severity: critical
+    description: Block public exposure of cloud storage buckets and database access control lists
+    condition:
+      type: regex
+      params:
+        patterns:
+          - PUBLIC_BUCKET_ACL
+        match_action: block
+    suggestedFix: Set bucket ACLs to private or enforce Block Public Access.
