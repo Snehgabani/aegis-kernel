@@ -1,13 +1,2 @@
-# Test fixtures — intentional fake secrets used to test the Aegis detection engine
-packages/evals/src/tricky-100-dataset.ts
-packages/evals/src/benchmarks/*
-packages/evals/__tests__/*
-packages/core/__tests__/adversarial.test.ts
-packages/core/__tests__/internal-taxonomy-suite.test.ts
-packages/core/__tests__/siem-and-compliance.test.ts
-packages/core/src/checkers/pii-checker.ts
-packages/core/src/event.ts
-packages/core/dist/*
-packages/evals/dist/*
-packages/cli/dist/*
-WHITE_PAPER.md
+# Gitleaks ignore fingerprints file
+# Path exclusions and regex rules are defined in .gitleaks.toml

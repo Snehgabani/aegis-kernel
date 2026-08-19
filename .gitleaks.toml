@@ -1,0 +1,22 @@
+title = "Aegis Invariant Kernel - Gitleaks Configuration"
+
+[allowlist]
+description = "Allowlist for synthetic security evaluation datasets, mock test tokens, and benchmark fixtures"
+paths = [
+  '''packages/.*/__tests__/.*''',
+  '''packages/evals/.*''',
+  '''packages/cli/src/test-runner\.ts''',
+  '''packages/cli/src/benchmark-cli\.ts''',
+  '''services/.*/__tests__/.*''',
+  '''packages/python/tests/.*''',
+  '''scripts/.*'''
+]
+
+regexes = [
+  '''sk-proj-[0-9a-zA-Z_-]+''',
+  '''ghp_[0-9a-zA-Z_-]+''',
+  '''AIzaSy[0-9a-zA-Z_-]+''',
+  '''tok_visa_[0-9a-zA-Z_-]+''',
+  '''live-proof-secret-[0-9]+''',
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+'''
+]
