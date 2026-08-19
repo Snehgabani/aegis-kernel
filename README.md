@@ -19,6 +19,8 @@
 [![npm @aegis-kernel/mcp](https://img.shields.io/npm/v/@aegis-kernel/mcp.svg?color=10b981&label=@aegis-kernel/mcp)](https://www.npmjs.com/package/@aegis-kernel/mcp)
 [![npm @aegis-kernel/cli](https://img.shields.io/npm/v/@aegis-kernel/cli.svg?color=10b981&label=@aegis-kernel/cli)](https://www.npmjs.com/package/@aegis-kernel/cli)
 [![PyPI aegis-kernel](https://img.shields.io/pypi/v/aegis-kernel.svg?color=10b981&label=PyPI%20aegis-kernel)](https://pypi.org/project/aegis-kernel/)
+[![Smithery](https://smithery.ai/badge/sneh-gabani1999/aegis-kernel)](https://smithery.ai/server/sneh-gabani1999/aegis-kernel)
+[![Glama](https://glama.ai/mcp/servers/Snehgabani/aegis-kernel/badge)](https://glama.ai/mcp/servers/Snehgabani/aegis-kernel)
 
 <br/>
 
@@ -302,6 +304,13 @@ def execute_sql(query: str):
 ```
 
 ### 2. Model Context Protocol (MCP)
+
+**1-Click Install via Smithery (Claude Desktop, Cursor, Windsurf):**
+```bash
+npx -y @smithery/cli install sneh-gabani1999/aegis-kernel --client claude
+```
+
+**Programmatic In-Process Middleware:**
 ```typescript
 import { AegisMCPMiddleware } from '@aegis-kernel/mcp';
 
