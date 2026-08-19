@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Setup Node.js 22.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: 22.x
 
@@ -51,7 +51,7 @@ jobs:
           '
 
       - name: Archive GRC Evidence Dossier
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: aegis-grc-compliance-dossier
           path: .aegis/grc/compliance-dossier.json

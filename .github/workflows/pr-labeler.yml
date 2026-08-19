@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Apply Monorepo Component Labels
-        uses: actions/labeler@v7
+        uses: actions/labeler@v5
         with:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           sync-labels: true

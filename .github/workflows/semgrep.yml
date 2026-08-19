@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Run Semgrep Security Rulesets
         run: semgrep scan --config "p/security-audit" --config "p/owasp-top-ten" packages/ services/

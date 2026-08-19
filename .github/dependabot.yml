@@ -100,3 +100,6 @@ updates:
       actions-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "actions/*"
+        update-types: ["version-update:semver-major"]

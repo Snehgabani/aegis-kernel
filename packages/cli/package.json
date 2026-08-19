@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "commander": "^13.1.0",
+    "js-yaml": "^4.1.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
@@ -61,6 +62,7 @@
     "@aegis-kernel/diagnostics": "*",
     "@aegis-kernel/evals": "*",
     "@aegis-kernel/mcp": "*",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.2.0",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
