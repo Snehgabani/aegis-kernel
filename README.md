@@ -13,6 +13,13 @@
 
 <br/>
 
+[![npm @aegis-kernel/core](https://img.shields.io/npm/v/@aegis-kernel/core.svg?color=10b981&label=@aegis-kernel/core)](https://www.npmjs.com/package/@aegis-kernel/core)
+[![npm @aegis-kernel/langchain](https://img.shields.io/npm/v/@aegis-kernel/langchain.svg?color=10b981&label=@aegis-kernel/langchain)](https://www.npmjs.com/package/@aegis-kernel/langchain)
+[![npm @aegis-kernel/mcp](https://img.shields.io/npm/v/@aegis-kernel/mcp.svg?color=10b981&label=@aegis-kernel/mcp)](https://www.npmjs.com/package/@aegis-kernel/mcp)
+[![npm @aegis-kernel/cli](https://img.shields.io/npm/v/@aegis-kernel/cli.svg?color=10b981&label=@aegis-kernel/cli)](https://www.npmjs.com/package/@aegis-kernel/cli)
+
+<br/>
+
 [![CI Matrix](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![OpenSSF Scorecard](https://github.com/Snehgabani/aegis-kernel/actions/workflows/scorecard.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10182/badge)](https://www.bestpractices.dev/projects/10182)
@@ -23,7 +30,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
-[![Tests](https://img.shields.io/badge/tests-509%2F509%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Tests](https://img.shields.io/badge/tests-513%2F513%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![Coverage](https://img.shields.io/badge/coverage-84%25%20stmts%2F85%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
 [![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
 [![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
