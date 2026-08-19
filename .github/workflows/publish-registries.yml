@@ -1,0 +1,89 @@
+name: Automated Multi-Registry Release (npm & PyPI)
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  publish-npm:
+    name: Build & Publish to npm Registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (20.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Build TypeScript Distributions
+        run: npm run build
+
+      - name: Execute Full Test Matrix
+        run: npm test
+
+      - name: Publish all 7 packages to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PACKAGES=(
+            "packages/core"
+            "packages/langchain"
+            "packages/mcp"
+            "packages/cli"
+            "packages/vercel-ai"
+            "packages/openai"
+            "packages/anthropic"
+          )
+          for PKG in "${PACKAGES[@]}"; do
+            echo "Publishing $PKG to npm..."
+            (cd "$PKG" && npm publish --access public)
+          done
+
+  publish-pypi:
+    name: Build & Publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python (3.11)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Packaging Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine pytest
+
+      - name: Run Python SDK Tests
+        run: |
+          pytest packages/python/tests/
+
+      - name: Build Python Sdist & Wheel
+        run: |
+          cd packages/python
+          python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          cd packages/python
+          twine upload --non-interactive dist/*

@@ -17,5 +17,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://aegis-kernel.dev"
+Homepage = "https://snehgabani.github.io/aegis-kernel/playground.html"
+Documentation = "https://snehgabani.github.io/aegis-kernel/"
 Repository = "https://github.com/Snehgabani/aegis-kernel"
+Issues = "https://github.com/Snehgabani/aegis-kernel/issues"
+Changelog = "https://github.com/Snehgabani/aegis-kernel/releases"
