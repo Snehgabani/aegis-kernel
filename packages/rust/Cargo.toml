@@ -4,6 +4,12 @@ version = "1.0.0"
 edition = "2021"
 description = "Deterministic Safety Invariant Kernel & Zero-Knowledge Attestation Crate for AI Agents"
 authors = ["Sneh Gabani <sneh.gabani1999@gmail.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/Snehgabani/aegis-kernel"
+homepage = "https://snehgabani.github.io/aegis-kernel/playground.html"
+documentation = "https://docs.rs/aegis-kernel"
+keywords = ["ai-safety", "security", "guardrails", "merkle-tree", "agent"]
+categories = ["development-tools", "cryptography"]
 
 [dependencies]
 regex = "1.10"
