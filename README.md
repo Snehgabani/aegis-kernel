@@ -32,7 +32,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
-[![Tests](https://img.shields.io/badge/tests-513%2F513%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Tests](https://img.shields.io/badge/tests-523%2F523%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![Coverage](https://img.shields.io/badge/coverage-84%25%20stmts%2F85%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
 [![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
 [![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
@@ -191,26 +191,35 @@ flowchart TD
 
 ## 📦 Monorepo Packages & Installation
 
-### ⚡ 1-Line Install (from GitHub Release v1.0.0)
+### ⚡ 1-Command Install
+
+The fastest way to install Aegis:
+
+```bash
+# Universal 1-command installer (auto-detects npm or pip)
+curl -sSL https://raw.githubusercontent.com/Snehgabani/aegis-kernel/main/scripts/install-aegis.sh | bash
+```
+
+Or install directly:
 
 You can install the official production distribution tarballs and wheels directly in any project:
 
 ```bash
 # TypeScript / Node.js (Core Invariant Engine)
-npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis-kernel-core-1.0.0.tgz
+npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.1/aegis-kernel-core-1.0.1.tgz
 
 # Model Context Protocol (MCP) Middleware
-npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis-kernel-mcp-1.0.0.tgz
+npm install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.1/aegis-kernel-mcp-1.0.1.tgz
 
 # Python 3.9+ (Zero-Dependency Wheel)
-pip install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.0/aegis_kernel-1.0.0-py3-none-any.whl
+pip install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.1/aegis_kernel-1.0.1-py3-none-any.whl
 ```
 
 ### Language Support & Maturity Matrix
 
 | Language | Engine Architecture | Invariant Capabilities | Test Suite Status |
 | :--- | :--- | :--- | :--- |
-| **TypeScript / Node.js** | **Native Core Engine** | Multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | **509/509 tests (67 suites)** |
+| **TypeScript / Node.js** | **Native Core Engine** | Multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | **523/523 tests (70 suites)** |
 | **Python (`>=3.9`)** | **Native Zero-Dep Engine** | Multi-dialect SQL token parsing, financial aliases, PII salted token vault, State DSL, CrewAI/AutoGen/LangChain adapters | **11/11 tests (100% Green)** |
 | **Go (`>=1.21`)** | **Native Go Engine (`packages/go`)** | Multi-dialect SQL token & AST validator, comment de-obfuscation, tautology engine, currency parser, salted PII vault, State DSL, `Guard` wrapper | **17/17 tests (100% Green)** |
 | **Rust (`>=1.75`)** | **Native Rust Crate (`packages/rust`)** | Zero-allocation SQL AST/token invariant validator, tautology constant-folding, financial aliases, salted HMAC token vault, ZK policy circuits & Nitro attestation | **8/8 integration tests (100% Green)** |
@@ -224,7 +233,7 @@ git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
 npm run build        # builds all TypeScript workspace packages (tsup)
-npm test             # 509/509 tests (67 suites)
+npm test             # 523/523 tests (70 suites)
 ```
 
 ### Multi-Language Packages
@@ -397,6 +406,18 @@ npx aegis benchmark --tricky
 # Manage & validate invariant rule packs
 npx aegis pack list
 npx aegis pack validate custom-pack.yaml
+
+# Generate instant SOC 2 / ISO 42001 executive audit report
+npx aegis audit-report .
+
+# View commercial tiers and upgrade checkout links
+npx aegis pricing
+
+# Deterministically replay historical audit logs against current policy
+npx aegis replay ./audit-log.json
+
+# Generate EU AI Act Art. 13 transparency explanation
+npx aegis explain execute_sql '{"query": "DROP TABLE users"}'
 ```
 
 ---
