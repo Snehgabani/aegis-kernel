@@ -49,6 +49,8 @@ export interface AegisConfig {
   identityManager?: AgentIdentityManager;
 }
 
+import type { AegisForensicDiagnosticTrace } from './diagnostics/forensic-trace.js';
+
 export interface ToolCall {
   tool: string;
   params: Record<string, unknown>;
@@ -62,6 +64,7 @@ export interface EvaluateOptions {
   callerId?: string;
   trustedContext?: boolean; // If false, returns terse suggested fix to prevent information disclosure
   onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
+  enableDiagnostics?: boolean; // If true, collects microsecond stage traces and root-cause analysis
 }
 
 export interface AegisViolation {
@@ -81,6 +84,7 @@ export interface AegisVerdict {
   mode: AegisMode;
   suggestedFix?: string;
   warning?: string;
+  diagnosticTrace?: AegisForensicDiagnosticTrace;
 }
 
 export interface AegisEvent {

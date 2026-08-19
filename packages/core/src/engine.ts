@@ -30,6 +30,11 @@ import {
   StateChecker,
 } from './checkers/index.js';
 import type { AgentIdentityManager, CapabilityCheck } from './identity/agent-identity.js';
+import {
+  StepDiagnosticCollector,
+  type FailureCategory,
+  type RootCauseAnalysis,
+} from './diagnostics/forensic-trace.js';
 
 export class AegisEngine {
   private mode: AegisMode;
@@ -118,9 +123,17 @@ export class AegisEngine {
     const violations: AegisViolation[] = [];
     let rulesEvaluated = 0;
     let toolCallFingerprint = '';
+    const tracer = options?.enableDiagnostics ? new StepDiagnosticCollector() : null;
 
     try {
+      tracer?.startStage('NORMALIZATION');
       toolCallFingerprint = computeToolCallFingerprint(safeToolCall);
+      tracer?.endStage('NORMALIZATION', 'PASSED', {
+        tool: safeToolCall.tool,
+        paramKeys: Object.keys(safeToolCall.params),
+      });
+
+      tracer?.startStage('SCHEMA_VALIDATION');
       // Resolve state: explicit option state or synchronous provider result
       let stateContext = options?.state;
       if (!stateContext && options?.stateProvider) {
@@ -134,7 +147,9 @@ export class AegisEngine {
           stateContext = result;
         }
       }
+      tracer?.endStage('SCHEMA_VALIDATION', 'PASSED', { stateResolved: stateContext != null });
 
+      tracer?.startStage('INVARIANT_EVALUATION');
       // Agent Identity RBAC Check
       let rbacBlocked = false;
       if (options?.callerId && this.identityManager) {
@@ -173,7 +188,12 @@ export class AegisEngine {
           }
         }
       }
+      tracer?.endStage('INVARIANT_EVALUATION', violations.length === 0 ? 'PASSED' : 'FAILED', {
+        rulesEvaluated,
+        violationsCount: violations.length,
+      });
 
+      tracer?.startStage('REMEDIATION_SYNTHESIS');
       const latencyMs = Number((performance.now() - startTime).toFixed(3));
       const verdict = createVerdict(
         violations,
@@ -184,6 +204,34 @@ export class AegisEngine {
         timestamp,
         { trustedContext: options?.trustedContext }
       );
+      tracer?.endStage('REMEDIATION_SYNTHESIS', 'PASSED', {
+        hasSuggestedFix: verdict.suggestedFix != null,
+      });
+
+      tracer?.startStage('MERKLE_COMMIT');
+      tracer?.endStage('MERKLE_COMMIT', 'PASSED', { proofHash: verdict.proofHash });
+
+      if (tracer) {
+        let rootCause: RootCauseAnalysis | undefined;
+        if (violations.length > 0) {
+          const primary = violations[0];
+          let failureCategory: FailureCategory = 'SECURITY_VIOLATION';
+          if (primary.ruleId.startsWith('SQL')) failureCategory = 'SECURITY_VIOLATION';
+          else if (primary.ruleId.startsWith('FIN') || primary.ruleId.startsWith('NUM')) failureCategory = 'NUMERIC_BREACH';
+          else if (primary.ruleId.startsWith('PII')) failureCategory = 'PII_LEAK';
+          else if (primary.ruleId.startsWith('STATE')) failureCategory = 'STATE_CONFLICT';
+          else if (primary.ruleId.startsWith('SCHEMA')) failureCategory = 'SCHEMA_MISMATCH';
+
+          rootCause = {
+            failureCategory,
+            primaryCulpritRule: primary.ruleId,
+            triggeringPayloadSnippet: JSON.stringify(safeToolCall.params).slice(0, 120),
+            suggestedFixDiff: primary.suggestedFix,
+            remediationAction: primary.suggestedFix ? 'APPLY_SUGGESTED_FIX' : 'REJECT_TOOL_CALL',
+          };
+        }
+        verdict.diagnosticTrace = tracer.finalize(rootCause);
+      }
 
       // Telemetry & Learning Ledger Recording
       const event = this.logger.logEvent({

@@ -43,3 +43,4 @@ export * from './a2a/delegation-router.js';
 export * from './confidential/policy-commitment-verifier.js';
 export * from './mcp/scanner.js';
 export * from './adapters/hybrid-guardrail-bridge.js';
+export * from './diagnostics/forensic-trace.js';

@@ -17,6 +17,7 @@ import { runDoctor } from './doctor-cli.js';
 import { runAuditReport } from './audit-report-cli.js';
 import { runTelemetry } from './telemetry-cmd.js';
 import { runToolCoverage } from './tools-coverage-cmd.js';
+import { runDiagnose } from './diagnose-cmd.js';
 
 const program = new Command();
 
@@ -311,6 +312,22 @@ program
   .description('Scan and flag unguarded or undocumented tools called by AI agents')
   .action(() => {
     runToolCoverage({ shadowOnly: true });
+  });
+
+program
+  .command('diagnose <tool> [payload]')
+  .description('Perform micro-stage step-by-step diagnostic execution with root-cause diffs')
+  .option('--json', 'Output machine-readable diagnostic trace JSON')
+  .action((tool: string, payload?: string, options?: { json?: boolean }) => {
+    runDiagnose(tool, payload, options);
+  });
+
+program
+  .command('debug <tool> [payload]')
+  .description('Alias for "aegis diagnose": run micro-stage step-by-step diagnostic execution')
+  .option('--json', 'Output machine-readable diagnostic trace JSON')
+  .action((tool: string, payload?: string, options?: { json?: boolean }) => {
+    runDiagnose(tool, payload, options);
   });
 
 program.parse(process.argv);
