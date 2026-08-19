@@ -29,7 +29,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-aegis-kernel = { path = "packages/rust" }
+aegis-kernel = { git = "https://github.com/Snehgabani/aegis-kernel" }
 serde_json = "1.0"
 ```
 

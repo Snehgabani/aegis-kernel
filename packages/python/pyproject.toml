@@ -9,7 +9,7 @@ description = "Aegis Invariant Kernel: Deterministic Tool-Call Safety Clearance 
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
-authors = [{ name = "Sneh Gabani", email = "sneh@aegis-kernel.dev" }]
+authors = [{ name = "Sneh Gabani", email = "sneh.gabani1999@gmail.com" }]
 keywords = ["ai-safety", "agentic-ai", "langchain", "crewai", "autogen", "mcp", "security", "invariants"]
 classifiers = [
     "Programming Language :: Python :: 3",

@@ -230,9 +230,9 @@ npm test             # 509/509 tests (67 suites)
 ### Multi-Language Packages
 
 - **TypeScript / Node.js**: `npm install @aegis-kernel/core @aegis-kernel/mcp @aegis-kernel/cli`
-- **Python (Zero Dependencies)**: `pip install aegis-kernel` (or `cd packages/python && pip install -e .`)
-- **Go**: `go get github.com/aegis-kernel/aegis-go` (in `packages/go`)
-- **Rust**: `cargo add aegis-kernel --path packages/rust`
+- **Python (Zero Dependencies)**: `pip install aegis-kernel`
+- **Go**: `go get github.com/Snehgabani/aegis-kernel/packages/go`
+- **Rust**: `cargo add aegis-kernel --git https://github.com/Snehgabani/aegis-kernel`
 
 ---
 

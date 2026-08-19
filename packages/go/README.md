@@ -26,7 +26,7 @@
 ## 📦 Installation
 
 ```bash
-go get github.com/aegis-kernel/aegis-go
+go get github.com/Snehgabani/aegis-kernel/packages/go
 ```
 
 ---

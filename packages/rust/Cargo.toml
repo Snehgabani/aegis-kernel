@@ -1,9 +1,9 @@
 [package]
 name = "aegis-kernel"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 description = "Deterministic Safety Invariant Kernel & Zero-Knowledge Attestation Crate for AI Agents"
-authors = ["Aegis Team"]
+authors = ["Sneh Gabani <sneh.gabani1999@gmail.com>"]
 
 [dependencies]
 regex = "1.10"
