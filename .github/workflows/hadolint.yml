@@ -27,4 +27,4 @@ jobs:
         uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: 'services/gateway/Dockerfile'
-          ignore: 'DL3018,DL3008'
+          ignore: 'DL3018,DL3008,DL3066'

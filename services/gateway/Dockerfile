@@ -32,6 +32,6 @@ COPY --from=builder /app/services/gateway/package.json ./services/gateway/packag
 
 EXPOSE 8787
 
-USER node
+USER 1000:1000
 
 CMD ["node", "services/gateway/dist/index.cjs"]
