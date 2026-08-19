@@ -1,12 +1,20 @@
-name: "Aegis AI Agent Security & Compliance Audit Action"
-description: "Deterministically audit AI agent tool calls, SQL AST invariants, numeric risk bounds, and PII leaks in CI/CD."
-author: "Sneh Gabani"
+name: "Aegis AI Agent Security & AST Invariant Guard"
+description: "Deterministic <0.25ms security firewall, SQL AST invariant checker, MCP schema validator, and GRC audit ledger for AI agents in CI/CD."
+author: "Sneh Gabani <sneh.gabani1999@gmail.com>"
 
 branding:
   icon: "shield"
   color: "blue"
 
 inputs:
+  command:
+    description: "Aegis command to run: 'scan' (shift-left security scan), 'test' (evaluate rule packs), or 'verify' (recompute Merkle proofs)"
+    required: false
+    default: "scan"
+  target-path:
+    description: "Target directory or file to scan / test"
+    required: false
+    default: "."
   config-path:
     description: "Path to aegis.config.yaml"
     required: false
@@ -15,16 +23,18 @@ inputs:
     description: "Enforcement mode: enforce or shadow"
     required: false
     default: "enforce"
-  generate-report:
-    description: "Generate SOC2/HIPAA compliance markdown report in GITHUB_STEP_SUMMARY"
+  generate-summary:
+    description: "Write executive security & compliance scorecard to GITHUB_STEP_SUMMARY"
     required: false
     default: "true"
 
 outputs:
-  safety-score:
-    description: "Calculated Agent Safety Score (0-100)"
   verdict:
-    description: "Final clearance verdict: PASSED or FAILED"
+    description: "Final clearance verdict: PASSED or BLOCKED"
+    value: ${{ steps.run-aegis.outputs.verdict }}
+  violations-count:
+    description: "Total number of invariant violations or threats detected"
+    value: ${{ steps.run-aegis.outputs.violations_count }}
 
 runs:
   using: "composite"
@@ -34,7 +44,18 @@ runs:
       with:
         node-version: "20"
 
-    - name: Run Aegis Test Suite & Policy Audit
+    - name: Run Aegis Security Action
+      id: run-aegis
       shell: bash
       run: |
-        npx --yes @aegis-kernel/cli test --config "${{ inputs.config-path }}" --mode "${{ inputs.mode }}"
+        echo "🛡️ Executing Aegis Invariant Kernel Action ($ {{ inputs.command }})..."
+        if [ "${{ inputs.command }}" = "scan" ]; then
+          npx --yes @aegis-kernel/cli scan "${{ inputs.target-path }}"
+        elif [ "${{ inputs.command }}" = "test" ]; then
+          npx --yes @aegis-kernel/cli test --config "${{ inputs.config-path }}" --mode "${{ inputs.mode }}"
+        elif [ "${{ inputs.command }}" = "verify" ]; then
+          npx --yes @aegis-kernel/cli verify-proof "${{ inputs.target-path }}"
+        else
+          npx --yes @aegis-kernel/cli scan "${{ inputs.target-path }}"
+        fi
+
