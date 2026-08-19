@@ -7,51 +7,10 @@
 import { AegisEngine } from '@aegis-kernel/core';
 import { AegisLangChainGuard } from '@aegis-kernel/langchain';
 
-// 1. Configure Aegis Invariant Engine
+// 1. Configure Aegis Invariant Engine with Canonical Guard Packs
 export const aegisEngine = new AegisEngine({
   mode: 'enforce',
-  rules: [
-    {
-      id: 'rule-sql-firewall',
-      name: 'SQL AST Injection & DDL Barrier',
-      type: 'sql',
-      severity: 'critical',
-      action: 'block',
-      enabled: true,
-      params: {
-        prohibitDdl: true,
-        prohibitUnconstrainedDelete: true,
-        prohibitTautologies: true,
-        maxLimit: 500,
-      },
-    },
-    {
-      id: 'rule-financial-limit',
-      name: 'Financial Disbursement Limit',
-      type: 'numeric',
-      severity: 'critical',
-      action: 'block',
-      enabled: true,
-      params: {
-        field: 'amount',
-        min: 0,
-        max: 10000,
-      },
-    },
-    {
-      id: 'rule-pii-redaction',
-      name: 'PII & API Token Redaction',
-      type: 'pii',
-      severity: 'high',
-      action: 'block',
-      enabled: true,
-      params: {
-        detectSsn: true,
-        detectCreditCard: true,
-        detectTokens: true,
-      },
-    },
-  ],
+  packs: ['@aegis/sql-guard', '@aegis/finance-guard', '@aegis/data-guard'],
 });
 
 export const langChainGuard = new AegisLangChainGuard(aegisEngine);

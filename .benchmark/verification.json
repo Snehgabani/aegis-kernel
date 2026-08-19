@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-16T12:40:24.493Z",
-  "gitSha": "25a1f36",
+  "generatedAt": "2026-08-19T16:02:19.762Z",
+  "gitSha": "361a828",
   "node": "v22.23.2",
   "platform": "darwin/arm64",
   "sections": {
@@ -10,10 +10,10 @@
       "failed": 0
     },
     "coverage": {
-      "stmts": 82.61,
-      "branches": 69.13,
-      "funcs": 85.07,
-      "lines": 83.65
+      "stmts": 82.66,
+      "branches": 69.12,
+      "funcs": 85.15,
+      "lines": 83.69
     },
     "corpus": {
       "total": 433,
@@ -27,7 +27,7 @@
     },
     "benchmark": {
       "ok": true,
-      "tail": "509 | 4,173 |\n| sql-simple | 0.103 | 0.100 | 0.108 | 0.112 | 0.149 | 9,678 |\n| sql-complex | 0.135 | 0.130 | 0.140 | 0.148 | 0.249 | 7,407 |\n| sql-malicious | 0.102 | 0.097 | 0.109 | 0.115 | 0.203 | 9,785 |\n| pii-heavy | 0.056 | 0.050 | 0.066 | 0.072 | 0.089 | 17,920 |\n| numeric | 0.243 | 0.244 | 0.328 | 0.343 | 0.527 | 4,118 |\n| full-stack | 0.148 | 0.144 | 0.152 | 0.160 | 0.272 | 6,774 |\n  generatedAt=2026-08-16T12:41:18.582Z git=25a1f36 node=v22.23.2 platform=darwin/arm64\n\n  Evidence written: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/verification-evidence.json\n  Baseline saved: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/baseline.json\n"
+      "tail": "825 | 4,128 |\n| sql-simple | 0.155 | 0.103 | 0.195 | 0.323 | 0.873 | 6,441 |\n| sql-complex | 0.444 | 0.149 | 0.551 | 0.905 | 5.657 | 2,249 |\n| sql-malicious | 0.122 | 0.100 | 0.123 | 0.167 | 0.431 | 8,191 |\n| pii-heavy | 0.064 | 0.052 | 0.072 | 0.087 | 0.241 | 15,676 |\n| numeric | 0.248 | 0.204 | 0.314 | 0.403 | 0.841 | 4,036 |\n| full-stack | 0.159 | 0.147 | 0.161 | 0.180 | 0.351 | 6,287 |\n  generatedAt=2026-08-19T16:03:25.144Z git=361a828 node=v22.23.2 platform=darwin/arm64\n\n  Evidence written: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/verification-evidence.json\n  Baseline saved: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/baseline.json\n"
     }
   }
 }
