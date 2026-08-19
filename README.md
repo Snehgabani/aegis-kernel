@@ -291,6 +291,20 @@ Aegis is purpose-built to operate alongside conversational LLM moderation framew
 
 ---
 
+## 🏛️ Verified Production Reference Architectures
+
+Aegis includes complete, runnable reference architectures for production agent deployments in the [`examples/`](./examples/) directory:
+
+| Architecture / Framework | Domain | Key Invariant Defense | Runnable Source |
+| :--- | :--- | :--- | :--- |
+| **CrewAI Financial Analyst** | Fintech & Operations | Comment-split SQL evasion & $10,000 disbursement ceiling | [`examples/crewai-financial-analyst`](./examples/crewai-financial-analyst) |
+| **LangGraph Multi-Agent** | Enterprise Workflow | Cross-agent privilege escalation & deterministic self-healing loops | [`examples/langgraph-multi-agent`](./examples/langgraph-multi-agent) |
+| **FastAPI MCP Gateway** | Microservices & APIs | Zero-trust JSON-RPC schema pinning & tool authorization | [`examples/fastapi-mcp-gateway`](./examples/fastapi-mcp-gateway) |
+| **OpenAI Tool-Calling Agent** | Analytics & SQL | Tautology folding (`WHERE 1=1`) & mass DELETE prevention | [`examples/openai-sql-agent`](./examples/openai-sql-agent) |
+| **Quantitative Trading Guard** | Algorithmic Trading | Max-drawdown velocity bounds & order-size clamping | [`examples/python-trading-guard`](./examples/python-trading-guard) |
+
+---
+
 ## ⚡ Quickstart
 
 ### 1. Python 3.9+ (Zero Dependencies)
