@@ -50,8 +50,15 @@ jobs:
             "packages/anthropic"
           )
           for PKG in "${PACKAGES[@]}"; do
-            echo "Publishing $PKG to npm..."
-            (cd "$PKG" && npm publish --access public)
+            PKG_NAME=$(node -p "require('./$PKG/package.json').name")
+            PKG_VER=$(node -p "require('./$PKG/package.json').version")
+            echo "Checking $PKG_NAME@$PKG_VER on npm..."
+            if [ "$(npm view "$PKG_NAME@$PKG_VER" version 2>/dev/null)" == "$PKG_VER" ]; then
+              echo "  ⏩ $PKG_NAME@$PKG_VER is already published on npm, skipping."
+            else
+              echo "  📦 Publishing $PKG_NAME@$PKG_VER to npm..."
+              (cd "$PKG" && npm publish --access public)
+            fi
           done
 
   publish-pypi:
@@ -86,4 +93,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           cd packages/python
-          twine upload --non-interactive dist/*
+          twine upload --skip-existing --non-interactive dist/*
