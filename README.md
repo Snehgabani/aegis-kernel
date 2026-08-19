@@ -7,20 +7,20 @@
 
 <br/>
 
-[![Live Studio Demo](https://img.shields.io/badge/⚡_Live_Studio-Launch_Interactive_Playground-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground.html)
-[![Documentation](https://img.shields.io/badge/📖_Documentation-View_Architecture_Guide-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/)
-[![Benchmarks vs NeMo](https://img.shields.io/badge/📊_Benchmarks-vs_NeMo_&_LLM_Judge-8b5cf6?style=for-the-badge&logo=speedtest&logoColor=white)](https://snehgabani.github.io/aegis-kernel/compare-nemo.html)
-[![Sponsor](https://img.shields.io/badge/💖_Sponsor-Support_Aegis-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Snehgabani)
+[![Live Studio Demo](https://img.shields.io/badge/Live_Studio-Launch_Interactive_Playground-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://snehgabani.github.io/aegis-kernel/playground/)
+[![Documentation](https://img.shields.io/badge/Documentation-View_Architecture_Guide-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://snehgabani.github.io/aegis-kernel/docs/)
+[![Benchmarks vs NeMo](https://img.shields.io/badge/Benchmarks-vs_NeMo_%26_LLM_Judge-8b5cf6?style=for-the-badge&logo=speedtest&logoColor=white)](https://snehgabani.github.io/aegis-kernel/compare/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-Support_Aegis-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Snehgabani)
 
 <br/>
 
-[![npm @aegis-kernel/core](https://img.shields.io/npm/v/@aegis-kernel/core.svg?color=10b981&label=@aegis-kernel/core)](https://www.npmjs.com/package/@aegis-kernel/core)
-[![npm @aegis-kernel/langchain](https://img.shields.io/npm/v/@aegis-kernel/langchain.svg?color=10b981&label=@aegis-kernel/langchain)](https://www.npmjs.com/package/@aegis-kernel/langchain)
-[![npm @aegis-kernel/mcp](https://img.shields.io/npm/v/@aegis-kernel/mcp.svg?color=10b981&label=@aegis-kernel/mcp)](https://www.npmjs.com/package/@aegis-kernel/mcp)
-[![npm @aegis-kernel/cli](https://img.shields.io/npm/v/@aegis-kernel/cli.svg?color=10b981&label=@aegis-kernel/cli)](https://www.npmjs.com/package/@aegis-kernel/cli)
-[![PyPI aegis-kernel](https://img.shields.io/pypi/v/aegis-kernel.svg?color=10b981&label=PyPI%20aegis-kernel)](https://pypi.org/project/aegis-kernel/)
+[![npm @aegis-kernel/core](https://img.shields.io/badge/npm-@aegis--kernel%2Fcore-10b981.svg?style=flat&logo=npm&logoColor=white)](https://www.npmjs.com/package/@aegis-kernel/core)
+[![npm @aegis-kernel/langchain](https://img.shields.io/badge/npm-@aegis--kernel%2Flangchain-10b981.svg?style=flat&logo=npm&logoColor=white)](https://www.npmjs.com/package/@aegis-kernel/langchain)
+[![npm @aegis-kernel/mcp](https://img.shields.io/badge/npm-@aegis--kernel%2Fmcp-10b981.svg?style=flat&logo=npm&logoColor=white)](https://www.npmjs.com/package/@aegis-kernel/mcp)
+[![npm @aegis-kernel/cli](https://img.shields.io/badge/npm-@aegis--kernel%2Fcli-10b981.svg?style=flat&logo=npm&logoColor=white)](https://www.npmjs.com/package/@aegis-kernel/cli)
+[![PyPI aegis-kernel](https://img.shields.io/badge/PyPI-aegis--kernel-10b981.svg?style=flat&logo=pypi&logoColor=white)](https://pypi.org/project/aegis-kernel/)
 [![Smithery](https://img.shields.io/badge/Smithery-sneh--gabani1999%2Faegis--kernel-0284c7.svg?style=flat&logo=server&logoColor=white)](https://smithery.ai/server/sneh-gabani1999/aegis-kernel)
-[![Glama](https://img.shields.io/badge/Glama-MCP%20Registry-7c3aed.svg?style=flat&logo=cube&logoColor=white)](https://glama.ai/mcp/servers/Snehgabani/aegis-kernel)
+[![Glama](https://img.shields.io/badge/Glama-MCP%20Registry-7c3aed.svg?style=flat&logo=cube&logoColor=white)](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/mcp)
 
 <br/>
 
@@ -471,7 +471,7 @@ npx aegis telemetry export --output ./aegis-telemetry.json
 - **Interactive Playground:** [Live Browser Sandbox](https://snehgabani.github.io/aegis-kernel/playground/) — Test invariants and prompt defenses live in browser.
 - **Documentation Hub:** [Interactive Documentation Site](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable technical API & policy reference.
 - **Auditor Console:** [Live Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream & one-click CSV export.
-- **Architecture Comparison:** [Architecture Comparison Matrix](https://snehgabani.github.io/aegis-kernel/compare/) — Side-by-side technical benchmarks and capabilities.
+- **Architecture Comparison:** [Architecture Comparison Matrix](https://snehgabani.github.io/aegis-kernel/compare-nemo.html) — Side-by-side technical benchmarks and capabilities.
 - **GitHub Action:** [`action.yml`](./action.yml) — CI/CD integration and parameters (guide in [`CONTRIBUTING.md`](./CONTRIBUTING.md)).
 - **Enterprise Buyer's Guide:** [Enterprise Buyer's Guide & ROI Matrix](./docs/compliance/ENTERPRISE_BUYERS_GUIDE.md) — TCO, ROI calculation & SLAs.
 - **Formal Specification & Invariant Model:** [Formal Specification & LaTeX Architecture](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations and canonical citations.
