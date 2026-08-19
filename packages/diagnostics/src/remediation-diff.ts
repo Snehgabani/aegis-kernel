@@ -17,31 +17,36 @@ export class RemediationDiffGenerator {
    */
   public static generateSqlDiff(originalQuery: string, ruleId: string): RemediationDiffResult {
     const trimmed = originalQuery.trim();
+    const upper = trimmed.toUpperCase();
 
-    if (/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)$/i.test(trimmed)) {
-      const match = trimmed.match(/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)$/i);
-      const table = match ? match[1] : 'table';
-      return {
-        ruleId,
-        category: 'SQL_UNCONSTRAINED_DELETE',
-        diff: `- ${trimmed}\n+ DELETE FROM ${table} WHERE id = :id`,
-        explanation: 'Unconstrained DELETE violates state persistence invariants. Bound by primary key.',
-      };
+    if (upper.startsWith('DELETE FROM')) {
+      const parts = trimmed.split(/\s+/);
+      const table = parts[2] || 'table';
+      if (!upper.includes(' WHERE')) {
+        return {
+          ruleId,
+          category: 'SQL_UNCONSTRAINED_DELETE',
+          diff: `- ${trimmed}\n+ DELETE FROM ${table} WHERE id = :id`,
+          explanation: 'Unconstrained DELETE violates state persistence invariants. Bound by primary key.',
+        };
+      }
     }
 
-    if (/^UPDATE\s+([a-zA-Z0-9_]+)\s+SET\s+(.+)$/i.test(trimmed) && !/WHERE/i.test(trimmed)) {
-      const match = trimmed.match(/^UPDATE\s+([a-zA-Z0-9_]+)\s+SET\s+(.+)$/i);
-      const table = match ? match[1] : 'table';
-      const setClause = match ? match[2] : '';
-      return {
-        ruleId,
-        category: 'SQL_UNCONSTRAINED_UPDATE',
-        diff: `- ${trimmed}\n+ UPDATE ${table} SET ${setClause} WHERE id = :id`,
-        explanation: 'Mass UPDATE without WHERE clause affects all rows. Bound with explicit WHERE predicate.',
-      };
+    if (upper.startsWith('UPDATE ')) {
+      const setIndex = upper.indexOf(' SET ');
+      if (setIndex !== -1 && !upper.includes(' WHERE')) {
+        const table = trimmed.substring(7, setIndex).trim();
+        const setClause = trimmed.substring(setIndex + 5).trim();
+        return {
+          ruleId,
+          category: 'SQL_UNCONSTRAINED_UPDATE',
+          diff: `- ${trimmed}\n+ UPDATE ${table} SET ${setClause} WHERE id = :id`,
+          explanation: 'Mass UPDATE without WHERE clause affects all rows. Bound with explicit WHERE predicate.',
+        };
+      }
     }
 
-    if (/DROP\s+TABLE/i.test(trimmed)) {
+    if (upper.includes('DROP TABLE')) {
       return {
         ruleId,
         category: 'SQL_DESTRUCTIVE_DDL',
