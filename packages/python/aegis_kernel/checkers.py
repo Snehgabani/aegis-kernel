@@ -18,16 +18,8 @@ PATTERNS = {
 def looks_like_sql(val: str) -> bool:
     if not isinstance(val, str):
         return False
-    s = val.lstrip()
-    while s:
-        if s.startswith("--"):
-            idx = s.find("\n")
-            s = "" if idx == -1 else s[idx + 1:].lstrip()
-        elif s.startswith("/*"):
-            idx = s.find("*/")
-            s = "" if idx == -1 else s[idx + 2:].lstrip()
-        else:
-            break
+    s = re.sub(r"/\*.*?\*/", "", val)
+    s = re.sub(r"--[^\n]*", "", s).strip()
     return bool(re.match(r"^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|WITH)\b", s, re.IGNORECASE))
 
 
@@ -54,15 +46,19 @@ class PythonSqlChecker:
 
         if not sql_text and strings:
             for val in strings:
-                if any(kw in val.upper() for kw in ["DELETE", "DROP", "UPDATE", "TRUNCATE", "ALTER"]):
+                cleaned_val = re.sub(r"/\*.*?\*/", "", val)
+                cleaned_val = re.sub(r"--[^\n]*", "", cleaned_val)
+                if any(kw in cleaned_val.upper() for kw in ["DELETE", "DROP", "UPDATE", "TRUNCATE", "ALTER"]):
                     sql_text = val
                     break
 
         if not sql_text:
             return violations
 
-        # Strip string literals before searching for DDL statements (prevents false positives on note='DROP')
-        sql_without_strings = re.sub(r"'[^']*'", "''", sql_text)
+        # Strip comments then string literals before searching for DDL statements (prevents comment evasions & false positives on note='DROP')
+        sql_without_comments = re.sub(r"/\*.*?\*/", "", sql_text)
+        sql_without_comments = re.sub(r"--[^\n]*", "", sql_without_comments)
+        sql_without_strings = re.sub(r"'[^']*'", "''", sql_without_comments)
         upper_sql = sql_without_strings.upper()
 
         # 1. Blocked statements (DROP, TRUNCATE, ALTER)

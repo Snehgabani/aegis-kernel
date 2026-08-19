@@ -6,33 +6,22 @@ Demonstrates sub-0.25ms in-process deterministic invariant clearance on agent to
 from aegis_kernel import AegisEngine, aegis_guard, AegisCrewAITool
 
 # --- 1. Initialize Aegis Deterministic Invariant Engine ---
-engine = AegisEngine(
-    rules={
-        "max_transfer_usd": 10000.0,
-        "prohibit_sql_mutations": True,
-        "enforce_tenant_isolation": True,
-        "mask_pii": True
-    }
-)
+engine = AegisEngine()
 
 # --- 2. Define Protected Agent Tools ---
-@aegis_guard(tool_name="execute_sql_query")
+@aegis_guard(tool_name="execute_sql_query", engine=engine)
 def execute_sql_query(query: str) -> str:
     """Executes safe analytical SQL queries against the financial database."""
-    # This execution is protected by Aegis AST Invariant analysis.
-    # Queries containing unconstrained DELETE, DROP TABLE, or SQL tautologies (WHERE 1=1)
-    # are blocked in <0.25ms before hitting the database.
     return f"Query executed successfully: {query} (Sample row: Q3 revenue: $4.2M, profit: $1.1M)"
 
-@aegis_guard(tool_name="disburse_funds")
+@aegis_guard(tool_name="disburse_funds", engine=engine)
 def disburse_funds(amount: float, recipient: str) -> str:
     """Disburses approved financial funds to verified recipient accounts."""
-    # Protected by Aegis numeric velocity limit and recipient checks
     return f"Successfully disbursed ${amount:,.2f} to {recipient}"
 
 # Wrap with CrewAI Tool Adapter
-sql_tool = AegisCrewAITool(execute_sql_query)
-payout_tool = AegisCrewAITool(disburse_funds)
+sql_tool = AegisCrewAITool(execute_sql_query, engine=engine)
+payout_tool = AegisCrewAITool(disburse_funds, engine=engine)
 
 def demonstrate_guardrail():
     print("🛡️ [Aegis + CrewAI] Running Deterministic Invariant Clearance Demonstration...")
