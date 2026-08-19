@@ -348,10 +348,10 @@ node scripts/verify.mjs
 | **Cryptographic Tamper-Evidence** | Ed25519 digital signatures & HMAC-SHA256 Merkle root verification | **Cryptographically verified: log rewriting detected & rejected** |
 | **Statistical Benchmark** | Throughput & latency percentiles on Apple Silicon / Commodity Linux | **2,861 ops/sec · P50 0.219ms · P95 4.74ms** |
 
-### 🏆 The Aegis $1,000 Invariant Red-Team Challenge
-We offer an open **$1,000 USD Bounty** to any security researcher who can demonstrate a valid bypass that causes Aegis to clear a destructive SQL mutation without human authorization:
+### 🏆 The Aegis Community Red-Team Challenge & Hall of Fame
+We invite security researchers and red-teamers to test the kernel's deterministic boundaries:
 - **Scope**: Craft a single SQL tool call payload (under standard `@aegis/sql-guard` rules) that bypasses AST comment-stripping, tautology constant folding, and mutation checkers to execute an unauthorized `DROP TABLE`, `TRUNCATE`, or unconstrained `DELETE/UPDATE`.
-- **How to Submit**: Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kernel/security/advisories/new) or `security@aegis-kernel.dev`. Verified bypasses receive $1,000 USD + Hall of Fame recognition.
+- **How to Submit**: Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kernel/security/advisories/new) or `security@aegis-kernel.dev`. Verified bypasses receive permanent recognition, CVE attribution, and placement in the **Aegis Security Hall of Fame**.
 
 📄 **Scientific Technical Report**: Read the peer-reviewable technical report in [`WHITE_PAPER.md`](./WHITE_PAPER.md).
 
