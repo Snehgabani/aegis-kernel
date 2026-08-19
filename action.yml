@@ -1,5 +1,5 @@
 name: "Aegis AI Agent Security & AST Invariant Guard"
-description: "Deterministic <0.25ms security firewall, SQL AST invariant checker, MCP schema validator, and GRC audit ledger for AI agents in CI/CD."
+description: "Deterministic <0.25ms AST security firewall & audit ledger for AI agent tool calls in CI/CD."
 author: "Sneh Gabani <sneh.gabani1999@gmail.com>"
 
 branding:
