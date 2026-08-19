@@ -14,3 +14,13 @@ turborepo-graph.html
 
 target/
 Cargo.lock
+
+# Environment & Secrets (Zero Egress)
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.secret
+*credentials*
+secrets/
