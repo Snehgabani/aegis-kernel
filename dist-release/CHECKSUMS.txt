@@ -1,0 +1,7 @@
+3fde3d3de9dbd87421ba3fef57cda724fce615483fe83e3f5236b3e1d76e2f51  aegis-kernel-anthropic-1.0.0.tgz
+b91d0098979b318e9dc8e2e7e02d9001cfe8d90a2d5ce6c6cd050c77eaf5ea9c  aegis-kernel-cli-1.0.0.tgz
+76ed5cc1f86ecf243a896643fbe342219da90ee6ac9b9d43e58967122b47ade7  aegis-kernel-core-1.0.0.tgz
+9ac75854672915797e7063cc02f612ddd282188ff6ad2a15936f4220cb6c2c81  aegis-kernel-langchain-1.0.0.tgz
+a65e33bb49f3f3856cb8f18686acc556e0ae69a0119c7dc00e2ec6397f1b216e  aegis-kernel-mcp-1.0.0.tgz
+c7e0b7530b32c3610f0624d50da4968ca7c020a0ba9b97290f60fac2d7b980ce  aegis-kernel-openai-1.0.0.tgz
+e22ff72763fc96606675987feda8e23ba45ab4463f246e6d4235bdbb76212338  aegis-kernel-vercel-ai-1.0.0.tgz
