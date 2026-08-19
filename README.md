@@ -34,7 +34,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](./packages/python)
-[![Tests](https://img.shields.io/badge/tests-523%2F523%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Tests](https://img.shields.io/badge/tests-525%2F525%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![Coverage](https://img.shields.io/badge/coverage-84%25%20stmts%2F85%25%20lines-yellow.svg)](./docs/VERIFICATION_REPORT.md)
 [![Mutation Score](https://img.shields.io/badge/mutation%20score-100%25-brightgreen.svg)](./docs/VERIFICATION_REPORT.md)
 [![Adversarial Fuzz](https://img.shields.io/badge/adversarial%20fuzz-433%20vectors%2C%200%20bypasses-brightgreen.svg)](./packages/evals)
@@ -221,7 +221,7 @@ pip install https://github.com/Snehgabani/aegis-kernel/releases/download/v1.0.1/
 
 | Language | Engine Architecture | Invariant Capabilities | Test Suite Status |
 | :--- | :--- | :--- | :--- |
-| **TypeScript / Node.js** | **Native Core Engine** | Multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | **523/523 tests (70 suites)** |
+| **TypeScript / Node.js** | **Native Core Engine** | Multi-dialect AST parsing, JSON schema compilation, Merkle audit chain, Gateway, CLI, Live Studio | **525/525 tests (71 suites)** |
 | **Python (`>=3.9`)** | **Native Zero-Dep Engine** | Multi-dialect SQL token parsing, financial aliases, PII salted token vault, State DSL, CrewAI/AutoGen/LangChain adapters | **11/11 tests (100% Green)** |
 | **Go (`>=1.21`)** | **Native Go Engine (`packages/go`)** | Multi-dialect SQL token & AST validator, comment de-obfuscation, tautology engine, currency parser, salted PII vault, State DSL, `Guard` wrapper | **17/17 tests (100% Green)** |
 | **Rust (`>=1.75`)** | **Native Rust Crate (`packages/rust`)** | Zero-allocation SQL AST/token invariant validator, tautology constant-folding, financial aliases, salted HMAC token vault, ZK policy circuits & Nitro attestation | **8/8 integration tests (100% Green)** |
@@ -235,7 +235,7 @@ git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
 npm run build        # builds all TypeScript workspace packages (tsup)
-npm test             # 523/523 tests (70 suites)
+npm test             # 525/525 tests (71 suites)
 ```
 
 ### Multi-Language Packages
@@ -364,7 +364,7 @@ node scripts/verify.mjs
 | **Representative CI Sample** | Curated sub-second zero-egress CI/CD validation | **100.0% Empirical F1 on 27-Vector Sample (13 InjecAgent / 9 AgentDojo / 5 MCP-Bench)** |
 | **Tricky-100 Stress Testbed** | 100 subtle adversarial bypass vectors across 10 threat domains | **100.0% Empirical F1 (46/46 blocked, 54/54 passed) · P50 0.25ms** |
 | **Differential DB Semantic Fuzzer** | State-machine verification vs in-memory SQLite ground truth | **100% Safety Parity against real DB row-count state mutations** |
-| **Test Suite (70 files)** | Full functional correctness & multi-dialect invariant verification | **523 / 523 passing (70 suites)** |
+| **Test Suite (71 files)** | Full functional correctness & multi-dialect invariant verification | **525 / 525 passing (71 suites)** |
 | **Coverage (core src)** | Engine execution paths | **84% stmts / 73% branches / 88% funcs / 85% lines** |
 | **Adversarial Fuzz Corpus** | Zero bypasses (FN) & zero false positives (FP) over generated fuzzing | **433 vectors: 300 malicious / 133 benign — 0 bypasses** |
 | **Independent Audit Red-Team** | 32-vector adversarial red-team suite (25 adversarial + 7 benign controls) | **32 / 32 vectors verified with 0 bypasses (all audit bypasses remediated)** |
@@ -446,6 +446,12 @@ npx aegis replay ./audit-log.json
 
 # Generate EU AI Act Art. 13 transparency explanation
 npx aegis explain execute_sql '{"query": "DROP TABLE users"}'
+
+# Display real-time local telemetry dashboard (P50/P95 latencies, violation distribution)
+npx aegis stats
+
+# Export air-gapped anonymized diagnostic telemetry (zero PII)
+npx aegis telemetry export --output ./aegis-telemetry.json
 ```
 
 ---

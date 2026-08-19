@@ -15,6 +15,7 @@ import { runScan } from './scan-cli.js';
 import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
 import { runAuditReport } from './audit-report-cli.js';
+import { runTelemetry } from './telemetry-cmd.js';
 
 const program = new Command();
 
@@ -271,6 +272,21 @@ program
   .option('-o, --output <path>', 'Destination output file path')
   .action((targetPath: string | undefined, options: { format?: string; output?: string }) => {
     runAuditReport(targetPath || '.', options);
+  });
+
+program
+  .command('telemetry [action]')
+  .description('Inspect, export, or manage local privacy-preserving telemetry and diagnostic metrics')
+  .option('-o, --output <path>', 'Destination output file path for telemetry export')
+  .action((action?: string, options?: { output?: string }) => {
+    runTelemetry(action || 'status', options);
+  });
+
+program
+  .command('stats')
+  .description('Alias for "aegis telemetry status": display real-time evaluation percentiles and violation distribution')
+  .action(() => {
+    runTelemetry('status');
   });
 
 program.parse(process.argv);
