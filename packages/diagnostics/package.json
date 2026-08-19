@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/diagnostics",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "description": "Comprehensive diagnostic health & runtime integrity engine for Aegis Invariant Kernel",
   "type": "module",

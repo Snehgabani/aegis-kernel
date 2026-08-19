@@ -21,7 +21,7 @@ const program = new Command();
 program
   .name('aegis')
   .description('Aegis Invariant Kernel: Deterministic Tool-Call Safety Clearance Gateway for AI Agents')
-  .version('1.0.0');
+  .version('1.0.1');
 
 program
   .command('scan [path]')

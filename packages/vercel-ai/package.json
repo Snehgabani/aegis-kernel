@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/vercel-ai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aegis Invariant Kernel Middleware & Tool Wrapper for Vercel AI SDK (Core / AI)",
   "type": "module",
   "main": "./dist/index.cjs",

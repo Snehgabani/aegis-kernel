@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Model Context Protocol (MCP) JSON-RPC safety clearance middleware for AI agents",
   "license": "MIT",
@@ -41,7 +41,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest run",

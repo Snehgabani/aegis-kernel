@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/langchain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "LangChain and LangGraph deterministic invariant tool guard",
   "license": "MIT",
@@ -41,7 +41,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest run",

@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/openai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "OpenAI Function Calling and Assistant Tools safety guard",
   "license": "MIT",
@@ -40,7 +40,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest run",

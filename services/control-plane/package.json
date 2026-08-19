@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/control-plane",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Enterprise SaaS Control Plane for Aegis Invariant Kernel: Multi-Tenant Policy Distribution & Cloud Marketplace Metering",
   "license": "MIT",

@@ -341,12 +341,17 @@ node scripts/verify.mjs
 | **Representative CI Sample** | Curated sub-second zero-egress CI/CD validation | **100.0% Empirical F1 on 27-Vector Sample (13 InjecAgent / 9 AgentDojo / 5 MCP-Bench)** |
 | **Tricky-100 Stress Testbed** | 100 subtle adversarial bypass vectors across 10 threat domains | **100.0% Empirical F1 (46/46 blocked, 54/54 passed) · P50 0.25ms** |
 | **Differential DB Semantic Fuzzer** | State-machine verification vs in-memory SQLite ground truth | **100% Safety Parity against real DB row-count state mutations** |
-| **Test Suite (67 files)** | Full functional correctness & multi-dialect invariant verification | **509 / 509 passing (67 suites)** |
+| **Test Suite (70 files)** | Full functional correctness & multi-dialect invariant verification | **523 / 523 passing (70 suites)** |
 | **Coverage (core src)** | Engine execution paths | **84% stmts / 73% branches / 88% funcs / 85% lines** |
 | **Adversarial Fuzz Corpus** | Zero bypasses (FN) & zero false positives (FP) over generated fuzzing | **433 vectors: 300 malicious / 133 benign — 0 bypasses** |
 | **Independent Audit Red-Team** | 32-vector adversarial red-team suite (25 adversarial + 7 benign controls) | **32 / 32 vectors verified with 0 bypasses (all audit bypasses remediated)** |
 | **Cryptographic Tamper-Evidence** | Ed25519 digital signatures & HMAC-SHA256 Merkle root verification | **Cryptographically verified: log rewriting detected & rejected** |
-| **Statistical Benchmark** | Throughput & latency percentiles on Apple Silicon / Commodity Linux | **2,861 ops/sec · P50 0.252ms · P95 0.498ms** |
+| **Statistical Benchmark** | Throughput & latency percentiles on Apple Silicon / Commodity Linux | **2,861 ops/sec · P50 0.219ms · P95 4.74ms** |
+
+### 🏆 The Aegis $1,000 Invariant Red-Team Challenge
+We offer an open **$1,000 USD Bounty** to any security researcher who can demonstrate a valid bypass that causes Aegis to clear a destructive SQL mutation without human authorization:
+- **Scope**: Craft a single SQL tool call payload (under standard `@aegis/sql-guard` rules) that bypasses AST comment-stripping, tautology constant folding, and mutation checkers to execute an unauthorized `DROP TABLE`, `TRUNCATE`, or unconstrained `DELETE/UPDATE`.
+- **How to Submit**: Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kernel/security/advisories/new) or `security@aegis-kernel.dev`. Verified bypasses receive $1,000 USD + Hall of Fame recognition.
 
 📄 **Scientific Technical Report**: Read the peer-reviewable technical report in [`WHITE_PAPER.md`](./WHITE_PAPER.md).
 

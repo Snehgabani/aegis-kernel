@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/gateway",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aegis Cloud Gateway: Serverless Telemetry, Stripe Billing Webhooks, and Audit Store",
   "license": "MIT",
   "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
@@ -40,7 +40,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

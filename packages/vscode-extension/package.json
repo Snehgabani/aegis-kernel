@@ -2,7 +2,7 @@
   "name": "aegis-vscode",
   "displayName": "Aegis AI Agent Security Linter",
   "description": "Deterministic AST linter and security policy checker for AI agent tool definitions and SQL queries.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "aegis-security",
   "icon": "icon.png",
   "engines": {

@@ -34,10 +34,15 @@ Please include:
 
 ---
 
-## ⏱️ Response SLA & Bug Bounty
+## ⏱️ Response SLA & $1,000 Invariant Break Bounty
 - **Initial Triage & Acknowledgment**: Within **12 hours**.
 - **Proof of Concept Validation & Patch Delivery**: Within **24 to 48 hours**.
 - **Public CVE Release & Attribution**: Coordinated with the reporter with full credit in our security advisories directory (`docs/advisories/`).
+
+### 🏆 The Aegis $1,000 Invariant Red-Team Challenge
+We offer an open **$1,000 USD Bug Bounty** to any security researcher who can demonstrate a valid bypass that causes Aegis to clear a destructive SQL mutation without human authorization:
+- **Challenge Scope**: Craft a single SQL tool call payload (under standard `@aegis/sql-guard` rules) that bypasses AST comment-stripping, tautology constant folding, and mutation checkers to execute an unauthorized `DROP TABLE`, `TRUNCATE`, or unconstrained `DELETE/UPDATE`.
+- **Submission**: Submit your reproducible PoC via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kernel/security/advisories/new) or email `security@aegis-kernel.dev`. Valid, non-duplicate bypasses receive $1,000 USD payout and Hall of Fame attribution.
 
 ---
 

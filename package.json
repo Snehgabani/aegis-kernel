@@ -1,6 +1,6 @@
 {
   "name": "aegis-kernel-monorepo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "packageManager": "npm@10.9.8",
@@ -37,4 +37,3 @@
     "esbuild": "^0.28.2"
   }
 }
-
