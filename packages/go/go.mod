@@ -1,4 +1,4 @@
-module github.com/aegis-kernel/aegis-go
+module github.com/Snehgabani/aegis-kernel/packages/go
 
 go 1.23
 
