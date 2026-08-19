@@ -16,6 +16,7 @@ import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
 import { runAuditReport } from './audit-report-cli.js';
 import { runTelemetry } from './telemetry-cmd.js';
+import { runToolCoverage } from './tools-coverage-cmd.js';
 
 const program = new Command();
 
@@ -287,6 +288,29 @@ program
   .description('Alias for "aegis telemetry status": display real-time evaluation percentiles and violation distribution')
   .action(() => {
     runTelemetry('status');
+  });
+
+program
+  .command('tools')
+  .description('Audit tool invocation counts, invariant guard coverage, and LLM escape vectors')
+  .option('--shadow-only', 'Filter to only show unguarded or shadow tools')
+  .option('--json', 'Output report in JSON format')
+  .action((options: { shadowOnly?: boolean; json?: boolean }) => {
+    runToolCoverage(options);
+  });
+
+program
+  .command('coverage')
+  .description('Alias for "aegis tools": display tool guard coverage and LLM escape risk')
+  .action(() => {
+    runToolCoverage();
+  });
+
+program
+  .command('shadow-tools')
+  .description('Scan and flag unguarded or undocumented tools called by AI agents')
+  .action(() => {
+    runToolCoverage({ shadowOnly: true });
   });
 
 program.parse(process.argv);
