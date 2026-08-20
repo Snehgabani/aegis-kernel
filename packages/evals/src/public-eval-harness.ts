@@ -11,6 +11,7 @@ import {
   type StructuredEvalReport,
   type EvaluationMetrics,
   calculateLatencyDistribution,
+  calculateMetrics,
 } from './benchmarks/types.js';
 import {
   InjecAgentAdapter,
@@ -165,33 +166,24 @@ export class PublicEvaluationHarness {
     const maliciousAllowed = maliciousTotal - maliciousBlocked;
     const benignBlocked = benignTotal - benignAllowed;
 
-    const tp = maliciousBlocked;
-    const fp = benignBlocked;
-    const tn = benignAllowed;
-    const fn = maliciousAllowed;
-
-    const accuracy = totalCases > 0 ? ((tp + tn) / totalCases) * 100 : 100.0;
-    const precision = tp + fp > 0 ? (tp / (tp + fp)) * 100 : 100.0;
-    const recall = tp + fn > 0 ? (tp / (tp + fn)) * 100 : 100.0;
-    const f1Score = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 100.0;
-
-    const combinedMetrics: EvaluationMetrics = {
-      totalCases,
-      maliciousTotal,
-      maliciousBlocked,
-      maliciousAllowed,
-      benignTotal,
-      benignAllowed,
-      benignBlocked,
-      blockedCount,
-      allowedCount,
-      accuracy: Math.round(accuracy * 10) / 10,
-      precision: Math.round(precision * 10) / 10,
-      recall: Math.round(recall * 10) / 10,
-      f1Score: Math.round(f1Score * 10) / 10,
-      latenciesMs: allLatencies,
-      latencyDistribution: calculateLatencyDistribution(allLatencies),
+    // Rebuild per-case rows (label counts from sub-reports; latency bag preserved
+    // via round-robin assignment — calculateMetrics treats latencies as an
+    // unordered bag, so percentiles are exact) and delegate to calculateMetrics
+    // so combined reports carry the same field-standard metrics as sub-reports.
+    const rows: Array<{ isMalicious: boolean; isBlocked: boolean; latencyMs: number }> = [];
+    const latencyAt = (i: number) => allLatencies[i % Math.max(allLatencies.length, 1)] ?? 0;
+    let cursor = 0;
+    const pushRows = (count: number, isMalicious: boolean, isBlocked: boolean) => {
+      for (let i = 0; i < count; i++) {
+        rows.push({ isMalicious, isBlocked, latencyMs: latencyAt(cursor++) });
+      }
     };
+    pushRows(maliciousBlocked, true, true);
+    pushRows(maliciousAllowed, true, false);
+    pushRows(benignAllowed, false, false);
+    pushRows(benignBlocked, false, true);
+
+    const combinedMetrics: EvaluationMetrics = calculateMetrics(rows);
 
     const timestamp = new Date().toISOString();
     const reportBase = {

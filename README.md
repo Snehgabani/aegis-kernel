@@ -140,17 +140,27 @@ Each tier is designed to fail closed: if any stage throws an internal error, the
 
 ## Benchmarks
 
-All figures are measured on public academic datasets. Methodology details and reproduction instructions are in [LIMITATIONS_AND_BOUNDARIES.md](./docs/LIMITATIONS_AND_BOUNDARIES.md).
+Every published figure is traceable to a committed, reproducible artifact in **[benchmarks/EVIDENCE.md](./benchmarks/EVIDENCE.md)** (corrections register included). Canonical academic datasets (InjecAgent, AgentDojo) are supported via a fail-loud fetch-and-verify pipeline (`scripts/fetch-canonical-benchmarks.mjs`); headline numbers are reported in the field-standard metrics (ASR / defense rate / benign utility / risk).
 
 | Benchmark | Dataset | Result |
 |:---|:---|:---|
-| InjecAgent (ACL 2024) | 1,054 combinatorial test vectors (17 tools × 62 payloads) | 93.5% resilience rate |
-| AgentDojo (NeurIPS 2024) | 629 security test cases across 97 multi-domain tasks | 86.6% benchmark accuracy |
+| InjecAgent (ACL 2024) | in-tree representative corpus (N=13) | 100% verdict agreement (ASR 0%, utility 100%) |
+| InjecAgent-style synthetic expansion | Aegis-authored corpus (N=1,054, all attack vectors) | 100% attack block rate (defense rate 100%) |
+| AgentDojo (NeurIPS 2024) | in-tree representative corpus (N=9) | 100% verdict agreement (ASR 0%, utility 100%) |
 | Adversarial fuzz corpus | 433 vectors (300 malicious, 133 benign) | 0 bypasses, 0 false positives |
 | Independent red-team audit | 32 vectors (25 adversarial + 7 benign controls) | 32/32 verified, 0 bypasses |
 | Throughput (Apple Silicon) | Statistical benchmark harness | 2,861 ops/sec, P50 0.22ms, P95 4.74ms |
-| Test suite | 74 files, TypeScript + Python + Go + Rust | 532/532 passing |
+| Latency (per-workload, measured) | benign ≈ 0.037ms p50 · SQL simple ≈ 1.10ms · SQL complex ≈ 1.85ms | [evidence](./.benchmark/evidence.json) |
+| Test suite | 76 files, TypeScript + Python + Go + Rust | 557/557 passing |
 | Coverage | Core engine source | 84% statements, 85% lines |
+
+> **Honesty note (2026-08-20):** earlier revisions of this README quoted
+> "93.5% InjecAgent resilience" and "86.6% AgentDojo accuracy" as measured on the
+> public academic datasets. Those numbers were **not reproducible from any
+> dataset in this repository** and have been withdrawn and replaced by the
+> corpus-provenanced figures above. Canonical-dataset runs are pending in
+> network-enabled CI; none will be published until committed with checksummed
+> artifacts. See `benchmarks/EVIDENCE.md` §3.
 
 ### How Aegis compares to other approaches
 

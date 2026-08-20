@@ -21,9 +21,9 @@ We introduce **Aegis Invariant Kernel**, an open-source, in-process, determinist
 - High-throughput PII masking with salted deterministic token vaults.
 - Multi-turn crescendo risk tracking with Ed25519 cryptographic Biscuit capability attenuation and signed Merkle ledgers.
 
-We evaluate Aegis across standard academic benchmarks:
-- **InjecAgent (ACL 2024, 1,054 test cases)**: 93.5% attack resilience rate.
-- **AgentDojo (NeurIPS 2024, 629 security test cases)**: 86.6% benchmark accuracy.
+We evaluate Aegis across standard academic benchmark *adapters*, with corpus provenance for every figure (full evidence: `benchmarks/EVIDENCE.md`):
+- **InjecAgent (ACL 2024)**: in-tree representative corpus (N=13): 100% verdict agreement, ASR 0%; synthetic full-size expansion (N=1,054 attack vectors): 100% block rate.
+- **AgentDojo (NeurIPS 2024)**: in-tree representative corpus (N=9): 100% verdict agreement, ASR 0%.
 - **Internal Tricky-100 Testbed**: 100.0% Empirical F1.
 - **Curated Representative Sample (27 cases)**: 100.0% Empirical F1 in sub-second offline CI/CD.
 - **Median (P50) Latency**: 0.252 ms with zero network egress. All evaluation harnesses and test suites are open-sourced for complete third-party reproducibility.
@@ -128,13 +128,24 @@ Aegis was evaluated across four standardized benchmark suites:
 
 ### 3.2 Evaluation Results Summary
 
-| Benchmark Suite | Total Cases | Malicious Evaluated | Attack Block Rate (Recall) | Benign Evaluated | Pass Rate (Utility) | F1 Score / Resilience | P50 Latency | P95 Latency | Network Egress |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **InjecAgent (ACL 2024)** | 1,054 | 1,051 | **93.5%** | 3 | **100.0%** | **93.5%** (100% CI sample) | 0.312 ms | 0.485 ms | **0 Bytes** |
-| **AgentDojo (NeurIPS 2024)** | 629 | 625 | **86.6%** | 4 | **100.0%** | **86.6%** (100% CI sample) | 0.298 ms | 0.461 ms | **0 Bytes** |
-| **MCP-Bench (Tool Poisoning)** | 50 | 45 | **100.0%** | 5 | **100.0%** | **100.0%** | 0.082 ms | 0.145 ms | **0 Bytes** |
-| **Adversarial Tricky-100** | 100 | 46 | **100.0%** | 54 | **100.0%** | **100.0%** | 0.303 ms | 14.93 ms | **0 Bytes** |
-| **Total / Aggregate** | **1,833** | **1,767** | **91.8%** | **66** | **100.0%** | **95.7%** | **0.318 ms** | **0.498 ms** | **0 Bytes** |
+> **Provenance correction (2026-08-20):** an earlier revision of this table
+> reported 93.5% (InjecAgent) and 86.6% (AgentDojo) as results "measured on the
+> public academic datasets". Those figures were **not reproducible from any
+> dataset in the repository** (the canonical fetch URLs were dead and outputs
+> were written to a gitignored directory) and have been withdrawn. The table
+> below reports exactly what is reproducible today, with corpus provenance;
+> see `benchmarks/EVIDENCE.md` for artifacts, checksums, and the corrections
+> register. Canonical-dataset runs will be appended once executed in
+> network-enabled CI, in the field-standard metrics (ASR, defense rate, benign
+> utility, risk).
+
+| Benchmark Suite | Corpus (provenance) | Total Cases | Malicious Evaluated | Attack Block Rate | Benign Evaluated | Utility | P50 Latency | Network Egress |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **InjecAgent (ACL 2024)** | in-tree representative sample | 13 | 10 | **100.0%** | 3 | **100.0%** | 0.675 ms | **0 Bytes** |
+| **InjecAgent-style expansion** | Aegis-authored synthetic corpus (all attack vectors) | 1,054 | 1,054 | **100.0%** | 0 | n/a | 0.312 ms | **0 Bytes** |
+| **AgentDojo (NeurIPS 2024)** | in-tree representative sample | 9 | 5 | **100.0%** | 4 | **100.0%** | 0.261 ms | **0 Bytes** |
+| **MCP-Bench (Tool Poisoning)** | in-tree suite | 50 | 45 | **100.0%** | 5 | **100.0%** | 0.082 ms | **0 Bytes** |
+| **Adversarial Tricky-100** | internal suite | 100 | 46 | **100.0%** | 54 | **100.0%** | 0.303 ms | **0 Bytes** |
 
 ### 3.3 Cryptographic Double-Blind Evaluation Protocol
 

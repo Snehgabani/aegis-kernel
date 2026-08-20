@@ -41,8 +41,8 @@ These numbers are produced by the repository's own test and benchmark suites; ru
 | Rust Crate tests | 8 / 8 passing | `cd packages/rust && cargo test` |
 | Internal adversarial testbed (100 vectors) | 100% F1 (malicious blocked, benign passed) | `npx vitest run packages/evals` |
 | Auditor 25-vector reproduction suite | 32 / 32 passing (100% F1, 0 bypasses) | `node scripts/auditor-25-vectors.mjs` |
-| InjecAgent Academic Benchmark (1,054 cases) | 93.5% resilience (100% on 27-vector CI sample) | `aegis eval injecagent` |
-| AgentDojo Security Benchmark (629 cases) | 86.6% accuracy (100% on 27-vector CI sample) | `aegis eval agentdojo` |
+| InjecAgent Academic Benchmark | in-tree corpus: 100% verdict agreement (N=13, ASR 0%); synthetic expansion: 100% block rate (N=1,054) — canonical run pending CI egress | `aegis eval injecagent` |
+| AgentDojo Security Benchmark | in-tree corpus: 100% verdict agreement (N=9, ASR 0%) — canonical run pending CI egress | `aegis eval agentdojo` |
 | Latency (simple calls) | P50 ≈ 0.3 ms, mean ≈ 0.36 ms | `npx aegis benchmark` |
 | Latency (worst case, multi-statement SQL) | P99 ≈ 23–51 ms depending on hardware | same benchmark run |
 | Network egress during clearance | 0 bytes (no outbound calls in the hot path) | static review + network monitoring |

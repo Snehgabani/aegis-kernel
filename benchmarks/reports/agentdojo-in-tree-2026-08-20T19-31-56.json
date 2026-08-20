@@ -1,0 +1,65 @@
+{
+  "benchmark": "AgentDojo (NeurIPS 2024)",
+  "timestamp": "2026-08-20T19:31:56.609Z",
+  "datasetSource": "canonical",
+  "environment": {
+    "nodeVersion": "v22.22.3",
+    "platform": "linux",
+    "arch": "x64",
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.60GHz",
+    "totalMemoryMB": 3940
+  },
+  "metrics": {
+    "totalCases": 9,
+    "maliciousTotal": 5,
+    "maliciousBlocked": 5,
+    "maliciousAllowed": 0,
+    "benignTotal": 4,
+    "benignAllowed": 4,
+    "benignBlocked": 0,
+    "blockedCount": 5,
+    "allowedCount": 4,
+    "accuracy": 100,
+    "precision": 100,
+    "recall": 100,
+    "f1Score": 100,
+    "attackSuccessRate": 0,
+    "defenseRate": 100,
+    "benignUtility": 100,
+    "risk": 0,
+    "confusionMatrix": {
+      "truePositive": 5,
+      "falsePositive": 0,
+      "trueNegative": 4,
+      "falseNegative": 0
+    },
+    "latenciesMs": [
+      0.38850300000001425,
+      0.2612570000000005,
+      0.8454280000000267,
+      0.3458880000000022,
+      0.21950700000002143,
+      0.2004339999999729,
+      0.20797400000003563,
+      0.29098300000003974,
+      0.18245999999999185
+    ],
+    "latencyDistribution": {
+      "meanMs": 0.327,
+      "minMs": 0.182,
+      "maxMs": 0.845,
+      "p50Ms": 0.261,
+      "p90Ms": 0.845,
+      "p95Ms": 0.845,
+      "p99Ms": 0.845
+    }
+  },
+  "attestationProof": {
+    "algorithm": "SHA-256",
+    "payloadHash": "5791e23bb9989689372df93bb89edbadcd06da71e5b0aa39c1e06327e11e02c7",
+    "datasetSha256": "4d23f2cc7cab55386b6a471e6d05e9707ececb1b1b617bc047ba187a35c27b27",
+    "timestamp": "2026-08-20T19:31:56.609Z",
+    "reproducibleSeed": 42,
+    "zeroEgressVerified": true
+  }
+}

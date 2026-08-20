@@ -49,20 +49,22 @@ export interface InjecAgentCanonicalItem {
 export class InjecAgentLoader {
   /**
    * Load test cases from a local JSON or JSONL file path.
+   * `categoryHint` encodes the canonical file split (dh_* → DIRECT_HARM,
+   * ds_* → DATA_EXFILTRATION) since canonical items carry no per-item label.
    */
-  public static loadFromFile(filePath: string): InjecAgentTestCase[] {
+  public static loadFromFile(filePath: string, categoryHint?: InjecAgentCategory): InjecAgentTestCase[] {
     const resolvedPath = path.resolve(process.cwd(), filePath);
     if (!fs.existsSync(resolvedPath)) {
       throw new Error(`InjecAgent dataset file not found at: ${resolvedPath}`);
     }
     const content = fs.readFileSync(resolvedPath, 'utf8');
-    return this.loadFromString(content);
+    return this.loadFromString(content, categoryHint);
   }
 
   /**
    * Load test cases from a JSON string or newline-delimited JSONL string.
    */
-  public static loadFromString(content: string): InjecAgentTestCase[] {
+  public static loadFromString(content: string, categoryHint?: InjecAgentCategory): InjecAgentTestCase[] {
     const trimmed = content.trim();
     if (!trimmed) {
       return [];
@@ -85,9 +87,9 @@ export class InjecAgentLoader {
             parsed.corpus ||
             parsed.vectors;
           if (Array.isArray(possibleArray)) {
-            return this.loadFromArray(possibleArray);
+            return this.loadFromArray(possibleArray, categoryHint);
           }
-          return [this.normalizeItem(parsed, 0)];
+          return [this.normalizeItem(parsed, 0, categoryHint)];
         }
       } catch {
         // Fallback to line-by-line parsing
@@ -110,16 +112,16 @@ export class InjecAgentLoader {
   /**
    * Load test cases from an array of raw objects.
    */
-  public static loadFromArray(rawItems: unknown[]): InjecAgentTestCase[] {
+  public static loadFromArray(rawItems: unknown[], categoryHint?: InjecAgentCategory): InjecAgentTestCase[] {
     return rawItems
       .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
-      .map((item, idx) => this.normalizeItem(item, idx));
+      .map((item, idx) => this.normalizeItem(item, idx, categoryHint));
   }
 
   /**
    * Normalizes raw academic JSON objects to standard InjecAgentTestCase schema.
    */
-  public static normalizeItem(raw: Record<string, unknown>, idx: number): InjecAgentTestCase {
+  public static normalizeItem(raw: Record<string, unknown>, idx: number, categoryHint?: InjecAgentCategory): InjecAgentTestCase {
     const id = String(
       raw.id ||
       raw.case_id ||
@@ -128,11 +130,19 @@ export class InjecAgentLoader {
       `INJEC-IMPORTED-${String(idx + 1).padStart(4, '0')}`
     );
 
-    // Normalize category
-    let category: InjecAgentCategory = 'DIRECT_HARM';
+    // Normalize category.
+    // The REAL canonical InjecAgent files carry no per-item category label:
+    // category is encoded by the source file (test_cases_dh_* = Direct Harm,
+    // test_cases_ds_* = Data Stealing/Exfiltration). Callers pass `categoryHint`
+    // when loading canonical files; per-item fields still win when present.
+    let category: InjecAgentCategory = categoryHint || 'DIRECT_HARM';
     const rawCat = String(raw.category || raw.eval_type || raw.attack_category || '').toUpperCase();
-    if (rawCat.includes('EXFIL') || rawCat.includes('DE') || rawCat.includes('DATA')) {
+    if (rawCat.includes('EXFIL') || rawCat.includes('DATA_STEAL') || rawCat.includes('DE') || rawCat.includes('DATA')) {
       category = 'DATA_EXFILTRATION';
+    } else if (rawCat.includes('DIRECT') || rawCat.includes('DH')) {
+      category = 'DIRECT_HARM';
+    } else if (categoryHint) {
+      category = categoryHint;
     } else {
       category = 'DIRECT_HARM';
     }
@@ -158,6 +168,10 @@ export class InjecAgentLoader {
       raw.attacker_tool ||
       raw.attackerTool ||
       raw['Attacker Tool'] ||
+      // Canonical InjecAgent schema uses the PLURAL "Attacker Tools" array
+      (Array.isArray(raw['Attacker Tools']) && raw['Attacker Tools'].length > 0
+        ? String(raw['Attacker Tools'][0])
+        : '') ||
       raw.target_tool ||
       'database_exec'
     );
@@ -231,6 +245,9 @@ export class InjecAgentLoader {
       raw.threat_description ||
       raw.threatDescription ||
       raw.attack_type ||
+      // Canonical InjecAgent schema uses Title-Case "Attack Type"
+      raw['Attack Type'] ||
+      raw['Expected Achievements'] ||
       raw.description ||
       `Injected threat: ${attackerInstruction}`
     );

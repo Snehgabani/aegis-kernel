@@ -1,0 +1,61 @@
+{
+  "benchmark": "MCPTox / MCP-Bench (Tool Poisoning)",
+  "timestamp": "2026-08-20T19:31:56.611Z",
+  "datasetSource": "canonical",
+  "environment": {
+    "nodeVersion": "v22.22.3",
+    "platform": "linux",
+    "arch": "x64",
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.60GHz",
+    "totalMemoryMB": 3940
+  },
+  "metrics": {
+    "totalCases": 5,
+    "maliciousTotal": 4,
+    "maliciousBlocked": 4,
+    "maliciousAllowed": 0,
+    "benignTotal": 1,
+    "benignAllowed": 1,
+    "benignBlocked": 0,
+    "blockedCount": 4,
+    "allowedCount": 1,
+    "accuracy": 100,
+    "precision": 100,
+    "recall": 100,
+    "f1Score": 100,
+    "attackSuccessRate": 0,
+    "defenseRate": 100,
+    "benignUtility": 100,
+    "risk": 0,
+    "confusionMatrix": {
+      "truePositive": 4,
+      "falsePositive": 0,
+      "trueNegative": 1,
+      "falseNegative": 0
+    },
+    "latenciesMs": [
+      0.6729909999999677,
+      0.25842599999998583,
+      0.23352100000005294,
+      0.02355699999998251,
+      0.05264900000003081
+    ],
+    "latencyDistribution": {
+      "meanMs": 0.248,
+      "minMs": 0.024,
+      "maxMs": 0.673,
+      "p50Ms": 0.234,
+      "p90Ms": 0.673,
+      "p95Ms": 0.673,
+      "p99Ms": 0.673
+    }
+  },
+  "attestationProof": {
+    "algorithm": "SHA-256",
+    "payloadHash": "73ef83acd526999f26b3140500ac8b14847e227725ef11f4fae5fa78a3d54454",
+    "datasetSha256": "cc62089b051aba6aaedacf5696c8176005b3e5ff5061d73fd4468925a3f537db",
+    "timestamp": "2026-08-20T19:31:56.611Z",
+    "reproducibleSeed": 42,
+    "zeroEgressVerified": true
+  }
+}
