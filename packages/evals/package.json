@@ -52,7 +52,7 @@
     "@aegis-kernel/core": "*"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
+    "typescript": "^7.0.2",
     "tsup": "^8.3.6",
     "vitest": "^4.1.10"
   }
