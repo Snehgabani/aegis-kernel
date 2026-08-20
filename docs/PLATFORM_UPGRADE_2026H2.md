@@ -83,3 +83,27 @@ engine hot path untouched; zero-egress preserved (OTel sink is a user-registered
 callback, off by default); every existing test must pass after every workstream;
 docs changes propagated consistently (README, WHITE_PAPER, site, llms.txt,
 COMPLIANCE_SELF_ASSESSMENT).
+
+---
+
+## 5. Execution record (2026-08-20)
+
+| WS | Status | Result |
+|----|--------|--------|
+| WS-1 SEC | ✅ done | 4 regression tests; forged-license rejection, issuance 503, Ed25519 default |
+| WS-2 BENCH | ✅ done | 7 tests; canonical pipeline repaired; evidence committed; claims withdrawn & replaced |
+| WS-3 HYGIENE | ✅ done | measured latencies, MIT metadata, honest labels, CHANGELOG + release checklist |
+| WS-4 OTEL | ✅ done | 11 tests; GenAI semconv spans, opt-in, zero-egress, content-free |
+| WS-5 COMPLIANCE | ✅ done | Art. 50 live mapping (test-locked), Art. 9–15 dated 2027-12-02, ASI01–ASI10 crosswalk |
+| WS-6 VERIFY | ✅ done | Final gate: **569/569 TS tests (78 files), 11/11 Python, build 12/12, security audit clean** |
+
+Commits (branch `arena/01a0209c-aegis-kernel`): security → bench → docs(hygiene) →
+feat(otel) → compliance → verify. Baseline at start: 546/546 (76 files); zero
+pre-existing tests were modified except where correctness required it
+(metrics type widening, harness delegation to `calculateMetrics`).
+
+**Carried to next cycle** (from the external review's P1/P2, not executable in
+this sandbox): canonical dataset runs in network-enabled CI; Go/Rust/Python CI
+matrices verified green + crates.io/Go proxy publication; SBOM/SLSA artifact
+wiring into the release; persisted gateway audit store; `aegis scan mcp`
+inventory mode; adaptive red-team harness.

@@ -100,3 +100,17 @@
 - **Consequences:** Enables a potential commercial licensing path; the monetization model is not yet finalized and the codebase remains MIT-licensed.
 
 
+
+---
+
+## Decision 11: Evidence-Integrity Doctrine — Fail-Closed Licensing, Provenanced Benchmarks, Live-Law Compliance
+- **Date:** 2026-08-20
+- **Status:** `ACTIVE`
+- **Context:** An external end-to-end product review (2026-08-20) verified four credibility defects: (1) the gateway fell back to a hardcoded HMAC license secret published in MIT source (forgeable enterprise licenses); (2) headline benchmark numbers (93.5% InjecAgent, 86.6% AgentDojo) were not reproducible from any in-repo dataset — the canonical fetch URLs were dead (404), outputs went to a gitignored directory, and a silent fallback wrote synthetic data in place of fetched data; (3) marketing claimed simulated features (ZK proofs, WASM execution, 0.25ms blended P50) beyond their real state; (4) compliance docs leaned on EU AI Act high-risk articles whose applicability the Digital Omnibus (Regulation (EU) 2026/1744) deferred to 2027-12-02 while Article 50 transparency went live 2026-08-02.
+- **Decision:**
+  1. **Fail-closed licensing:** gateway verification is asymmetric-by-default (Ed25519, compiled-in public key); HMAC requires an explicit `AEGIS_LICENSE_SECRET`; issuance returns 503 when unconfigured; `AEGIS_ALLOW_UNSAFE_LICENSE=1` is refused in production. Regression tests pin the forged-license rejection.
+  2. **No claim without an artifact:** benchmarks live in a committable `benchmarks/` directory with SHA-256 manifests, dated reports, field-standard metrics (ASR / defense rate / benign utility / risk / confusion matrix), and a public corrections register (`benchmarks/EVIDENCE.md`). Unreproducible headline numbers were withdrawn and the withdrawal itself is documented. Canonical fetch fails loudly; it never writes synthetic data in place of canonical data.
+  3. **Measured-only latency claims:** per-workload percentiles (benign ≈0.04ms, SQL simple ≈1.1ms, SQL complex ≈1.9ms) replace the blended "0.25ms P50" everywhere.
+  4. **Live-law compliance:** dossier leads with Article 50 (in force 2026-08-02) and dates the Articles 9–15 package to 2027-12-02; OWASP crosswalk extended to the Agentic AI Top 10 (ASI01–ASI10) with honest per-category coverage labels.
+  5. **Opt-in observability:** OTel GenAI-conformant `execute_tool` spans (required `gen_ai.*` attributes, content-free, zero-egress) via a user-registered sink; sink failures can never affect a verdict.
+- **Consequences:** Every future benchmark, latency, or compliance number must trace to a committed artifact or it does not get published. This costs us marketing headline strength and buys the only durable asset a security vendor has: verifiable trust. Canonical-dataset runs remain pending a network-enabled CI environment and will be published only with checksummed artifacts.
