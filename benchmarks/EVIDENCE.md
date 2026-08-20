@@ -74,9 +74,15 @@ Canonical ingestion machinery was repaired on 2026-08-20
   Title-Case schema (`Attacker Tools` plural array, `Attack Type`, file-level
   dh/ds category), pinned by `packages/evals/__tests__/canonical-schema.test.ts`.
 
-**Status: canonical data is NOT yet committed to this repository** (first
-full canonical run requires a network-enabled CI environment). Until it is,
-no canonical-dataset number will be published. When run, the fields reported
+**Status: canonical data is NOT yet committed to this repository.** The
+first full canonical run executes in network-enabled CI via the
+`benchmark-canonical` workflow (fail-loud fetch with SHA-256 manifest, canonical
+evaluation, artifacts, and a human-reviewed evidence PR on manual dispatch).
+The workflow definition is versioned at
+`scripts/ci-templates/benchmark-canonical.yml` and installed into
+`.github/workflows/` by a maintainer with workflow permissions
+(`bash scripts/install-ci-templates.sh`). Until a run lands and is merged, no
+canonical-dataset number will be published. When run, the fields reported
 will be the field-standard set: **ASR, defense rate, benign utility, risk
 (ASR/utility), confusion matrix, per-suite breakdown** — per the AgentDojo
 (Debenedetti et al., NeurIPS 2024) and InjecAgent (Zhan et al., ACL 2024)

@@ -102,8 +102,21 @@ feat(otel) → compliance → verify. Baseline at start: 546/546 (76 files); zer
 pre-existing tests were modified except where correctness required it
 (metrics type widening, harness delegation to `calculateMetrics`).
 
-**Carried to next cycle** (from the external review's P1/P2, not executable in
-this sandbox): canonical dataset runs in network-enabled CI; Go/Rust/Python CI
-matrices verified green + crates.io/Go proxy publication; SBOM/SLSA artifact
-wiring into the release; persisted gateway audit store; `aegis scan mcp`
-inventory mode; adaptive red-team harness.
+## 6. Execution record — cycle 2 (2026-08-20, post-review backlog)
+
+| WS | Status | Result |
+|----|--------|--------|
+| WS-7 MCP-INVENTORY | ✅ done | `aegis scan-mcp` (review P1 #6): auth/transport/pinning audit + `aegis-mcp-lock.json` pin & rug-pull drift detection + embedded tool poisoning; 14 tests; secret-safe commitments |
+| WS-8 AUDIT-STORE | ✅ done | Pluggable gateway persistence (review P2 #12 partial): `AuditStore` interface, JSONL durable store with boot replay + crash tolerance, D1 reference schema; 7 tests; default behavior preserved |
+| WS-9 CANONICAL-CI | ✅ done | `benchmark-canonical` workflow: fail-loud canonical fetch + evaluation in network-enabled CI, artifacts + step-summary, opt-in human-reviewed evidence PR — mechanically closes the "pending CI egress" loop |
+| WS-10 RELEASE-WIRING | ✅ done | SBOMs attach to GitHub releases (least-privilege job), SLSA provenance on release events; checklist now verifies automatic steps (review P2 #17) |
+| WS-10b DELIVERY-CONSTRAINT | ✅ handled | Session token lacks GitHub `workflows` permission → workflow definitions shipped as versioned templates in `scripts/ci-templates/` + `install-ci-templates.sh` installer (maintainer installs; `--check` mode is a CI drift guard); `.github/workflows/` left at upstream state |
+
+Cycle-2 final gate: **590/590 TS tests (80 files) · 11/11 Python · build green · npm audit clean · tsc clean.**
+
+**Carried to next cycle** (not executable in this sandbox): Go/Rust toolchain
+verification (no go/cargo available locally) + crates.io/Go proxy publication;
+npm/PyPI registry publishes (maintainer credentials required); adaptive
+red-team harness (`aegis red-team run`); SSO/OIDC + mTLS; fleet-wide policy
+drift dashboard; policy lifecycle (versioned rule packs → review → staged
+rollout → rollback).

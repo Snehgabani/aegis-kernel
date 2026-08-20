@@ -1,0 +1,39 @@
+name: SLSA Level 3 Cryptographic Build Provenance & Attestations
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  attestation:
+    name: Generate SLSA3 Cryptographic Provenance Attestation
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+
+      - name: Build Monorepo Distribution Artifacts
+        run: |
+          npm ci
+          npm run build
+
+      - name: Generate Cryptographic Build Attestation
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: 'packages/*/dist/**'

@@ -16,8 +16,12 @@ in-repo manifests = **1.0.1**; npm + PyPI still serve **1.0.0**.
    - [ ] `CHANGELOG.md` entry (date, sections: Security / Added / Changed / Fixed)
    - [ ] `CITATION.cff` version
 3. **Evidence refresh**
-   - [ ] `node scripts/fetch-canonical-benchmarks.mjs` (needs egress; commit
-         `benchmarks/canonical/manifest.json` checksums)
+   - [ ] Run the `benchmark-canonical` workflow (workflow_dispatch with
+         `commit_evidence=true`) — reviews + merges the checksummed evidence PR
+         (workflow template: `scripts/ci-templates/`, installed via
+         `bash scripts/install-ci-templates.sh` if not yet present),
+         OR locally: `node scripts/fetch-canonical-benchmarks.mjs` (needs egress;
+         commit `benchmarks/canonical/manifest.json` checksums)
    - [ ] `node scripts/run-benchmarks.mjs` (+ `--canonical` if data fetched)
    - [ ] `benchmarks/EVIDENCE.md` updated with new dated reports
 4. **Registries** (manual, requires maintainer credentials)
@@ -26,10 +30,12 @@ in-repo manifests = **1.0.1**; npm + PyPI still serve **1.0.0**.
    - [ ] PyPI `aegis-kernel` (sdist + wheel)
    - [ ] Go module tag `v1.0.x` (module proxy picks up tags automatically)
    - [ ] crates.io `aegis-kernel` crate (docs.rs build green)
-5. **Supply chain**
-   - [ ] SBOM + Grype workflow outputs attached to the release
-   - [ ] SLSA provenance workflow attached
-   - [ ] Sigstore signatures on release artifacts
+5. **Supply chain** (automatic on `release: published` — verify, don't re-run;
+   workflow templates with release wiring live in `scripts/ci-templates/`, install
+   once via `bash scripts/install-ci-templates.sh`)
+   - [ ] SBOMs (SPDX + CycloneDX) attached as release assets (`sbom-and-grype` attach job)
+   - [ ] SLSA build provenance attestation generated for the tag (`slsa-provenance`)
+   - [ ] npm publish with `--provenance` (Sigstore) succeeded for all workspaces
    - [ ] Homebrew formula bump (`Formula/`)
 6. **Comms**
    - [ ] GitHub Release notes from CHANGELOG section

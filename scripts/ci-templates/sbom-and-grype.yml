@@ -1,0 +1,78 @@
+name: Dual SBOM Generation (SPDX & CycloneDX) & Vulnerability Audit
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 3 * * 2' # Weekly on Tuesday at 03:00 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  sbom-and-grype:
+    name: Generate Software Bill of Materials & Audit CVEs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Generate SPDX JSON SBOM with Anchore Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: '.'
+          format: 'spdx-json'
+          output-file: 'aegis-spdx-sbom.json'
+
+      - name: Generate CycloneDX JSON SBOM with Anchore Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: '.'
+          format: 'cyclonedx-json'
+          output-file: 'aegis-cyclonedx-sbom.json'
+
+      - name: Scan SBOM with Anchore Grype
+        uses: anchore/scan-action@v7
+        with:
+          sbom: 'aegis-spdx-sbom.json'
+          fail-build: false
+          severity-cutoff: 'critical'
+
+      - name: Archive SBOM Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: aegis-sboms
+          path: |
+            aegis-spdx-sbom.json
+            aegis-cyclonedx-sbom.json
+          retention-days: 90
+
+  # Supply-chain closure (docs/RELEASE_CHECKLIST.md §5): every published release
+  # carries its SBOMs as attached assets, not just as workflow artifacts.
+  attach-to-release:
+    name: Attach SBOMs to GitHub Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    needs: sbom-and-grype
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: aegis-sboms
+
+      - name: Upload SBOMs to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" aegis-spdx-sbom.json aegis-cyclonedx-sbom.json --clobber
+          echo "Attached SBOMs to release $RELEASE_TAG"

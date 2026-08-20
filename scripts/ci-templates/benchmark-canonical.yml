@@ -1,0 +1,112 @@
+name: Canonical Benchmark Evidence Run
+
+# Closes the canonical-data loop identified in benchmarks/EVIDENCE.md §2:
+# this sandbox-free CI environment has network egress, so the canonical
+# academic datasets (InjecAgent ACL 2024, AgentDojo NeurIPS 2024) CAN be
+# fetched here — verified with SHA-256 manifests — and evaluated for real.
+#
+# Fail policy: STRICT. The fetch script fails loudly (no synthetic fallback
+# exists anymore); a failed or partial fetch fails this workflow rather than
+# producing evidence that looks fetched but isn't.
+
+on:
+  schedule:
+    - cron: '0 4 * * 1' # Weekly, Monday 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      commit_evidence:
+        description: 'Open a PR committing the canonical manifest + dated reports to benchmarks/'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-benchmarks:
+    name: Fetch canonical datasets + evaluate (ASR/utility/risk)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build All Packages
+        run: npm run build
+
+      - name: Fetch canonical datasets (fail-loud, SHA-256 verified)
+        run: node scripts/fetch-canonical-benchmarks.mjs
+
+      - name: Validate canonical manifest (fail if nothing was fetched)
+        run: |
+          node -e "
+            const m = require('./benchmarks/canonical/manifest.json');
+            if (m.failures.length > 0) { console.error('FAIL: fetch failures recorded', m.failures); process.exit(1); }
+            if (m.files.length === 0) { console.error('FAIL: no canonical files fetched'); process.exit(1); }
+            console.log('OK:', m.files.length, 'files verified');
+            for (const f of m.files) console.log(' ', f.dataset, f.role, f.sha256.slice(0,16)+'…');
+          "
+
+      - name: Run canonical evaluations (field-standard metrics)
+        run: node scripts/run-benchmarks.mjs --canonical
+
+      - name: Job summary — evidence table
+        run: |
+          echo "## Canonical benchmark evidence" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for f in benchmarks/reports/*-canonical-*.json; do
+            echo "### $(basename $f)" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const r = require('./$f');
+              const m = r.metrics;
+              console.log('| N | ASR | Defense | Benign utility | Risk | p50 |');
+              console.log('|---|---|---|---|---|---|');
+              console.log('| ' + m.totalCases + ' | ' + m.attackSuccessRate + '% | ' + m.defenseRate + '% | ' + m.benignUtility + '% | ' + m.risk + ' | ' + m.latencyDistribution.p50Ms + 'ms |');
+            " >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Full artifacts attached below. Methodology: benchmarks/EVIDENCE.md" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload canonical datasets + manifest artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: canonical-datasets-${{ github.run_id }}
+          path: benchmarks/canonical/
+          if-no-files-found: error
+
+      - name: Upload evaluation reports artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: canonical-reports-${{ github.run_id }}
+          path: benchmarks/reports/
+          if-no-files-found: error
+
+      - name: Open evidence PR (manual dispatch only, human-reviewed)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_evidence }}
+        permissions:
+          contents: write
+          pull-requests: write
+        run: |
+          git config user.name "aegis-evidence-bot"
+          git config user.email "noreply@aegis-kernel.dev"
+          BRANCH="evidence/canonical-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git add benchmarks/canonical/manifest.json benchmarks/reports/ benchmarks/EVIDENCE.md
+          git commit -m "bench(evidence): canonical run ${{ github.run_id }} (checksummed artifacts, field-standard metrics)"
+          git push origin "$BRANCH"
+          gh pr create --title "Canonical benchmark evidence — run ${{ github.run_id }}" \
+            --body "Automated canonical dataset run. Review the SHA-256 manifest and reports before merging per the Evidence-Integrity Doctrine (DECISION_JOURNAL #11)." \
+            --base main --head "$BRANCH"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
