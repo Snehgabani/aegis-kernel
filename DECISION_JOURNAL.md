@@ -126,3 +126,15 @@
   2. Ablation studies (component attribution) are part of the evidence pipeline: no-packs control, per-pack ΔASR/Δutility with the redundancy explicitly measured (sql-guard Δ0pp BECAUSE soc2-guard independently covers DDL — defense-in-depth quantified, not asserted).
   3. Metamorphic properties are regression law: determinism, blocking monotonicity, key-order invariance, evasion closure, fingerprint purity (proofHash deliberately binds time for ledger replay), and zero-FP on generated benign traffic. The two gaps they found (SELECT-tautology unbounded reads; encoded-numeric/SQL wraps) are fixed and pinned.
 - **Consequences:** Our in-tree numbers now advertise their own weakness (wide CIs at small N) — this is intentional: it makes the canonical-dataset runs the only path to strong claims, and it makes marketing-grade overstatement structurally impossible. Statistics live in `packages/evals/src/stats.ts` (dependency-free, literature-pinned tests).
+
+---
+
+## Decision 13: Provenance-Aware Enforcement (IFC) + Long-Horizon Stress Discipline
+- **Date:** 2026-08-21
+- **Status:** `ACTIVE`
+- **Context:** The 2026 provenance survey (arXiv:2606.04990) systematizes the shift from output-only safety to provenance-aware execution control: CaMeL capabilities, FIDES integrity labels, NeuroTaint's three flow classes, Agent-Sentry sink analysis. The ADI attack (arXiv:2607.05120) showed only strict data-flow tracking reaches 0% ASR — and CaMeL's Normal mode leaked through a taint-propagation bug, proving taint mechanics must be simple and tested. Separately, AgentDyn/HORIZON/MAGE establish long-horizon trajectories as the dimension where defenses fail.
+- **Decision:**
+  1. IFC ships as an opt-in deterministic layer: registered untrusted sources + sensitive-sink policy + normalized substring matching (same evasion cascade as checkers), violating flows produce IFC-001. Scope limited to NeuroTaint's "explicit content propagation" + mechanism-level cross-session persistence; implicit-control and paraphrase taint are explicitly not claimed.
+  2. Trajectory stability is regression law: 500-step sessions with Mann-Kendall (tie-corrected) + Theil-Sen slope gates on latency drift, attacks-at-depth, and FP Wilson bounds — wired into the red-team command's strict exit semantics.
+  3. Ablation extends to the full synthetic corpus; measured redundancy (sql-guard 0.0pp via soc2 subsumption; hipaa-guard 0.0pp via data subsumption) is disclosed in EVIDENCE.md with corpus-specificity caveats, pending canonical runs.
+- **Consequences:** Aegis now defends a class of attack (data-flow injection) invisible to content rules, with honest scope boundaries; long-session engineering failures (drift, unbounded memory, depth evasion) become CI-detectable; pack redundancy is quantified, driving future pack consolidation decisions on canonical data rather than marketing.

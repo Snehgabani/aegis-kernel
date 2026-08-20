@@ -25,10 +25,13 @@ import {
   type TAPBenchmarkResult,
   runPoisoningStressSuite,
   type PoisoningStressResult,
+  runTrajectoryStress,
+  renderTrajectoryStress,
+  type TrajectoryStressResult,
 } from '@aegis-kernel/evals';
 
 export interface RedTeamOptions {
-  suite?: 'tap' | 'poisoning' | 'all';
+  suite?: 'tap' | 'poisoning' | 'trajectory' | 'all';
   depth?: number;
   branching?: number;
   output?: string;
@@ -55,6 +58,7 @@ export interface RedTeamReport {
   suites: string[];
   tap: Array<Pick<TAPBenchmarkResult, 'rootGoal' | 'totalExploredNodes' | 'bypassesFound' | 'resilienceScore' | 'deepestExplorationDepth' | 'searchDurationMs' | 'prunedBranches'>>;
   poisoning: PoisoningStressResult;
+  trajectory?: TrajectoryStressResult;
   exitCode: number;
 }
 
@@ -100,7 +104,17 @@ export async function runRedTeam(options: RedTeamOptions = {}): Promise<number> 
     }
   }
 
-  // 2. Tool-description poisoning stress
+  // 2. Long-horizon trajectory stress (AgentDyn/HORIZON-aligned)
+  let trajectory: TrajectoryStressResult | null = null;
+  if (suite === 'all' || suite === 'trajectory') {
+    trajectory = runTrajectoryStress({ steps: 500, seed: 42 });
+    console.log(pc.gray('  ── trajectory stress (500 steps, Mann-Kendall) ──'));
+    for (const line of renderTrajectoryStress(trajectory).split('\n')) {
+      console.log('  ' + (line.includes('PASS') ? pc.green(line) : pc.gray(line)));
+    }
+  }
+
+  // 3. Tool-description poisoning stress
   let poisoning: PoisoningStressResult | null = null;
   if (suite === 'all' || suite === 'poisoning') {
     poisoning = runPoisoningStressSuite();
@@ -119,7 +133,14 @@ export async function runRedTeam(options: RedTeamOptions = {}): Promise<number> 
     totalVectors: 0, detected: 0, detectionRatePercent: 0, missed: [], falsePositives: [], byClass: {}, durationMs: 0,
   };
 
-  const exitCode = computeExitCode(tapResults, finalPoisoning);
+  // Exit clauses apply only to suites that actually ran (a trajectory-only run
+  // is not judged on the poisoning corpus, and vice versa).
+  const tapRan = tapResults.length > 0;
+  const poisoningRan = suite === 'all' || suite === 'poisoning';
+  const exitCode =
+    (trajectory && !trajectory.pass ? 1 : 0) ||
+    (tapRan && tapResults.some((t) => t.bypassesFound > 0) ? 1 : 0) ||
+    (poisoningRan ? computeExitCode(tapResults, finalPoisoning) : 0);
   console.log(
     exitCode === 0
       ? pc.green('\n  🛡️  RED-TEAM RESULT: PASS — no bypasses, full poisoning detection.\n')
@@ -130,7 +151,11 @@ export async function runRedTeam(options: RedTeamOptions = {}): Promise<number> 
     const report: RedTeamReport = {
       timestamp: new Date().toISOString(),
       mode: 'red-team',
-      suites: tapResults.length > 0 && finalPoisoning.totalVectors > 0 ? ['tap', 'poisoning'] : tapResults.length > 0 ? ['tap'] : ['poisoning'],
+      suites: [
+        ...(tapResults.length > 0 ? ['tap'] : []),
+        ...(trajectory ? ['trajectory'] : []),
+        ...(finalPoisoning.totalVectors > 0 || !trajectory ? ['poisoning'] : []),
+      ],
       tap: tapResults.map((t) => ({
         rootGoal: t.rootGoal,
         totalExploredNodes: t.totalExploredNodes,
@@ -141,6 +166,7 @@ export async function runRedTeam(options: RedTeamOptions = {}): Promise<number> 
         prunedBranches: t.prunedBranches,
       })),
       poisoning: finalPoisoning,
+      ...(trajectory ? { trajectory } : {}),
       exitCode,
     };
     const p = path.resolve(process.cwd(), options.output);

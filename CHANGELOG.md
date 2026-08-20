@@ -49,6 +49,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/LIMITATIONS_AND_BOUNDARIES.md`).
 
 ### Added
+- **Information-flow control (IFC-001)**: deterministic taint tracking (FIDES/NeuroTaint
+  lineage, CaMeL sink-capability model) — `engine.registerUntrustedSource()` +
+  `informationFlow` policy; untrusted content flowing into sensitive sinks is
+  blocked even when it matches no content rule (ADI-class defense). Cross-call
+  persistence, FIFO-bounded sources, cross-session ledger; evasion-normalized
+  matching; paraphrase-taint explicitly NOT claimed.
+- **Trajectory stress harness** (`aegis red-team run --suite trajectory`):
+  500-step deterministic sessions with Mann-Kendall trend test + Theil-Sen slope
+  (AgentDyn/HORIZON literature-aligned), attacks-at-depth, FP rate with Wilson CI.
+- **Full-corpus ablation (N=1,054)**: hipaa-guard measured +0.0pp unique coverage
+  on the synthetic corpus (subsumed by data-guard) — disclosed; canonical
+  ablation pending Tier-0 CI run.
 - `aegis red-team run` — adaptive red-team harness (TAP payload-mutation tree search,
   depth 4 × branching 4, 3 attack families + MCP tool-poisoning stress suite of 12
   vectors; exit 1 on any bypass or detection miss; JSON evidence artifact).

@@ -126,6 +126,52 @@ Scientific ablation over the in-tree corpus (22 vectors, 15 attacks):
 - No single-pack removal fully exposes the corpus (max single-pack ΔASR 20pp ≪
   control 100pp).
 
+### 1.4b Full-corpus ablation (N=1,054 synthetic attack vectors, 2026-08-21)
+
+Extends §1.4 to the full synthetic expansion — resolves the hipaa/pci open question:
+
+| Pack removed | Blocked w/o pack | ΔASR (unique coverage) |
+|---|---|---|
+| control (no packs) | 0/1054 | — (ASR 100%) |
+| sql-guard | 1054/1054 | **+0.0pp** (soc2-guard fully subsumes the SQL/DDL surface on this corpus) |
+| finance-guard | 799/1054 | **+24.2pp** |
+| data-guard | 867/1054 | **+17.7pp** |
+| soc2-guard | 901/1054 | **+14.5pp** |
+| hipaa-guard | 1054/1054 | **+0.0pp** — fully redundant with data-guard ON THIS CORPUS |
+| pci-dss-guard | 1037/1054 | +1.6pp |
+
+**Honest reading:** hipaa-guard adds zero unique coverage on the synthetic
+corpus (its PHI patterns are subsumed by data-guard's PII rules). This is
+corpus-specific — canonical InjecAgent/AgentDojo runs may exercise PHI patterns
+the synthetic generator does not. The canonical ablation (post Tier-0 CI run)
+decides whether hipaa-guard's rules are distinct enough to keep; until then the
+redundancy is disclosed, not hidden.
+
+### 1.6 Information-flow control (IFC-001, 2026-08-21)
+
+FIDES/NeuroTaint-inspired deterministic taint tracking (CaMeL lineage):
+untrusted sources (tool outputs) registered via `engine.registerUntrustedSource()`
+that reappear — normalized against evasion mutations — inside sensitive-sink
+parameters (`send_email`, `http_post`, `sql_query`) are blocked as IFC-001.
+Catches ADI-style attacks (arXiv:2607.05120) that no content rule can see: the
+FLOW is the violation. 9 tests incl. cross-call persistence (500 steps, no
+label decay), FIFO-bounded memory, cross-session ledger reload, and
+evasion-normalized matching. **Disclosed limitation:** paraphrase-surviving and
+implicit-control taint (NeuroTaint's other flow classes) are NOT claimed.
+
+### 1.7 Trajectory stress (2026-08-21, AgentDyn/HORIZON-aligned)
+
+500-step deterministic sessions (seed 42): benign-heavy traffic + identical
+attacks at steps 1/250/500.
+
+- **Latency drift: Mann-Kendall** (Mann 1945; Kendall 1975; tie-corrected;
+  Theil-Sen slope): no significant positive trend (p ≥ 0.05) across the session.
+- **Attack detection at depth:** 3/3 blocked (step 1, 250, 500) — no
+  long-horizon evasion of deterministic invariants.
+- **False positives:** 0/497 benign steps; 95% Wilson CI upper bound 0.75%.
+- Available as `aegis red-team run --suite trajectory` (exit 1 on drift,
+  depth-bypass, or FP).
+
 ### 1.5 Metamorphic properties (2026-08-21)
 
 Deterministic property suite (`metamorphic-properties.test.ts`, fast-check):

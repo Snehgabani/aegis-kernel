@@ -1,5 +1,6 @@
 export * from './types.js';
 export * from './engine.js';
+export * from './provenance.js';
 export * from './interceptor.js';
 export * from './verdict.js';
 export * from './event.js';

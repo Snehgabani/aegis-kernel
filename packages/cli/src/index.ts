@@ -50,7 +50,7 @@ program
 program
   .command('red-team [action]')
   .description('Adaptive red-team harness: TAP payload-mutation tree search + MCP tool-poisoning stress')
-  .option('--suite <suite>', 'tap | poisoning | all (default all)')
+  .option('--suite <suite>', 'tap | poisoning | trajectory | all (default all)')
   .option('--depth <n>', 'TAP search depth (default 4)', parseInt)
   .option('--branching <n>', 'TAP branching factor (default 4)', parseInt)
   .option('-o, --output <path>', 'Write red-team evidence JSON report')

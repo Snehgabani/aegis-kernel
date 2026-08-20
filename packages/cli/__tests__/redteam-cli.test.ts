@@ -54,7 +54,7 @@ describe('runRedTeam (end-to-end at DEFAULT depth 4 / branching 4 — the real g
 
     const report = JSON.parse(fs.readFileSync(out, 'utf8'));
     expect(report.mode).toBe('red-team');
-    expect(report.suites).toEqual(['tap', 'poisoning']);
+    expect(report.suites).toEqual(['tap', 'trajectory', 'poisoning']);
     expect(report.tap).toHaveLength(3);
     for (const t of report.tap) {
       expect(t.totalExploredNodes).toBeGreaterThanOrEqual(300); // real search, not a stub
@@ -72,4 +72,20 @@ describe('runRedTeam (end-to-end at DEFAULT depth 4 / branching 4 — the real g
     const code = await runRedTeam({ suite: 'poisoning' });
     expect(code).toBe(0);
   });
+});
+
+describe('runRedTeam trajectory suite (AgentDyn/HORIZON-aligned)', () => {
+  it('trajectory-only mode: exit 0 with Mann-Kendall statistics in the report', async () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aegis-rt-traj-'));
+    const out = path.join(tmp, 'rt.json');
+    const code = await runRedTeam({ suite: 'trajectory', output: out });
+    expect(code).toBe(0);
+    const report = JSON.parse(fs.readFileSync(out, 'utf8'));
+    expect(report.suites).toEqual(['trajectory']);
+    expect(report.trajectory.trend.method ?? true).toBe(true);
+    expect(report.trajectory.trend.n).toBe(500);
+    expect(report.trajectory.pass).toBe(true);
+    expect(report.trajectory.falsePositiveRate.ciUpper).toBeGreaterThanOrEqual(0);
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }, 60_000);
 });

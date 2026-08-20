@@ -58,6 +58,15 @@ export interface AegisConfig {
     onSpan?: (span: import('./telemetry/otel.js').GenAiSpan) => void;
     agentName?: string;
   };
+  /**
+   * Opt-in information-flow control (FIDES/NeuroTaint-inspired, deterministic):
+   * untrusted content registered via engine.registerUntrustedSource() that later
+   * appears in a sensitive-sink parameter blocks the call (IFC-001) — the FLOW
+   * is the violation, independent of content rules. Zero-egress, no LLM.
+   */
+  informationFlow?: import('./provenance.js').InformationFlowPolicy;
+  /** Optional persistence path for taint sources (cross-session reuse). */
+  informationFlowLedgerPath?: string;
 }
 
 import type { AegisForensicDiagnosticTrace } from './diagnostics/forensic-trace.js';

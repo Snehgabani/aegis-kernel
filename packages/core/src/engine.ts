@@ -13,6 +13,7 @@ import type {
   ToolCall,
 } from './types.js';
 import { formatGenAiExecuteToolSpan } from './telemetry/otel.js';
+import { TaintTracker, createIfcViolation, type InformationFlowPolicy, type RegisteredSource } from './provenance.js';
 import {
   computePolicyCommitmentHash,
   computeToolCallFingerprint,
@@ -45,6 +46,8 @@ export class AegisEngine {
   private defaultStateProvider?: StateProvider;
   private onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
   private observability?: AegisConfig['observability'];
+  private taintTracker?: TaintTracker;
+  private ifcPolicy?: InformationFlowPolicy;
   private logger: AegisEventLogger;
   private ledger: LearningLedgerManager;
   private identityManager?: AgentIdentityManager;
@@ -64,6 +67,10 @@ export class AegisEngine {
     this.onViolation = config?.onViolation;
     this.identityManager = config?.identityManager;
     this.observability = config?.observability;
+    this.ifcPolicy = config?.informationFlow;
+    if (config?.informationFlow) {
+      this.taintTracker = new TaintTracker(config.informationFlow, config.informationFlowLedgerPath);
+    }
 
     // Initialize 6 Checkers
     this.sqlChecker = new SqlChecker();
@@ -88,6 +95,21 @@ export class AegisEngine {
 
   public resetState(): void {
     this.numericChecker.resetRateLimits();
+  }
+
+  /**
+   * Register UNTRUSTED content (e.g., a tool's output body / retrieved page)
+   * with the information-flow tracker. Subsequent calls whose sensitive-sink
+   * parameters embed this content are blocked (IFC-001). No-op unless the
+   * engine was constructed with `informationFlow` policy.
+   */
+  public registerUntrustedSource(content: string, origin: string): RegisteredSource | null {
+    return this.taintTracker ? this.taintTracker.registerUntrusted(content, origin) : null;
+  }
+
+  /** Number of tracked untrusted sources (observability/tests). */
+  public trackedSourceCount(): number {
+    return this.taintTracker ? this.taintTracker.sourceCount() : 0;
   }
 
   private loadPacks(packsConfig?: (string | RulePack)[]): RulePack[] {
@@ -191,6 +213,20 @@ export class AegisEngine {
           }
         }
       }
+      // Information-flow enforcement (opt-in): untrusted content flowing into
+      // sensitive sinks is a violation even when the content matches no
+      // content rule — the FLOW is the violation (IFC-001).
+      if (this.taintTracker) {
+        const sinkPolicy = this.ifcPolicy?.sinks.find(
+          (sn) => sn.tool === safeToolCall.tool && sn.rationale
+        );
+        for (const hit of this.taintTracker.checkSinks(safeToolCall)) {
+          violations.push(
+            createIfcViolation(safeToolCall, hit.param, hit.source, sinkPolicy?.rationale) as unknown as AegisViolation
+          );
+        }
+      }
+
       tracer?.endStage('INVARIANT_EVALUATION', violations.length === 0 ? 'PASSED' : 'FAILED', {
         rulesEvaluated,
         violationsCount: violations.length,
