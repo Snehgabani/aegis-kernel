@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import * as crypto from 'crypto';
 import { AegisEngine, AegisLicenseManager, type AegisEvent, type LicensePayload } from '@aegis-kernel/core';
 import { renderPrometheusMetrics } from './metrics.js';
+import { createAuditStoreFromEnv, type AuditStore } from './audit-store.js';
 
 export interface GatewayEnv {
   AEGIS_LICENSE_SECRET?: string;
@@ -10,6 +11,10 @@ export interface GatewayEnv {
   AEGIS_ALLOW_UNSAFE_LICENSE?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   NODE_ENV?: string;
+  /** Audit persistence: 'jsonl' enables the durable file store (default memory). */
+  AEGIS_AUDIT_STORE?: string;
+  /** JSONL store path (default ./aegis-audit.jsonl). */
+  AEGIS_AUDIT_PATH?: string;
 }
 
 /**
@@ -28,7 +33,7 @@ export interface GatewayEnv {
  *   fulfillment endpoint fails closed (503) instead of minting forgeable keys.
  * - AEGIS_ALLOW_UNSAFE_LICENSE=1 (local demos only) is refused in production.
  */
-export function createGatewayApp(env?: GatewayEnv) {
+export function createGatewayApp(env?: GatewayEnv, options?: { auditStore?: AuditStore }) {
   const nodeEnv = env?.NODE_ENV || process.env.NODE_ENV;
   const isProduction = nodeEnv === 'production';
   const secretKey = env?.AEGIS_LICENSE_SECRET || process.env.AEGIS_LICENSE_SECRET || '';
@@ -57,8 +62,11 @@ export function createGatewayApp(env?: GatewayEnv) {
   const licenseManager = new AegisLicenseManager(secretKey || undefined, publicKeyPem);
   const probeEngine = new AegisEngine();
 
-  // In-memory audit event store (backed by Cloudflare D1 / PostgreSQL in production)
-  const auditEvents: AegisEvent[] = [];
+  // Audit store: pluggable persistence (default: bounded in-memory buffer).
+  // AEGIS_AUDIT_STORE=jsonl + AEGIS_AUDIT_PATH=... enables durable file storage.
+  const auditStore: AuditStore =
+    options?.auditStore ??
+    createAuditStoreFromEnv({ AEGIS_AUDIT_STORE: env?.AEGIS_AUDIT_STORE, AEGIS_AUDIT_PATH: env?.AEGIS_AUDIT_PATH });
 
   app.use('*', cors());
 
@@ -73,7 +81,7 @@ export function createGatewayApp(env?: GatewayEnv) {
       service: 'aegis-gateway',
       timestamp: new Date().toISOString(),
       probe,
-      eventsStored: auditEvents.length,
+      eventsStored: auditStore.count(),
     }, probe.healthy ? 200 : 503);
   });
 
@@ -96,29 +104,23 @@ export function createGatewayApp(env?: GatewayEnv) {
       return c.json({ error: 'Invalid payload: events array required' }, 400);
     }
 
-    // Ingest into audit store
-    for (const evt of body.events) {
-      auditEvents.push(evt);
-    }
-
-    // Keep bounded in-memory buffer for serverless runtime
-    if (auditEvents.length > 10000) {
-      auditEvents.splice(0, auditEvents.length - 10000);
-    }
+    // Ingest into audit store (memory + optional durable backend)
+    auditStore.append(body.events);
 
     return c.json({ success: true, ingested: body.events.length });
   });
 
   // 2. Aggregated dashboard metrics
   app.get('/api/dashboard/stats', (c) => {
-    const total = auditEvents.length;
-    const blocked = auditEvents.filter((e) => e.verdict === 'BLOCKED').length;
-    const allowed = auditEvents.filter((e) => e.verdict === 'ALLOWED').length;
+    const window = auditStore.all();
+    const total = window.length;
+    const blocked = window.filter((e) => e.verdict === 'BLOCKED').length;
+    const allowed = window.filter((e) => e.verdict === 'ALLOWED').length;
     const avgLatencyMs =
-      total > 0 ? auditEvents.reduce((sum, e) => sum + e.latencyMs, 0) / total : 0;
+      total > 0 ? window.reduce((sum, e) => sum + e.latencyMs, 0) / total : 0;
 
     const ruleBreakdown: Record<string, number> = {};
-    for (const evt of auditEvents) {
+    for (const evt of window) {
       for (const v of evt.rulesFired) {
         ruleBreakdown[v.ruleId] = (ruleBreakdown[v.ruleId] || 0) + 1;
       }
@@ -141,16 +143,11 @@ export function createGatewayApp(env?: GatewayEnv) {
     const offset = Number(c.req.query('offset') || '0');
     const verdictFilter = c.req.query('verdict');
 
-    let filtered = auditEvents;
-    if (verdictFilter) {
-      filtered = filtered.filter((e) => e.verdict === verdictFilter);
-    }
-
-    const paginated = filtered.slice(-limit - offset, filtered.length - offset).reverse();
+    const { events: paginated, total: filteredTotal } = auditStore.query({ limit, offset, verdict: verdictFilter });
 
     return c.json({
       events: paginated,
-      total: filtered.length,
+      total: filteredTotal,
       limit,
       offset,
     });
