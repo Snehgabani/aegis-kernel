@@ -92,7 +92,7 @@ Aegis operates as a four-tier verification pipeline between the agent's proposed
   │  Multi-dialect SQL parser (Postgres, MySQL, SQLite,     │
   │  T-SQL) · Tautology constant-folding · Numeric range    │
   │  clamping · PII salted token vault · Policy DSL engine  │
-  │  · WASM sandbox validator                               │
+  │  · WASM plugin validator interface (runtime: roadmap)   │
   └────────────────────────┬────────────────────────────────┘
                            ▼
   ┌─────────────────────────────────────────────────────────┐
@@ -354,7 +354,7 @@ Add Aegis as a GitHub Action to audit tool invariants on every pull request:
 
 - **Fail-closed by default.** Internal errors block the tool call. Set `failPolicy: 'fail-open'` explicitly only if availability matters more than safety for a given pack.
 - **Zero network egress.** The clearance hot path makes no outbound calls. Air-gapped deployments work without modification.
-- **WASM plugins are fail-closed.** A module that doesn't export `validate()` is treated as invalid.
+- **WASM plugin interface is fail-closed by design** (module header/limits validation today; full sandboxed execution is roadmap — see [LIMITATIONS_AND_BOUNDARIES.md](./docs/LIMITATIONS_AND_BOUNDARIES.md)).
 - **Cryptographic audit trail.** Every clearance decision emits a 14-field privacy-safe event with an immutable SHA-256 `proofHash` binding tool arguments to policy hashes.
 
 ### Compliance tooling
