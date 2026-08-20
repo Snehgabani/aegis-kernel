@@ -4,7 +4,7 @@
   "description": "Aegis Cloud Gateway: Serverless Telemetry, Stripe Billing Webhooks, and Audit Store",
   "license": "MIT",
   "author": "Sneh Gabani <sneh@aegis-kernel.dev>",
-  "homepage": "https://aegis-kernel.dev",
+  "homepage": "https://snehgabani.github.io/aegis-kernel/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Snehgabani/aegis-kernel.git",

@@ -7,7 +7,7 @@ header:
 project:
   name: "Aegis Invariant Kernel"
   description: "Deterministic Tool-Call Safety Clearance Gateway for Autonomous AI Agents"
-  homepage: "https://aegis-kernel.dev"
+  homepage: "https://snehgabani.github.io/aegis-kernel/"
   license: "MIT"
   documentation:
     general: "https://github.com/Snehgabani/aegis-kernel/tree/main/docs"
