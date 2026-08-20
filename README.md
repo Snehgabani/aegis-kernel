@@ -363,6 +363,7 @@ Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kern
 - [Architecture Docs](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable API and policy reference
 - [Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream with CSV export
 - [Supply Chain Trust & Provenance](./docs/security/SUPPLY_CHAIN_TRUST_AND_PROVENANCE.md) — SLSA L3, Sigstore signing, SBOM & reproducible builds
+- [Elite Automation & Supply Chain Governance](./docs/architecture/ELITE_AUTOMATION_AND_SUPPLY_CHAIN_GOVERNANCE.md) — 4-Tier bot mesh, Dependabot topology & continuous assurance
 - [Security Capabilities & Permissions Disclosure](./docs/compliance/SECURITY_CAPABILITIES_DISCLOSURE.md) — Socket.dev capability disclosure & dependency justification
 - [OpenSSF Best Practices Evidence](./docs/compliance/OPENSSF_BEST_PRACTICES_EVIDENCE.md) — Criteria mapping for OpenSSF Badge #14173
 - [Limitations and Boundaries](./docs/LIMITATIONS_AND_BOUNDARIES.md) — Honest scope and architectural constraints
