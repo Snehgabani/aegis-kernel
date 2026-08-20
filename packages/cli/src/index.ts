@@ -13,6 +13,7 @@ import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
 import { runVerifyProof } from './verify-proof-cli.js';
 import { runScan } from './scan-cli.js';
 import { runMcpInventoryScan, printMcpScanResult } from './mcp-inventory.js';
+import { runPackSign, runPackVerify } from './pack-sign-cli.js';
 import { runRedTeam } from './redteam-cli.js';
 import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
@@ -234,6 +235,24 @@ packCmd
   .description('Validate a custom YAML rule pack against Aegis schema specification')
   .action((file: string) => {
     runPackValidate(file);
+  });
+
+packCmd
+  .command('sign <file>')
+  .description('Sign a rule pack with an Ed25519 private key (writes <file>.sig.json sidecar manifest) — AISVS C10.1.1')
+  .requiredOption('--key <privateKeyPem>', 'Path to Ed25519 private key (PEM)')
+  .option('--signer <name>', 'Signer identity recorded in the manifest')
+  .action((file: string, opts: { key: string; signer?: string }) => {
+    runPackSign(file, opts.key, opts.signer);
+  });
+
+packCmd
+  .command('verify <file>')
+  .description('Verify a rule pack against its signature manifest + trusted public key(s) (fail-closed, exit 1 on failure)')
+  .requiredOption('--key <publicKeyPem>', 'Path to trusted Ed25519 public key (PEM); repeat or comma-separate for multiple')
+  .action((file: string, opts: { key: string | string[] }) => {
+    const keys = (Array.isArray(opts.key) ? opts.key : [opts.key]).flatMap((k) => k.split(','));
+    runPackVerify(file, keys);
   });
 
 const licenseCmd = program.command('license').description('Manage Aegis Enterprise license and active compliance entitlements');

@@ -138,3 +138,14 @@
   2. Trajectory stability is regression law: 500-step sessions with Mann-Kendall (tie-corrected) + Theil-Sen slope gates on latency drift, attacks-at-depth, and FP Wilson bounds — wired into the red-team command's strict exit semantics.
   3. Ablation extends to the full synthetic corpus; measured redundancy (sql-guard 0.0pp via soc2 subsumption; hipaa-guard 0.0pp via data subsumption) is disclosed in EVIDENCE.md with corpus-specificity caveats, pending canonical runs.
 - **Consequences:** Aegis now defends a class of attack (data-flow injection) invisible to content rules, with honest scope boundaries; long-session engineering failures (drift, unbounded memory, depth evasion) become CI-detectable; pack redundancy is quantified, driving future pack consolidation decisions on canonical data rather than marketing.
+
+---
+
+## Decision 14: Signed Rule Packs + Fail-Closed Policy Lifecycle
+- **Date:** 2026-08-21
+- **Status:** `ACTIVE`
+- **Context:** OWASP AISVS C10.1.1 requires component verification via signatures with rejection of tampered/unsigned builds; the MCP spec has no native signing, so policy-artifact signing is an open differentiator. Separately, the ablation studies (Dec. 12–13) quantified pack redundancy, making governed pack changes — not more rules — the enterprise need (ISO 42001 control-operation records).
+- **Decision:**
+  1. Rule-pack integrity = canonical commitments (recursively key-sorted JSON → SHA-256; format/order cannot alter the hash) + Ed25519 sidecar manifests; verification is fail-closed (recomputed commitment, id/version binding, algorithm allowlist, multi-maintainer trusted-key sets). CLI: `aegis pack sign|verify`.
+  2. Policy changes ship through shadow evaluation: candidates run beside current policy on sampled traffic; promotion is DENIED by default until gates pass — zero NEW_ALLOWS_MORE divergences on attacks, benign FP delta within tolerance, minimum shadow sample reached. Rollback restores the committed pre-promotion snapshot.
+- **Consequences:** The rule-pack supply chain (hub installs, enterprise pack distributions) gains verifiable integrity without new infrastructure; policy changes become auditable, reversible, and provably-not-weaker on observed traffic. Unsigned packs remain usable (trust model explicit: tampered SIGNED packs are the hard failure), documented in SECURITY docs.

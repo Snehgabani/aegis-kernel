@@ -181,6 +181,17 @@ audit semantics) · M6 zero-FP on 200 generated benign calls. **M2 and M4 found
 two real engine gaps on first run** (see corrections register) — the properties
 now pin them permanently.
 
+### 1.8 Supply chain & governance (2026-08-21, cycle 6)
+
+- **Signed rule packs** (AISVS C10.1.1): `aegis pack sign` produces Ed25519
+  sidecar manifests over canonical (key-order-invariant) SHA-256 pack
+  commitments; `aegis pack verify` fails closed on tampered content, forged
+  keys, wrong algorithms, and cross-pack manifest replay (8 tests + live
+  round-trip verified: sign → verify ✅, tamper → exit 1).
+- **Policy lifecycle**: shadow→promote→rollback with fail-closed gates
+  (weaker-on-attacks and benign-FP regressions block promotion; snapshot-backed
+  rollback) — 6 tests.
+
 ## 3. Corrections register
 
 | Date | Correction |

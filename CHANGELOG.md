@@ -49,6 +49,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/LIMITATIONS_AND_BOUNDARIES.md`).
 
 ### Added
+- **Signed rule packs** (`aegis pack sign/verify`, AISVS C10.1.1 / MCP03/MCP04):
+  canonical (key-order-invariant) SHA-256 pack commitments + Ed25519 sidecar
+  manifests; fail-closed verification (commitment recompute detects tampering,
+  id/version binding prevents manifest replay, multi-maintainer trusted-key sets).
+- **Policy lifecycle** (`PolicyLifecycle`): shadow evaluation of candidate pack
+  sets beside the current policy with fail-closed promotion gates (no
+  NEW_ALLOWS_MORE on attacks, FP-regression tolerance, minimum shadow samples)
+  and snapshot-backed instant rollback — the ISO 42001/NIST AI RMF MANAGE
+  control-operation loop.
 - **Information-flow control (IFC-001)**: deterministic taint tracking (FIDES/NeuroTaint
   lineage, CaMeL sink-capability model) — `engine.registerUntrustedSource()` +
   `informationFlow` policy; untrusted content flowing into sensitive sinks is

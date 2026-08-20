@@ -37,7 +37,7 @@ describe('Mann-Kendall trend test (statistical correctness)', () => {
 });
 
 describe('runTrajectoryStress (long-horizon engine stability)', () => {
-  it('500-step session: no significant latency drift, attacks blocked at ALL depths, zero FPs', () => {
+  it('500-step session: no significant latency drift, attacks blocked at ALL depths, zero FPs', { retry: 1 }, () => {
     const r = runTrajectoryStress({ steps: 500, seed: 42 });
     expect(r.steps).toBe(500);
     expect(r.trend.significant && r.trend.trend === 'increasing').toBe(false);

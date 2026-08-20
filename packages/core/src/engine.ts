@@ -112,6 +112,11 @@ export class AegisEngine {
     return this.taintTracker ? this.taintTracker.sourceCount() : 0;
   }
 
+  /** Active rule packs (policy lifecycle snapshots, observability). */
+  public getActivePacks() {
+    return this.packs;
+  }
+
   private loadPacks(packsConfig?: (string | RulePack)[]): RulePack[] {
     const loaded: RulePack[] = [];
 
