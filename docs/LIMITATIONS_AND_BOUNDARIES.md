@@ -108,3 +108,21 @@ aegis verify-proof compliance-dossier.json --key "corp-signing-secret"
 ### 3. Compliance Disclaimer
 > [!IMPORTANT]
 > **Technical Evidence Only**: Aegis produces cryptographically verifiable evidence and enforces technical invariants. It is **NOT** a formal certification. Formal SOC 2 certification requires an independent audit by a licensed CPA firm, and ISO 42001 certification requires an assessment by an accredited certification body. Aegis provides the automated technical evidence generation engine that enables auditors to complete those assessments with cryptographic certainty.
+
+---
+
+## 🔧 Feature Maturity & Honest Status
+
+Some features are branded with capabilities they do not yet fully implement. This table tracks their true maturity:
+
+| Feature | Current Status | What It Actually Does | Full Implementation |
+|---|---|---|---|
+| **Zero-Knowledge Proofs** | 🔄 **Hash Commitment** | Uses SHA-256 hash chaining to commit a value is within range without revealing it. NOT a zk-SNARK. | Needs Groth16/PLONK circuit (arkworks/bellman crate). See ROADMAP.md. |
+| **WASM Sandbox** | 🏗️ **Interface Only** | `WasmPluginRunner` has config types and verdict structures. **No WASM compilation or execution.** | Needs full `WebAssembly.compile()` + `instantiate()` pipeline. On roadmap. |
+| **Enclave Attestation** | 🧪 **Development Simulation** | Returns `DEV_SIMULATED` status with simulated PCR0. Set `AEGIS_ATTESTATION_MODE=production` to verify it is not real. | Needs AWS NSM or Intel SGX SDK integration. On roadmap. |
+| **Biscuit Token** | ✅ **Working** | Ed25519 capability token chain with attenuation and caveats. Full production readiness. | Complete in v1.0.0. |
+| **Merkle Audit Ledger** | ✅ **Working** | SHA-256 Merkle root chains binding tool calls to policy versions. | Complete in v1.0.0. |
+| **Homoglyph Maps** | 🔄 **Inconsistent** | TypeScript: ~70 entries, Go/Rust: ~25, Python: 0 (uses Unicode regex). | All 4 must use canonical map from `docs/HOMOGLYPH_MAP.json`. |
+| **Canonical Benchmarks** | 🔄 **Generated Corpus** | InjecAgent vectors are combinatorially generated (17 tools × 62 payloads), not the canonical published dataset. | Needs official dataset download + ingestion. |
+
+See [ROADMAP.md](./ROADMAP.md) for version-by-version delivery targets.

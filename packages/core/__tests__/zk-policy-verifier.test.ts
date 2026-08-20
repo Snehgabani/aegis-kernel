@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PolicyCommitmentVerifier, PolicyCommitmentConstraint, ZkPolicyVerifier, ZkPolicyConstraint } from '../src/confidential/policy-commitment-verifier.js';
+import { PolicyCommitmentVerifier, PolicyCommitmentConstraint } from '../src/confidential/policy-commitment-verifier.js';
 
 describe('Aegis Deterministic Policy Commitment & Attestation Suite', () => {
   const constraint: PolicyCommitmentConstraint = {
@@ -17,17 +17,17 @@ describe('Aegis Deterministic Policy Commitment & Attestation Suite', () => {
     expect(res.proof?.proofType).toBe('SHA256_PolicyCommitment');
     expect(res.proof?.proofBytesHex).toHaveLength(64);
 
-    const publicPolicyHash = ZkPolicyVerifier.computePolicyHash(constraint);
+    const publicPolicyHash = PolicyCommitmentVerifier.computePolicyHash(constraint);
     expect(res.proof?.publicPolicyHash).toBe(publicPolicyHash);
 
     // Auditor verifies proof without knowing $4,500 private amount
-    const isValid = ZkPolicyVerifier.verifyProof(res.proof!, publicPolicyHash);
+    const isValid = PolicyCommitmentVerifier.verifyProof(res.proof!, publicPolicyHash);
     expect(isValid).toBe(true);
   });
 
   it('should reject proof generation for non-compliant parameter', () => {
     const nonCompliantAmount = 75000; // Exceeds $10,000 limit
-    const res = ZkPolicyVerifier.generateComplianceProof(constraint, nonCompliantAmount);
+    const res = PolicyCommitmentVerifier.generateComplianceProof(constraint, nonCompliantAmount);
 
     expect(res.success).toBe(false);
     expect(res.proof).toBeUndefined();
@@ -35,11 +35,11 @@ describe('Aegis Deterministic Policy Commitment & Attestation Suite', () => {
   });
 
   it('should reject forged or mismatched public policy hash during auditor verification', () => {
-    const res = ZkPolicyVerifier.generateComplianceProof(constraint, 5000);
+    const res = PolicyCommitmentVerifier.generateComplianceProof(constraint, 5000);
     expect(res.success).toBe(true);
 
     const wrongPolicyHash = 'deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678';
-    const isValid = ZkPolicyVerifier.verifyProof(res.proof!, wrongPolicyHash);
+    const isValid = PolicyCommitmentVerifier.verifyProof(res.proof!, wrongPolicyHash);
     expect(isValid).toBe(false);
   });
 });

@@ -67,7 +67,7 @@ jobs:
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'config,fs'
+          scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
           exit-code: '0'

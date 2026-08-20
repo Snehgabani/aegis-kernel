@@ -1,7 +1,7 @@
 # 🛡️ Aegis Invariant Kernel for Rust
 
 > **High-Performance Zero-Allocation Tool-Call Safety Gateway & Invariant Kernel for AI Agents in Rust**  
-> *Sub-Millisecond Clearance • Zero Network Egress • ZK Policy Verification & Nitro Attestation*
+> *Sub-Millisecond Clearance • Zero Network Egress • Deterministic Policy Commitment & Attestation*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Crates.io](https://img.shields.io/badge/crates.io-v1.0.0-orange.svg)](#)
@@ -19,7 +19,7 @@
 - **Numeric & Financial Aliases**: Strips formatted currency strings (`$5,000.00`, `€10,000`) and normalizes aliases (`amount`, `total`, `price`, `payout`, `value`, `payment`, `transfer`) with default `min: 0.0`.
 - **Salted HMAC-SHA256 Token Vault**: Thread-safe deterministic PII tokenization and detokenization (`<US_SSN_...>`, `<CREDIT_CARD_...>`).
 - **State Invariants & Multi-Tenant Isolation**: Fast expression evaluator for state preconditions and tenant boundaries.
-- **ZK Policy Circuits & Enclave Attestation**: Evaluates Plonky3 recursive SNARK policy proofs and validates AWS Nitro Enclave PCR0 cryptographic measurements.
+- **Policy Commitment Circuit & Enclave Attestation**: SHA-256 deterministic commitment proof for financial compliance (range proofs via hashing, not ZK). Simulated AWS Nitro-style attestation for development/testing.
 
 ---
 
