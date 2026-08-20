@@ -1,105 +1,101 @@
-# Dependabot Configuration for Aegis Invariant Kernel
-# Frontier-Grade Automated Supply Chain & Security Governance
-
+# Dependabot configuration for Aegis Invariant Kernel
+# Automatically monitors and patches dependencies across all 7 ecosystems
 version: 2
 updates:
-  # ── 1. Node.js & TypeScript Monorepo Ecosystem ─────────────────────
+  # 1. Monorepo Node.js / NPM Packages
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "04:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 15
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "javascript"
-      - "automated"
-    commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
     groups:
-      # Group dev dependencies together to reduce PR fatigue
-      dev-dependencies:
-        dependency-type: "development"
-        patterns:
-          - "@types/*"
-          - "eslint*"
-          - "prettier*"
-          - "typescript"
-          - "vitest*"
-          - "tsup"
-          - "turbo"
-      # Group production minor and patch updates
-      production-minor-patch:
-        dependency-type: "production"
-        update-types:
-          - "minor"
-          - "patch"
+      npm-dependencies:
         patterns:
           - "*"
-      # Prioritize security vulnerability patches
-      security-updates:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-    ignore:
-      # Protect critical runtime parsers from unexpected breaking semver-major drift
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "tsup"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "commander"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "node-sql-parser"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "ajv"
-        update-types: ["version-update:semver-major"]
 
-  # ── 2. Python SDK Ecosystem ─────────────────────────────────────────
+  # 2. Rust Engine Crate
+  - package-ecosystem: "cargo"
+    directory: "/packages/rust"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "rust"
+
+  # 3. Go SDK Engine
+  - package-ecosystem: "gomod"
+    directory: "/packages/go"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "go"
+
+  # 4. Python SDK Package
   - package-ecosystem: "pip"
     directory: "/packages/python"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "04:30"
-      timezone: "UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "python"
-      - "automated"
-    commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
-    groups:
-      python-dependencies:
-        patterns:
-          - "*"
 
-  # ── 3. GitHub Actions Workflows Ecosystem ───────────────────────────
+  # 5. Root Docker Containers
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+
+  # 6. Gateway Service Docker Containers
+  - package-ecosystem: "docker"
+    directory: "/services/gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+
+  # 7. GitHub Actions Workflows
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "05:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
-      - "ci"
+      - "dependencies"
       - "github-actions"
-      - "automated"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
     groups:
-      actions-dependencies:
+      actions:
         patterns:
           - "*"
-    ignore:
-      - dependency-name: "actions/*"
-        update-types: ["version-update:semver-major"]
+
+  # 8. Terraform Cloud Infrastructure
+  - package-ecosystem: "terraform"
+    directory: "/deploy/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "terraform"

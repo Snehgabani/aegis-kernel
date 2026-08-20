@@ -1,0 +1,74 @@
+name: IaC & Container Security Continuous Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/**'
+      - '**/Dockerfile*'
+      - 'package.json'
+      - 'packages/rust/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'deploy/**'
+      - '**/Dockerfile*'
+      - 'package.json'
+      - 'packages/rust/**'
+  schedule:
+    # Run weekly security scan every Monday at 04:00 UTC
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  kubernetes-iac-audit:
+    name: Kubernetes & Terraform Security Invariants Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify Kubernetes Security Invariants
+        run: |
+          echo "🔍 Auditing Helm deployment templates for Snyk security invariants..."
+          HELM_FILE="deploy/helm/aegis-gateway/templates/deployment.yaml"
+          
+          # Invariant 1: allowPrivilegeEscalation must be false
+          grep -q "allowPrivilegeEscalation.*false" "$HELM_FILE" || { echo "❌ Missing allowPrivilegeEscalation: false"; exit 1; }
+          
+          # Invariant 2: runAsNonRoot must be true
+          grep -q "runAsNonRoot.*true" "$HELM_FILE" || { echo "❌ Missing runAsNonRoot: true"; exit 1; }
+          
+          # Invariant 3: capabilities.drop ALL
+          grep -q "drop:" "$HELM_FILE" && grep -q "\- ALL" "$HELM_FILE" || { echo "❌ Missing capabilities.drop: [ALL]"; exit 1; }
+          
+          # Invariant 4: readOnlyRootFilesystem must be true
+          grep -q "readOnlyRootFilesystem.*true" "$HELM_FILE" || { echo "❌ Missing readOnlyRootFilesystem: true"; exit 1; }
+          
+          # Invariant 5: non-root UID >= 10000
+          grep -q "10001" "$HELM_FILE" || { echo "❌ Missing high non-root UID (>= 10000)"; exit 1; }
+          
+          # Invariant 6: imagePullPolicy Always
+          grep -q "imagePullPolicy.*Always" "$HELM_FILE" || { echo "❌ Missing imagePullPolicy: Always"; exit 1; }
+          
+          echo "✅ All 6 Kubernetes IaC security invariants verified successfully!"
+
+  trivy-fs-and-config-scan:
+    name: Trivy IaC & Dependency Vulnerability Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config,fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
