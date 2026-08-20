@@ -363,6 +363,7 @@ Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kern
 - [Architecture Docs](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable API and policy reference
 - [Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream with CSV export
 - [Supply Chain Trust & Provenance](./docs/security/SUPPLY_CHAIN_TRUST_AND_PROVENANCE.md) — SLSA L3, Sigstore signing, SBOM & reproducible builds
+- [Security Capabilities & Permissions Disclosure](./docs/compliance/SECURITY_CAPABILITIES_DISCLOSURE.md) — Socket.dev capability disclosure & dependency justification
 - [OpenSSF Best Practices Evidence](./docs/compliance/OPENSSF_BEST_PRACTICES_EVIDENCE.md) — Criteria mapping for OpenSSF Badge #14173
 - [Limitations and Boundaries](./docs/LIMITATIONS_AND_BOUNDARIES.md) — Honest scope and architectural constraints
 - [EU AI Act Mapping](./docs/compliance/EU_AI_ACT_MAPPING.md) — Articles 9–15 crosswalk
