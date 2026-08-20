@@ -1,6 +1,6 @@
 {
   "benchmark": "MCPTox / MCP-Bench (Tool Poisoning)",
-  "timestamp": "2026-08-20T19:31:56.611Z",
+  "timestamp": "2026-08-20T20:41:47.183Z",
   "datasetSource": "canonical",
   "environment": {
     "nodeVersion": "v22.22.3",
@@ -33,28 +33,45 @@
       "trueNegative": 1,
       "falseNegative": 0
     },
+    "confidenceIntervals": {
+      "level": 0.95,
+      "asrUpperBoundExact": 0.6024,
+      "asr": {
+        "lower": 0,
+        "upper": 0.4899,
+        "point": 0,
+        "method": "wilson"
+      },
+      "benignUtility": {
+        "lower": 0.2065,
+        "upper": 1,
+        "point": 1,
+        "method": "wilson"
+      },
+      "zeroEventNote": "0 bypasses in 4 attacks ⇒ ASR < 75.0% at 95% confidence (rule of three)"
+    },
     "latenciesMs": [
-      0.6729909999999677,
-      0.25842599999998583,
-      0.23352100000005294,
-      0.02355699999998251,
-      0.05264900000003081
+      0.6034490000000119,
+      0.39451300000001766,
+      0.2182109999999966,
+      0.016771000000005643,
+      0.05314200000003666
     ],
     "latencyDistribution": {
-      "meanMs": 0.248,
-      "minMs": 0.024,
-      "maxMs": 0.673,
-      "p50Ms": 0.234,
-      "p90Ms": 0.673,
-      "p95Ms": 0.673,
-      "p99Ms": 0.673
+      "meanMs": 0.257,
+      "minMs": 0.017,
+      "maxMs": 0.603,
+      "p50Ms": 0.218,
+      "p90Ms": 0.603,
+      "p95Ms": 0.603,
+      "p99Ms": 0.603
     }
   },
   "attestationProof": {
     "algorithm": "SHA-256",
-    "payloadHash": "73ef83acd526999f26b3140500ac8b14847e227725ef11f4fae5fa78a3d54454",
+    "payloadHash": "fdf06ed0c7a52f01306c590962c2cd8a35dce20cff3e1181dc59a768696b94f2",
     "datasetSha256": "cc62089b051aba6aaedacf5696c8176005b3e5ff5061d73fd4468925a3f537db",
-    "timestamp": "2026-08-20T19:31:56.611Z",
+    "timestamp": "2026-08-20T20:41:47.183Z",
     "reproducibleSeed": 42,
     "zeroEgressVerified": true
   }

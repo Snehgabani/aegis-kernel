@@ -114,3 +114,15 @@
   4. **Live-law compliance:** dossier leads with Article 50 (in force 2026-08-02) and dates the Articles 9–15 package to 2027-12-02; OWASP crosswalk extended to the Agentic AI Top 10 (ASI01–ASI10) with honest per-category coverage labels.
   5. **Opt-in observability:** OTel GenAI-conformant `execute_tool` spans (required `gen_ai.*` attributes, content-free, zero-egress) via a user-registered sink; sink failures can never affect a verdict.
 - **Consequences:** Every future benchmark, latency, or compliance number must trace to a committed artifact or it does not get published. This costs us marketing headline strength and buys the only durable asset a security vendor has: verifiable trust. Canonical-dataset runs remain pending a network-enabled CI environment and will be published only with checksummed artifacts.
+
+---
+
+## Decision 12: Scientific Evaluation Doctrine — CIs, Ablations, Metamorphic Properties
+- **Date:** 2026-08-21
+- **Status:** `ACTIVE`
+- **Context:** Point estimates are not scientific claims. "100% detection" on N=13 carries a 95% exact upper bound of 30.8% ASR (Clopper-Pearson); the AgentDojo literature reports 95% CIs on every figure. Applying the scientific method to our own product (property-based metamorphic testing) immediately found two real engine gaps that 590+ example-based tests had missed.
+- **Decision:**
+  1. Every published security/utility proportion carries a 95% CI: Clopper-Pearson (exact, conservative) for the ASR upper bound; Wilson for utility-side reporting (Wilson 1927; Clopper-Pearson 1934; Brown-Cai-DasGupta 2001 coverage analysis). Zero-event claims state the rule of three (3/n; Hanley & Lippman-Hand 1983); claiming ASR < r requires ≥ 3/r zero-bypass attacks (≥300 for <1%).
+  2. Ablation studies (component attribution) are part of the evidence pipeline: no-packs control, per-pack ΔASR/Δutility with the redundancy explicitly measured (sql-guard Δ0pp BECAUSE soc2-guard independently covers DDL — defense-in-depth quantified, not asserted).
+  3. Metamorphic properties are regression law: determinism, blocking monotonicity, key-order invariance, evasion closure, fingerprint purity (proofHash deliberately binds time for ledger replay), and zero-FP on generated benign traffic. The two gaps they found (SELECT-tautology unbounded reads; encoded-numeric/SQL wraps) are fixed and pinned.
+- **Consequences:** Our in-tree numbers now advertise their own weakness (wide CIs at small N) — this is intentional: it makes the canonical-dataset runs the only path to strong claims, and it makes marketing-grade overstatement structurally impossible. Statistics live in `packages/evals/src/stats.ts` (dependency-free, literature-pinned tests).

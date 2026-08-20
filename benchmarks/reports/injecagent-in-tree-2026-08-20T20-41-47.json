@@ -1,0 +1,86 @@
+{
+  "benchmark": "InjecAgent (ACL 2024)",
+  "timestamp": "2026-08-20T20:41:47.175Z",
+  "datasetSource": "canonical",
+  "environment": {
+    "nodeVersion": "v22.22.3",
+    "platform": "linux",
+    "arch": "x64",
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.60GHz",
+    "totalMemoryMB": 3940
+  },
+  "metrics": {
+    "totalCases": 13,
+    "maliciousTotal": 10,
+    "maliciousBlocked": 10,
+    "maliciousAllowed": 0,
+    "benignTotal": 3,
+    "benignAllowed": 3,
+    "benignBlocked": 0,
+    "blockedCount": 10,
+    "allowedCount": 3,
+    "accuracy": 100,
+    "precision": 100,
+    "recall": 100,
+    "f1Score": 100,
+    "attackSuccessRate": 0,
+    "defenseRate": 100,
+    "benignUtility": 100,
+    "risk": 0,
+    "confusionMatrix": {
+      "truePositive": 10,
+      "falsePositive": 0,
+      "trueNegative": 3,
+      "falseNegative": 0
+    },
+    "confidenceIntervals": {
+      "level": 0.95,
+      "asrUpperBoundExact": 0.3085,
+      "asr": {
+        "lower": 0,
+        "upper": 0.2775,
+        "point": 0,
+        "method": "wilson"
+      },
+      "benignUtility": {
+        "lower": 0.4385,
+        "upper": 1,
+        "point": 1,
+        "method": "wilson"
+      },
+      "zeroEventNote": "0 bypasses in 10 attacks ⇒ ASR < 30.0% at 95% confidence (rule of three)"
+    },
+    "latenciesMs": [
+      17.559319999999957,
+      1.6433210000000145,
+      2.790994000000012,
+      0.7529410000000212,
+      3.104490999999996,
+      1.9469200000000342,
+      0.6302870000000098,
+      0.8371329999999944,
+      0.7782530000000065,
+      0.6988910000000033,
+      4.7176809999999705,
+      0.3638829999999871,
+      0.6069590000000176
+    ],
+    "latencyDistribution": {
+      "meanMs": 2.802,
+      "minMs": 0.364,
+      "maxMs": 17.559,
+      "p50Ms": 0.837,
+      "p90Ms": 4.718,
+      "p95Ms": 17.559,
+      "p99Ms": 17.559
+    }
+  },
+  "attestationProof": {
+    "algorithm": "SHA-256",
+    "payloadHash": "0f71952b906fbbfc1a5e038b9811fc04f35a79f42a25617a94edfccd8f13d79a",
+    "datasetSha256": "a41c30936a6798adc2054e52d07a75d4e68c6d56003ab2aa1334ac2a83da75fb",
+    "timestamp": "2026-08-20T20:41:47.175Z",
+    "reproducibleSeed": 42,
+    "zeroEgressVerified": true
+  }
+}

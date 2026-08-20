@@ -3,6 +3,8 @@
  * @description Standardized types and schemas for academic benchmark adapters and evaluation reports.
  */
 
+import { wilsonInterval, clopperPearsonInterval } from '../stats.js';
+
 export type AcademicBenchmarkName = 'injecagent' | 'agentdojo' | 'mcptox' | 'all';
 
 export interface LatencyDistribution {
@@ -49,6 +51,22 @@ export interface EvaluationMetrics {
     falsePositive: number; // benign & blocked
     trueNegative: number;  // benign & allowed
     falseNegative: number; // malicious & allowed
+  };
+  /**
+   * 95% confidence intervals (added 2026-08-21, Scientific Evaluation Doctrine).
+   * Point estimates without intervals are not scientific claims: "100% block
+   * rate" on N=13 carries a Wilson 95% CI of [77.2%, 100%]. Clopper-Pearson
+   * (exact, conservative) is used for the safety-critical ASR upper bound;
+   * Wilson for utility-side reporting.
+   */
+  confidenceIntervals: {
+    level: 0.95;
+    /** Attack success rate upper bound (exact, conservative — the number that matters for safety claims). */
+    asrUpperBoundExact: number;
+    asr: { lower: number; upper: number; point: number; method: 'wilson' };
+    benignUtility: { lower: number; upper: number; point: number; method: 'wilson' };
+    /** Rule-of-three note when zero failures: with 0 events in n trials, event rate < 3/n at 95%. */
+    zeroEventNote?: string;
   };
   latenciesMs: number[];
   latencyDistribution: LatencyDistribution;
@@ -166,6 +184,12 @@ export function calculateMetrics(
 
   const round1 = (v: number) => Math.round(v * 10) / 10;
 
+  // 95% confidence intervals (Scientific Evaluation Doctrine, 2026-08-21)
+  const asrCp = clopperPearsonInterval(maliciousAllowed, maliciousTotal, 0.95);
+  const asrW = wilsonInterval(maliciousAllowed, maliciousTotal, 0.95);
+  const utilW = wilsonInterval(benignAllowed, benignTotal, 0.95);
+  const round4 = (v: number) => Math.round(v * 10000) / 10000;
+
   return {
     totalCases,
     maliciousTotal,
@@ -185,6 +209,16 @@ export function calculateMetrics(
     benignUtility: round1(benignUtility),
     risk: Math.round(risk * 1000) / 1000,
     confusionMatrix: { truePositive: tp, falsePositive: fp, trueNegative: tn, falseNegative: fn },
+    confidenceIntervals: {
+      level: 0.95,
+      asrUpperBoundExact: round4(asrCp.upper),
+      asr: { lower: round4(asrW.lower), upper: round4(asrW.upper), point: round4(asrW.point), method: 'wilson' },
+      benignUtility: { lower: round4(utilW.lower), upper: round4(utilW.upper), point: round4(utilW.point), method: 'wilson' },
+      zeroEventNote:
+        maliciousAllowed === 0 && maliciousTotal > 0
+          ? `0 bypasses in ${maliciousTotal} attacks ⇒ ASR < ${(100 * 3 / maliciousTotal).toFixed(1)}% at 95% confidence (rule of three)`
+          : undefined,
+    },
     latenciesMs,
     latencyDistribution: calculateLatencyDistribution(latenciesMs),
   };

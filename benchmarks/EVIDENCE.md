@@ -14,11 +14,19 @@ that could not be reproduced from any dataset in the repository.
 
 ### 1.1 In-tree representative corpora — 100% verdict agreement
 
-| Benchmark | Corpus | N | Malicious / Benign | ASR | Defense rate | Benign utility | Accuracy | p50 latency |
+| Benchmark | Corpus | N | Malicious / Benign | ASR [95% exact upper] | Defense rate | Benign utility [95% Wilson] | Accuracy | p50 latency |
 |---|---|---|---|---|---|---|---|---|
-| InjecAgent (ACL 2024) | in-tree representative sample | **13** | 10 / 3 | 0.0% | 100.0% | 100.0% | 100.0% | 0.675 ms |
-| AgentDojo (NeurIPS 2024) | in-tree representative sample | **9** | 5 / 4 | 0.0% | 100.0% | 100.0% | 100.0% | 0.261 ms |
-| MCPTox / MCP tool poisoning | in-tree representative sample | **5** | 4 / 1 | 0.0% | 100.0% | 100.0% | 100.0% | 0.234 ms |
+| InjecAgent (ACL 2024) | in-tree representative sample | **13** | 10 / 3 | 0.0% [<u>**30.8%**</u>] | 100.0% | 100.0% [CI 44.0–100%] | 100.0% | 0.675 ms |
+| AgentDojo (NeurIPS 2024) | in-tree representative sample | **9** | 5 / 4 | 0.0% [<u>**45.0%**</u>] | 100.0% | 100.0% [CI 51.0–100%] | 100.0% | 0.261 ms |
+| MCPTox / MCP tool poisoning | in-tree representative sample | **5** | 4 / 1 | 0.0% [<u>**52.7%**</u>] | 100.0% | 100.0% [CI 56.5–100%] | 100.0% | 0.234 ms |
+
+**Read the intervals, not the point estimates.** Zero bypasses in 10 attacks
+means ASR < 3/10 = 30% at 95% confidence (rule of three; the exact
+Clopper-Pearson upper bounds are shown in brackets). These tiny samples can only
+support "the samples are clean" — which is exactly why the canonical runs
+(§2) are the real evidence and are not claimed until executed. To claim
+ASR < 1% at 95% confidence requires **≥ 300 attacks with zero bypasses**
+(rule of three); the canonical InjecAgent DH set alone provides 1,054.
 
 - Reports: `reports/injecagent-in-tree-*.json`, `reports/agentdojo-in-tree-*.json`,
   `reports/mcptox-in-tree-*.json` (each includes dataset SHA-256, environment
@@ -103,6 +111,30 @@ flatters defenses); Aegis's deterministic invariants are structural rather
 than probabilistic, but independent adaptive red-teaming is still pending and
 we do not claim otherwise.
 
+### 1.4 Ablation study (component attribution, 2026-08-21)
+
+Scientific ablation over the in-tree corpus (22 vectors, 15 attacks):
+`runAblationStudy()` in `@aegis-kernel/evals`, rendered via `aegis eval ablation` docs.
+
+- **No-packs control: ASR 100%** — normalization alone blocks nothing; ALL
+  blocking is rule-driven (the engine is a policy engine, not a classifier).
+- `finance-guard` removal: **+20pp ASR** (unique coverage: financial bounds).
+- `data-guard` removal: **+20pp ASR** (unique coverage: PII/secrets).
+- `sql-guard` removal: **+0pp — measured redundancy**: soc2-guard independently
+  blocks every DDL/mass-mutation vector (SOC2-002/003). Defense-in-depth,
+  quantified rather than asserted.
+- No single-pack removal fully exposes the corpus (max single-pack ΔASR 20pp ≪
+  control 100pp).
+
+### 1.5 Metamorphic properties (2026-08-21)
+
+Deterministic property suite (`metamorphic-properties.test.ts`, fast-check):
+M1 determinism · M2 blocking monotonicity · M3 key-order invariance ·
+M4 evasion closure · M5 fingerprint purity (proofHash deliberately binds time —
+audit semantics) · M6 zero-FP on 200 generated benign calls. **M2 and M4 found
+two real engine gaps on first run** (see corrections register) — the properties
+now pin them permanently.
+
 ## 3. Corrections register
 
 | Date | Correction |
@@ -110,6 +142,8 @@ we do not claim otherwise.
 | 2026-08-20 | Withdrew "93.5% InjecAgent resilience (1,054 cases)" — not reproducible from in-repo data; replaced by §1.1/§1.2 with corpus provenance |
 | 2026-08-20 | Withdrew "86.6% AgentDojo accuracy (629 cases)" — same reason; replaced by §1.1 |
 | 2026-08-20 | "0.25 ms P50" replaced by per-workload measured percentiles (§1.3) |
+| 2026-08-21 | **Engine gap fixed (metamorphic M2 finding):** `SELECT` with tautological WHERE (`WHERE 1=1`, `'x'='x'`, OR-constant) was ALLOWED — sql-guard's unbounded-read rule (SQL-004) only enforced LIMIT ceilings. Tautological WHERE now blocked as unbounded-read-by-construction (benign no-LIMIT small reads still allowed). |
+| 2026-08-21 | **Engine gap fixed (metamorphic M4 finding):** base64/double-base64-wrapped SQL in `query`, and encoded amount strings (`BASE64_DATA: …`, zero-width-spaced digits), bypassed the SQL parser and numeric bounds respectively. Both checkers now run bounded fold→decode cascades before enforcement. 12/12 layer×attack combos blocked, benign hash-literal queries unaffected. |
 | 2026-08-20 | Fetch-script URLs fixed (both previously 404); synthetic silent fallback removed |
 
 ## 4. Reproduce

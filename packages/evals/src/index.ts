@@ -17,3 +17,5 @@ export * from './blinded/double-blind-harness.js';
 export * from './fuzz/ast-grammar-fuzzer.js';
 
 export * from './adaptive/poisoning-stress.js';
+export * from './stats.js';
+export * from './ablation.js';

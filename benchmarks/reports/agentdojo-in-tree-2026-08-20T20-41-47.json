@@ -1,6 +1,6 @@
 {
   "benchmark": "AgentDojo (NeurIPS 2024)",
-  "timestamp": "2026-08-20T19:31:56.609Z",
+  "timestamp": "2026-08-20T20:41:47.181Z",
   "datasetSource": "canonical",
   "environment": {
     "nodeVersion": "v22.22.3",
@@ -33,32 +33,49 @@
       "trueNegative": 4,
       "falseNegative": 0
     },
+    "confidenceIntervals": {
+      "level": 0.95,
+      "asrUpperBoundExact": 0.5218,
+      "asr": {
+        "lower": 0,
+        "upper": 0.4345,
+        "point": 0,
+        "method": "wilson"
+      },
+      "benignUtility": {
+        "lower": 0.5101,
+        "upper": 1,
+        "point": 1,
+        "method": "wilson"
+      },
+      "zeroEventNote": "0 bypasses in 5 attacks ⇒ ASR < 60.0% at 95% confidence (rule of three)"
+    },
     "latenciesMs": [
-      0.38850300000001425,
-      0.2612570000000005,
-      0.8454280000000267,
-      0.3458880000000022,
-      0.21950700000002143,
-      0.2004339999999729,
-      0.20797400000003563,
-      0.29098300000003974,
-      0.18245999999999185
+      0.5093609999999558,
+      0.41190900000003694,
+      0.8931760000000395,
+      0.5197790000000282,
+      0.35480899999998883,
+      0.391366000000005,
+      0.49584499999997433,
+      0.4918870000000197,
+      0.3915129999999749
     ],
     "latencyDistribution": {
-      "meanMs": 0.327,
-      "minMs": 0.182,
-      "maxMs": 0.845,
-      "p50Ms": 0.261,
-      "p90Ms": 0.845,
-      "p95Ms": 0.845,
-      "p99Ms": 0.845
+      "meanMs": 0.496,
+      "minMs": 0.355,
+      "maxMs": 0.893,
+      "p50Ms": 0.492,
+      "p90Ms": 0.893,
+      "p95Ms": 0.893,
+      "p99Ms": 0.893
     }
   },
   "attestationProof": {
     "algorithm": "SHA-256",
-    "payloadHash": "5791e23bb9989689372df93bb89edbadcd06da71e5b0aa39c1e06327e11e02c7",
+    "payloadHash": "87d5e92007eddcdc2a8f13883b0d5a39849c47e3088af36d277c18c8a9d80f45",
     "datasetSha256": "4d23f2cc7cab55386b6a471e6d05e9707ececb1b1b617bc047ba187a35c27b27",
-    "timestamp": "2026-08-20T19:31:56.609Z",
+    "timestamp": "2026-08-20T20:41:47.181Z",
     "reproducibleSeed": 42,
     "zeroEgressVerified": true
   }

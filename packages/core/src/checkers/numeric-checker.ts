@@ -1,4 +1,5 @@
 import type { AegisViolation, NumericConditionParams, ToolCall } from '../types.js';
+import { HOMOGLYPH_DECODE_MAP } from './sql-checker.js';
 
 export class NumericChecker {
   private rateLimitWindows: Map<string, number[]>;
@@ -126,19 +127,87 @@ export class NumericChecker {
         return null;
       }
 
-      // Strip currency codes, symbols, and commas
-      const normalized = trimmed
-        .replace(/[$€£¥₹]/g, '')
-        .replace(/\b(USD|EUR|GBP|CAD|AUD|INR)\b/gi, '')
-        .replace(/,/g, '')
-        .trim();
-
-      const parsed = Number(normalized);
-      if (Number.isFinite(parsed)) {
+      const parsed = this.tryParseNumberString(trimmed);
+      if (parsed !== null) {
         return parsed;
       }
+
+      // 4. (2026-08-21, M4 property finding) Encoded-numeric evasion: an
+      // amount delivered as "BASE64_DATA: OTk5...", zero-width-spaced digits,
+      // or percent/hex-encoded text previously parsed to null and skipped the
+      // bound check entirely. Decode (bounded) before parsing.
+      return this.decodeEncodedNumeric(trimmed);
     }
 
+    return null;
+  }
+
+  private tryParseNumberString(raw: string): number | null {
+    // Strip currency codes, symbols, and commas
+    const normalized = raw
+      .replace(/[$€£¥₹]/g, '')
+      .replace(/\b(USD|EUR|GBP|CAD|AUD|INR)\b/gi, '')
+      .replace(/,/g, '')
+      .replace(/BASE64_DATA:/gi, '')
+      .trim();
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  /**
+   * Bounded decode cascade for numerics hidden behind encoding layers:
+   * strip invisibles/separators → fold confusables → base64 / percent / hex.
+   * Depth ≤ 2; candidates must parse as finite numbers to be accepted.
+   */
+  private decodeEncodedNumeric(raw: string): number | null {
+    if (raw.length > 512) return null;
+    const stripped = raw.replace(
+      /[\u00AD\u061C\u180E\u2000-\u200F\u202A-\u202E\u202F\u205F\u2060-\u2064\u2066-\u206F\u3000\uFEFF]/g,
+      ''
+    );
+    const folded = Array.from(stripped)
+      .map((ch) => HOMOGLYPH_DECODE_MAP[ch] ?? ch)
+      .join('');
+
+    const candidates: string[] = [folded];
+    const b64 = folded.match(/([A-Za-z0-9+/=_-]{8,})/);
+    if (b64) {
+      try {
+        const decoded = Buffer.from(b64[1].replace(/=+$/, ''), 'base64').toString('utf8');
+        if (decoded.replace(/[^\x20-\x7E]/g, '').length / Math.max(decoded.length, 1) > 0.8) {
+          candidates.push(decoded);
+          // layer 2 (double-wrapped)
+          const inner = decoded.match(/([A-Za-z0-9+/=_-]{8,})/);
+          if (inner) {
+            try {
+              candidates.push(Buffer.from(inner[1].replace(/=+$/, ''), 'base64').toString('utf8'));
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    const pct = folded.match(/(?:%[0-9A-Fa-f]{2}){2,}/);
+    if (pct) {
+      try {
+        candidates.push(decodeURIComponent(pct[0]));
+      } catch {
+        /* ignore */
+      }
+    }
+    const hex = folded.match(/(?:\\x[0-9A-Fa-f]{2}){2,}/);
+    if (hex) {
+      candidates.push(hex[0].replace(/\\x([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))));
+    }
+
+    for (const candidate of candidates) {
+      const n = this.tryParseNumberString(candidate);
+      if (n !== null) return n;
+    }
     return null;
   }
 

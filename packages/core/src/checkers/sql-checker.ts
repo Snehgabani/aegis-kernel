@@ -78,7 +78,35 @@ export class SqlChecker {
     // SQL keywords (D<ZW>ELETE, ＤＥＬＥＴＥ) defeat BOTH the AST parser and
     // the regex fallback, turning destructive SQL into an ALLOWED verdict.
     const normalizedSql = SqlChecker.normalizeUnicode(sql);
-    const cleanedSql = SqlChecker.stripSqlComments(normalizedSql);
+    let cleanedSql = SqlChecker.stripSqlComments(normalizedSql);
+
+    // SECURITY (2026-08-21, M4 property finding): evasion-wrapped SQL. A query
+    // delivered as "BASE64_DATA: <b64>" (possibly double-wrapped) is not valid
+    // SQL, so it parsed as garbage and was ALLOWED. Decode bounded layers; only
+    // accept a decode that yields a real SQL statement keyword (no false
+    // positives on long hash-like literals).
+    for (let depth = 0; depth < 3; depth++) {
+      const wrapMatch = cleanedSql.match(/(?:BASE64_DATA:)?\s*([A-Za-z0-9+/=]{24,})\s*$/);
+      if (!wrapMatch) break;
+      try {
+        const decoded = Buffer.from(wrapMatch[1], 'base64').toString('utf8');
+        const mostlyPrintable =
+          decoded.replace(/[^\x20-\x7E\n\r\t]/g, '').length / Math.max(decoded.length, 1) > 0.8;
+        const isSqlStatement =
+          /^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE)\b/i.test(
+            decoded.trim()
+          );
+        const isFurtherWrapped =
+          /BASE64_DATA:/i.test(decoded) || /^[A-Za-z0-9+/=]{24,}\s*$/.test(decoded.trim());
+        if (mostlyPrintable && (isSqlStatement || isFurtherWrapped)) {
+          cleanedSql = SqlChecker.stripSqlComments(SqlChecker.normalizeUnicode(decoded));
+        } else {
+          break;
+        }
+      } catch {
+        break;
+      }
+    }
 
     try {
       // 1. Multi-Dialect AST Parsing (Try PostgreSQL -> MySQL -> SQLite -> TransactSQL)
@@ -217,6 +245,28 @@ export class SqlChecker {
               suggestedFix: `Reduce LIMIT clause to ${params.max_limit} or less.`,
               context: { requestedLimit: limitVal, maxLimit: params.max_limit },
             });
+          }
+
+          // 5b. (2026-08-21, property-test finding) Unbounded read by construction:
+          // a SELECT whose WHERE clause is a tautology (1=1, 'x'='x', OR-constant,
+          // constant-folded truthy) matches every row regardless of any LIMIT —
+          // a mass-dump primitive. Blocked under the same unbounded-result-set rule.
+          if (stmtType === 'SELECT' || nestedTypes.includes('SELECT')) {
+            const selectStmt =
+              stmtType === 'SELECT'
+                ? (statement as any)
+                : (nestedMutations.find((m) => m.type === 'SELECT') as any);
+            const whereAst = selectStmt?.where ?? (stmtType === 'SELECT' ? (statement as any).where : undefined);
+            if (whereAst && this.isTautologyWhere(whereAst, cleanedSql)) {
+              violations.push({
+                ruleId,
+                packId,
+                severity,
+                message: `Unbounded SELECT detected: tautological WHERE clause matches every row (mass-dump primitive, e.g. WHERE 1=1 or 'x'='x').`,
+                suggestedFix: `Constrain the read with a selective predicate (e.g. 'WHERE id = :id').`,
+                context: { statementType: 'SELECT', tautology: true, unboundedRead: true },
+              });
+            }
           }
         }
       }
