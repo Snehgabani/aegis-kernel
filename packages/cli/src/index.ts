@@ -12,6 +12,7 @@ import { runMatrix } from './matrix-cli.js';
 import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
 import { runVerifyProof } from './verify-proof-cli.js';
 import { runScan } from './scan-cli.js';
+import { runMcpInventoryScan, printMcpScanResult } from './mcp-inventory.js';
 import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
 import { runAuditReport } from './audit-report-cli.js';
@@ -31,6 +32,18 @@ program
   .description('Recursively scan workspace, prompts, and MCP tool definitions for security vulnerabilities')
   .action((targetPath?: string) => {
     runScan(targetPath || '.');
+  });
+
+program
+  .command('scan-mcp [path]')
+  .description('Audit MCP server inventories (mcp.json, .cursor/mcp.json, claude_desktop_config.json): missing auth, insecure transport, unpinned packages, lock-file drift, tool poisoning')
+  .option('--lock <lockFile>', 'verify live inventories against an aegis-mcp-lock.json manifest')
+  .option('--pin <lockFile>', 'write/refresh an aegis-mcp-lock.json manifest pinning current server configs')
+  .action((targetPath: string | undefined, opts: { lock?: string; pin?: string }) => {
+    const result = runMcpInventoryScan(targetPath || '.', { lockPath: opts.lock, pinPath: opts.pin });
+    printMcpScanResult(result);
+    const blocking = result.findings.filter((f) => f.severity === 'critical' || f.severity === 'high');
+    if (blocking.length > 0) process.exitCode = 1;
   });
 
 program
