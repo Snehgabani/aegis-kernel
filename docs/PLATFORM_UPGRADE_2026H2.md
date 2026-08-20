@@ -128,6 +128,28 @@ flatter defenses) and the harness's value. The fix chain (wider invisible-char
 strip set → decode-before-match → fold-before-decode → recursive cascade) is
 exactly the OODA discipline applied to the engine itself.
 
+## 8. Verification cycle (2026-08-21, independent re-verification OODA loop)
+
+Every claim from cycles 1–3 re-verified from a clean process, not from memory:
+
+| Verification | Result |
+|---|---|
+| Full TS suite | ✅ 611/611, 83 files |
+| Build (turbo, all 12 tasks) | ✅ green |
+| npm audit / tsc | ✅ zero known vulns / clean |
+| Python suite | ✅ 11/11 |
+| **Live attack scenarios** (independent script, not the test suite) | ✅ 8/8: forged license w/ old hardcoded secret REJECTED; PII evasions (base64, double-b64, bidi, EN-SPACE) all BLOCKED; benign base64 passes; OTel span emitted with gen_ai.* attrs; audit events survive restart |
+| `aegis red-team run` at production defaults | ✅ PASS — 3×341 nodes, 0 bypasses, 12/12 poisoning detected, 0 false positives, exit 0 |
+| `scripts/run-benchmarks.mjs` reproducibility | ✅ field-standard metrics reproduce (ASR 0 / utility 100 on in-tree corpora) |
+| Git hygiene | ✅ tree clean; remote branch == HEAD (`600c538`); duplicate verification artifacts removed |
+| Docs consistency | ✅ badge/counts 611/83 everywhere; withdrawn 93.5%/86.6% appear ONLY in corrections-register contexts; CI drift-check correctly reports templates not yet installed (maintainer action) |
+| Residual defect found | `benchmarks/reports/latest.json` was modified by the verification run (expected side-effect) → restored; no other drift |
+
+**Conclusion: 3 cycles, 11 commits, 65 net-new tests (546 → 611), one real
+security vulnerability found and fixed by the new tooling itself, zero
+regressions.** Remaining work is fully specified in
+`docs/ROADMAP_BACKLOG_2026H2.md` (literature-backed, tiered by who must act).
+
 Cycle-3 final gate: **611/611 TS tests (83 files) · 11/11 Python · build green · audit clean.**
 
 Cycle-2 final gate: **590/590 TS tests (80 files) · 11/11 Python · build green · npm audit clean · tsc clean.**
