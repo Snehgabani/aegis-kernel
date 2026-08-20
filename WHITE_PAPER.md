@@ -214,10 +214,21 @@ aegis benchmark --tricky
 
 ---
 
-## 6. Disclaimers & Legal Notices
+## 6. Academic References & Prior Art Attribution
 
-- **Trademark Disclaimer**: *NVIDIA®, NeMo Guardrails®, Lakera Guard®, and Guardrails AI® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement.*
+1. **InjecAgent**: Zhan, Q., Liang, R., Guan, Z., et al. (2024). *InjecAgent: Benchmarking Indirect Prompt Injections in Tool-Integrated Large Language Model Agents*. Findings of the Association for Computational Linguistics (ACL 2024). arXiv:2403.02691.
+2. **AgentDojo**: Debenedetti, E., Zhang, J., Balunović, M., et al. (2024). *AgentDojo: A Dynamic Environment to Evaluate Attacks and Defenses for LLM Agents*. Advances in Neural Information Processing Systems (NeurIPS 2024). arXiv:2406.13314.
+3. **Tree of Attacks (TAP)**: Mehrotra, A., Zampetakis, M., Kassianik, P., et al. (2023). *Tree of Attacks: Jailbreaking Black-Box LLMs Automatically*. arXiv:2312.02119.
+4. **OWASP Top 10 for LLM & Agents**: OWASP Foundation (2024/2025). *OWASP Top 10 for Large Language Model Applications & Autonomous AI Agents* (LLM01-LLM10 / ASI01-ASI10).
+5. **NIST AI RMF**: National Institute of Standards and Technology (2023). *Artificial Intelligence Risk Management Framework (AI RMF 1.0)*. NIST Special Publication 1270.
+
+---
+
+## 7. Disclaimers & Legal Notices
+
+- **Trademark Disclaimer**: *NVIDIA®, NeMo Guardrails®, Lakera Guard®, Guardrails AI®, OpenAI®, Anthropic®, LangChain®, Meta®, PostgreSQL®, Docker®, and Linux® are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation, sponsorship, or endorsement.*
 - **Benchmark Honesty Notice**: *All comparative metrics shown above were measured on local hardware using reproducible test runners (`packages/evals`). Competitor architectures were simulated via standard algorithmic baselines (regex patterns, local embedding classifiers, and API latency bounds).*
+- **License & IP Statement**: *Aegis Invariant Kernel is original open-source software authored by Sneh Gabani, distributed under the permissive MIT License. All third-party dependencies are strictly permissively licensed (MIT, Apache-2.0, ISC, BSD).*
 
 ---
 

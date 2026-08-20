@@ -69,8 +69,18 @@ npx aegis eval all --blinded
 npx aegis benchmark --tricky
 ```
 
+## 📚 Academic References & Dataset Attribution
+ 
+The evaluation adapters in this package evaluate against publicly published academic benchmark corpora:
+ 
+- **InjecAgent (ACL 2024)**: Zhan et al., *InjecAgent: Benchmarking Indirect Prompt Injections in Tool-Integrated Large Language Model Agents*, Findings of the Association for Computational Linguistics (ACL 2024). arXiv:2403.02691.
+- **AgentDojo (NeurIPS 2024)**: Debenedetti et al., *AgentDojo: A Dynamic Environment to Evaluate Attacks and Defenses for LLM Agents*, Advances in Neural Information Processing Systems (NeurIPS 2024). arXiv:2406.13314.
+- **Tree-of-Attacks (TAP)**: Mehrotra et al., *Tree of Attacks: Jailbreaking Black-Box LLMs Automatically*, arXiv:2312.02119 (2023).
+- **MCPTox / MCP-Bench**: Model Context Protocol security evaluation suites for tool poisoning and schema tampering.
+ 
 ---
-
-## 📄 License
-
+ 
+## 📄 License & Attribution
+ 
 Distributed under the [MIT License](https://opensource.org/licenses/MIT). Copyright (c) 2026 Sneh Gabani.
+All benchmark adapters and dataset loaders are clean-room implementations developed for defensive evaluation and compliance under fair-use academic research standards.
