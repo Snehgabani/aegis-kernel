@@ -62,6 +62,7 @@ describe('Adversarial & Edge-Case Stress Testing Suite', () => {
           request: {
             headers: {
               auth: {
+                // sk-proj-FAKE test fixture token
                 token: ['sk', 'proj', 'FAKE999988887777666655554444333322221111'].join('-'),
               },
             },

@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
+          cache: 'npm'
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -30,12 +31,12 @@ jobs:
           python-version: '3.11'
 
       - name: Install Dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
       - name: Build All Monorepo Packages
         run: npm run build
 
-      - name: Run Full Vitest Test Suite (265+ tests)
+      - name: Run Full Vitest Test Suite (74 suites, 532 tests)
         run: npm run test
 
       - name: Run Python SDK Unit Tests
