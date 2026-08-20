@@ -1,15 +1,15 @@
 use crate::crypto::Sha256;
-use std::collections::HashMap;
-use std::time::Instant;
 use crate::numeric::NumericChecker;
 use crate::pii::PiiChecker;
 use crate::sql::SqlChecker;
 use crate::state::StateChecker;
 use crate::types::{
-    AegisMode, AegisSeverity, AegisViolation, Config, NumericConditionParams,
-    RegexConditionParams, Rule, RuleCondition, RulePack, SqlAstConditionParams,
-    StateInvariantConditionParams, ToolCall, Verdict,
+    AegisMode, AegisSeverity, AegisViolation, Config, NumericConditionParams, RegexConditionParams,
+    Rule, RuleCondition, RulePack, SqlAstConditionParams, StateInvariantConditionParams, ToolCall,
+    Verdict,
 };
+use std::collections::HashMap;
+use std::time::Instant;
 
 pub struct AegisEngine {
     config: Config,
@@ -38,7 +38,10 @@ impl AegisEngine {
 
             for (arg_name, (min_val, max_val)) in &config.numeric_limits {
                 let mut params = HashMap::new();
-                params.insert("field".to_string(), serde_json::Value::String(arg_name.clone()));
+                params.insert(
+                    "field".to_string(),
+                    serde_json::Value::String(arg_name.clone()),
+                );
                 params.insert("min".to_string(), serde_json::to_value(min_val).unwrap());
                 params.insert("max".to_string(), serde_json::to_value(max_val).unwrap());
 
@@ -80,8 +83,10 @@ impl AegisEngine {
     }
 
     pub fn new_with_packs(packs: Vec<RulePack>) -> Self {
-        let mut cfg = Config::default();
-        cfg.rule_packs = packs;
+        let cfg = Config {
+            rule_packs: packs,
+            ..Default::default()
+        };
         Self::new(cfg)
     }
 
@@ -91,7 +96,10 @@ impl AegisEngine {
         r1_params.insert("require".to_string(), serde_json::json!("WHERE_CLAUSE"));
 
         let mut r2_params = HashMap::new();
-        r2_params.insert("block_statements".to_string(), serde_json::json!(["DROP", "TRUNCATE", "ALTER", "GRANT", "REVOKE"]));
+        r2_params.insert(
+            "block_statements".to_string(),
+            serde_json::json!(["DROP", "TRUNCATE", "ALTER", "GRANT", "REVOKE"]),
+        );
 
         let mut r3_params = HashMap::new();
         r3_params.insert("statements".to_string(), serde_json::json!(["UPDATE"]));
@@ -144,8 +152,14 @@ impl AegisEngine {
 
         let mut r2_params = HashMap::new();
         r2_params.insert("target_field".to_string(), serde_json::json!("amount"));
-        r2_params.insert("precondition".to_string(), serde_json::json!("state.account_status == 'active'"));
-        r2_params.insert("assertion".to_string(), serde_json::json!("state.spent_today + params.amount <= state.daily_budget"));
+        r2_params.insert(
+            "precondition".to_string(),
+            serde_json::json!("state.account_status == 'active'"),
+        );
+        r2_params.insert(
+            "assertion".to_string(),
+            serde_json::json!("state.spent_today + params.amount <= state.daily_budget"),
+        );
 
         RulePack {
             id: "finance-guard".to_string(),
@@ -157,7 +171,10 @@ impl AegisEngine {
                     id: "FIN-001".to_string(),
                     severity: AegisSeverity::Critical,
                     description: "Single transaction amount cannot exceed $10,000".to_string(),
-                    suggested_fix: Some("Transaction amount exceeds maximum single-action ceiling of $10,000.".to_string()),
+                    suggested_fix: Some(
+                        "Transaction amount exceeds maximum single-action ceiling of $10,000."
+                            .to_string(),
+                    ),
                     condition: RuleCondition {
                         r#type: "numeric".to_string(),
                         params: r1_params,
@@ -179,17 +196,38 @@ impl AegisEngine {
 
     pub fn default_data_guard() -> RulePack {
         let mut r1_params = HashMap::new();
-        r1_params.insert("patterns".to_string(), serde_json::json!([
-            "CREDIT_CARD", "US_SSN", "US_TAX_ID", "DRIVER_LICENSE", "MEDICAL_RECORD_NUMBER", "US_NPI", "US_DEA"
-        ]));
+        r1_params.insert(
+            "patterns".to_string(),
+            serde_json::json!([
+                "CREDIT_CARD",
+                "US_SSN",
+                "US_TAX_ID",
+                "DRIVER_LICENSE",
+                "MEDICAL_RECORD_NUMBER",
+                "US_NPI",
+                "US_DEA"
+            ]),
+        );
         r1_params.insert("match_action".to_string(), serde_json::json!("block"));
 
         let mut r2_params = HashMap::new();
-        r2_params.insert("patterns".to_string(), serde_json::json!([
-            "OPENAI_API_KEY", "GITHUB_TOKEN", "AWS_ACCESS_KEY", "STRIPE_KEY", "GENERIC_BEARER",
-            "JWT_TOKEN", "SLACK_TOKEN", "SENDGRID_KEY", "AZURE_KEY", "PRIVATE_KEY",
-            "SENSITIVE_FILE_PATH", "DESTRUCTIVE_COMMAND"
-        ]));
+        r2_params.insert(
+            "patterns".to_string(),
+            serde_json::json!([
+                "OPENAI_API_KEY",
+                "GITHUB_TOKEN",
+                "AWS_ACCESS_KEY",
+                "STRIPE_KEY",
+                "GENERIC_BEARER",
+                "JWT_TOKEN",
+                "SLACK_TOKEN",
+                "SENDGRID_KEY",
+                "AZURE_KEY",
+                "PRIVATE_KEY",
+                "SENSITIVE_FILE_PATH",
+                "DESTRUCTIVE_COMMAND"
+            ]),
+        );
         r2_params.insert("match_action".to_string(), serde_json::json!("block"));
 
         RulePack {
@@ -238,7 +276,10 @@ impl AegisEngine {
         }
 
         let digest = hasher.finalize();
-        digest.iter().map(|b| format!("{:02x}", b)).collect::<String>()
+        digest
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>()
     }
 
     pub fn evaluate(&self, call: &ToolCall) -> Verdict {
@@ -257,19 +298,45 @@ impl AegisEngine {
             for rule in &pack.rules {
                 match rule.condition.r#type.as_str() {
                     "sql_ast" => {
-                        let statements = rule.condition.params.get("statements")
+                        let statements = rule
+                            .condition
+                            .params
+                            .get("statements")
                             .and_then(|v| v.as_array())
-                            .map(|arr| arr.iter().filter_map(|s| s.as_str().map(|str_s| str_s.to_string())).collect())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|s| s.as_str().map(|str_s| str_s.to_string()))
+                                    .collect()
+                            })
                             .unwrap_or_default();
 
-                        let block_statements = rule.condition.params.get("block_statements")
+                        let block_statements = rule
+                            .condition
+                            .params
+                            .get("block_statements")
                             .and_then(|v| v.as_array())
-                            .map(|arr| arr.iter().filter_map(|s| s.as_str().map(|str_s| str_s.to_string())).collect())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|s| s.as_str().map(|str_s| str_s.to_string()))
+                                    .collect()
+                            })
                             .unwrap_or_default();
 
-                        let require = rule.condition.params.get("require").and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let max_limit = rule.condition.params.get("max_limit").and_then(|v| v.as_i64());
-                        let database_field = rule.condition.params.get("database_field").and_then(|v| v.as_str().map(|s| s.to_string()));
+                        let require = rule
+                            .condition
+                            .params
+                            .get("require")
+                            .and_then(|v| v.as_str().map(|s| s.to_string()));
+                        let max_limit = rule
+                            .condition
+                            .params
+                            .get("max_limit")
+                            .and_then(|v| v.as_i64());
+                        let database_field = rule
+                            .condition
+                            .params
+                            .get("database_field")
+                            .and_then(|v| v.as_str().map(|s| s.to_string()));
 
                         let sql_params = SqlAstConditionParams {
                             statements,
@@ -279,11 +346,23 @@ impl AegisEngine {
                             database_field,
                         };
 
-                        let v_list = self.sql_checker.evaluate(&rule.id, &pack.id, &sql_params, call, rule.severity.clone());
+                        let v_list = self.sql_checker.evaluate(
+                            &rule.id,
+                            &pack.id,
+                            &sql_params,
+                            call,
+                            rule.severity.clone(),
+                        );
                         structured_violations.extend(v_list);
                     }
                     "numeric" => {
-                        let field = rule.condition.params.get("field").and_then(|v| v.as_str()).unwrap_or("amount").to_string();
+                        let field = rule
+                            .condition
+                            .params
+                            .get("field")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("amount")
+                            .to_string();
                         let min = rule.condition.params.get("min").and_then(|v| v.as_f64());
                         let max = rule.condition.params.get("max").and_then(|v| v.as_f64());
 
@@ -294,31 +373,77 @@ impl AegisEngine {
                             rate_limit: None,
                         };
 
-                        let v_list = self.numeric_checker.evaluate(&rule.id, &pack.id, &num_params, call, rule.severity.clone());
+                        let v_list = self.numeric_checker.evaluate(
+                            &rule.id,
+                            &pack.id,
+                            &num_params,
+                            call,
+                            rule.severity.clone(),
+                        );
                         structured_violations.extend(v_list);
                     }
                     "regex" => {
-                        let patterns = rule.condition.params.get("patterns")
+                        let patterns = rule
+                            .condition
+                            .params
+                            .get("patterns")
                             .and_then(|v| v.as_array())
-                            .map(|arr| arr.iter().filter_map(|s| s.as_str().map(|str_s| str_s.to_string())).collect())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|s| s.as_str().map(|str_s| str_s.to_string()))
+                                    .collect()
+                            })
                             .unwrap_or_default();
 
-                        let match_action = rule.condition.params.get("match_action").and_then(|v| v.as_str().map(|s| s.to_string()));
+                        let match_action = rule
+                            .condition
+                            .params
+                            .get("match_action")
+                            .and_then(|v| v.as_str().map(|s| s.to_string()));
 
                         let regex_params = RegexConditionParams {
                             patterns,
                             match_action,
                         };
 
-                        let v_list = self.pii_checker.evaluate(&rule.id, &pack.id, &regex_params, call, rule.severity.clone());
+                        let v_list = self.pii_checker.evaluate(
+                            &rule.id,
+                            &pack.id,
+                            &regex_params,
+                            call,
+                            rule.severity.clone(),
+                        );
                         structured_violations.extend(v_list);
                     }
                     "state_invariant" => {
-                        let target_field = rule.condition.params.get("target_field").and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let tenant_field = rule.condition.params.get("tenant_field").and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let require_state = rule.condition.params.get("require_state").and_then(|v| v.as_bool()).unwrap_or(false);
-                        let precondition = rule.condition.params.get("precondition").and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let assertion = rule.condition.params.get("assertion").and_then(|v| v.as_str()).unwrap_or("true").to_string();
+                        let target_field = rule
+                            .condition
+                            .params
+                            .get("target_field")
+                            .and_then(|v| v.as_str().map(|s| s.to_string()));
+                        let tenant_field = rule
+                            .condition
+                            .params
+                            .get("tenant_field")
+                            .and_then(|v| v.as_str().map(|s| s.to_string()));
+                        let require_state = rule
+                            .condition
+                            .params
+                            .get("require_state")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false);
+                        let precondition = rule
+                            .condition
+                            .params
+                            .get("precondition")
+                            .and_then(|v| v.as_str().map(|s| s.to_string()));
+                        let assertion = rule
+                            .condition
+                            .params
+                            .get("assertion")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("true")
+                            .to_string();
 
                         let state_params = StateInvariantConditionParams {
                             target_field,
@@ -328,7 +453,14 @@ impl AegisEngine {
                             assertion,
                         };
 
-                        let v_list = self.state_checker.evaluate(&rule.id, &pack.id, &state_params, call, state_context, rule.severity.clone());
+                        let v_list = self.state_checker.evaluate(
+                            &rule.id,
+                            &pack.id,
+                            &state_params,
+                            call,
+                            state_context,
+                            rule.severity.clone(),
+                        );
                         structured_violations.extend(v_list);
                     }
                     _ => {}
@@ -336,7 +468,9 @@ impl AegisEngine {
             }
         }
 
-        let has_critical = structured_violations.iter().any(|v| v.severity == AegisSeverity::Critical);
+        let has_critical = structured_violations
+            .iter()
+            .any(|v| v.severity == AegisSeverity::Critical);
         let mut allowed = !has_critical;
         if self.config.mode == AegisMode::Shadow {
             allowed = true;
@@ -351,8 +485,13 @@ impl AegisEngine {
         hasher.update(&structured_violations.len().to_be_bytes());
         let proof_hash = hasher.finalize_hex();
 
-        let violations: Vec<String> = structured_violations.iter().map(|v| v.message.clone()).collect();
-        let suggested_fix = structured_violations.iter().find_map(|v| v.suggested_fix.clone());
+        let violations: Vec<String> = structured_violations
+            .iter()
+            .map(|v| v.message.clone())
+            .collect();
+        let suggested_fix = structured_violations
+            .iter()
+            .find_map(|v| v.suggested_fix.clone());
 
         Verdict {
             allowed,

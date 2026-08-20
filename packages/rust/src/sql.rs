@@ -1,6 +1,6 @@
+use crate::types::{AegisSeverity, AegisViolation, SqlAstConditionParams, ToolCall};
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
-use crate::types::{AegisSeverity, AegisViolation, SqlAstConditionParams, ToolCall};
 
 pub struct SqlChecker {
     default_sql_tools: HashSet<String>,
@@ -10,48 +10,123 @@ pub struct SqlChecker {
     homoglyphs: HashMap<char, char>,
 }
 
+impl Default for SqlChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SqlChecker {
     pub fn new() -> Self {
         let default_sql_tools = [
-            "database_exec", "execute_sql", "exec_sql", "run_sql", "run_query",
-            "sql_query", "query_database", "query_db", "db_query", "mysql_query",
-            "postgres_query", "sqlite_query", "tsql_query", "database_query",
-            "query_sql", "sql", "sql_exec", "execute_query", "exec_query",
-            "db_exec", "sqlite_exec", "query", "database_command", "execute_raw_sql"
-        ].iter().map(|s| s.to_string()).collect();
+            "database_exec",
+            "execute_sql",
+            "exec_sql",
+            "run_sql",
+            "run_query",
+            "sql_query",
+            "query_database",
+            "query_db",
+            "db_query",
+            "mysql_query",
+            "postgres_query",
+            "sqlite_query",
+            "tsql_query",
+            "database_query",
+            "query_sql",
+            "sql",
+            "sql_exec",
+            "execute_query",
+            "exec_query",
+            "db_exec",
+            "sqlite_exec",
+            "query",
+            "database_command",
+            "execute_raw_sql",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
         let search_tool_names = [
-            "search_kb", "kb_search", "web_search", "google_search", "docs_search",
-            "doc_search", "search_docs", "wiki_search", "semantic_search", "search_wiki",
-            "search_documentation", "search_articles", "help_search", "faq_search"
-        ].iter().map(|s| s.to_string()).collect();
+            "search_kb",
+            "kb_search",
+            "web_search",
+            "google_search",
+            "docs_search",
+            "doc_search",
+            "search_docs",
+            "wiki_search",
+            "semantic_search",
+            "search_wiki",
+            "search_documentation",
+            "search_articles",
+            "help_search",
+            "faq_search",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
         let explicit_sql_fields = [
-            "sql", "sql_query", "sqlquery", "sql_statement", "sqltext",
-            "sql_text", "stmt", "sql_stmt", "database_query", "query_sql",
-            "raw_sql", "db_query", "sql_cmd", "sql_script"
-        ].iter().map(|s| s.to_string()).collect();
+            "sql",
+            "sql_query",
+            "sqlquery",
+            "sql_statement",
+            "sqltext",
+            "sql_text",
+            "stmt",
+            "sql_stmt",
+            "database_query",
+            "query_sql",
+            "raw_sql",
+            "db_query",
+            "sql_cmd",
+            "sql_script",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
         let mut homoglyphs = HashMap::new();
-        homoglyphs.insert('\u{0430}', 'a'); homoglyphs.insert('\u{0410}', 'A');
-        homoglyphs.insert('\u{0432}', 'b'); homoglyphs.insert('\u{0412}', 'B');
-        homoglyphs.insert('\u{0441}', 'c'); homoglyphs.insert('\u{0421}', 'C');
-        homoglyphs.insert('\u{0435}', 'e'); homoglyphs.insert('\u{0415}', 'E');
-        homoglyphs.insert('\u{0456}', 'i'); homoglyphs.insert('\u{0406}', 'I');
-        homoglyphs.insert('\u{0458}', 'j'); homoglyphs.insert('\u{0408}', 'J');
-        homoglyphs.insert('\u{043A}', 'k'); homoglyphs.insert('\u{041A}', 'K');
-        homoglyphs.insert('\u{041C}', 'M'); homoglyphs.insert('\u{041D}', 'H');
-        homoglyphs.insert('\u{043E}', 'o'); homoglyphs.insert('\u{041E}', 'O');
-        homoglyphs.insert('\u{0440}', 'p'); homoglyphs.insert('\u{0420}', 'P');
-        homoglyphs.insert('\u{0455}', 's'); homoglyphs.insert('\u{0405}', 'S');
-        homoglyphs.insert('\u{0422}', 'T'); homoglyphs.insert('\u{0443}', 'y');
-        homoglyphs.insert('\u{0445}', 'x'); homoglyphs.insert('\u{0425}', 'X');
-        homoglyphs.insert('\u{0391}', 'A'); homoglyphs.insert('\u{03B1}', 'a');
-        homoglyphs.insert('\u{0392}', 'B'); homoglyphs.insert('\u{0395}', 'E');
-        homoglyphs.insert('\u{03B5}', 'e'); homoglyphs.insert('\u{039F}', 'O');
-        homoglyphs.insert('\u{03BF}', 'o'); homoglyphs.insert('\u{03A1}', 'P');
-        homoglyphs.insert('\u{03C1}', 'p'); homoglyphs.insert('\u{03A4}', 'T');
-        homoglyphs.insert('\u{03A7}', 'X'); homoglyphs.insert('\u{03C7}', 'x');
+        homoglyphs.insert('\u{0430}', 'a');
+        homoglyphs.insert('\u{0410}', 'A');
+        homoglyphs.insert('\u{0432}', 'b');
+        homoglyphs.insert('\u{0412}', 'B');
+        homoglyphs.insert('\u{0441}', 'c');
+        homoglyphs.insert('\u{0421}', 'C');
+        homoglyphs.insert('\u{0435}', 'e');
+        homoglyphs.insert('\u{0415}', 'E');
+        homoglyphs.insert('\u{0456}', 'i');
+        homoglyphs.insert('\u{0406}', 'I');
+        homoglyphs.insert('\u{0458}', 'j');
+        homoglyphs.insert('\u{0408}', 'J');
+        homoglyphs.insert('\u{043A}', 'k');
+        homoglyphs.insert('\u{041A}', 'K');
+        homoglyphs.insert('\u{041C}', 'M');
+        homoglyphs.insert('\u{041D}', 'H');
+        homoglyphs.insert('\u{043E}', 'o');
+        homoglyphs.insert('\u{041E}', 'O');
+        homoglyphs.insert('\u{0440}', 'p');
+        homoglyphs.insert('\u{0420}', 'P');
+        homoglyphs.insert('\u{0455}', 's');
+        homoglyphs.insert('\u{0405}', 'S');
+        homoglyphs.insert('\u{0422}', 'T');
+        homoglyphs.insert('\u{0443}', 'y');
+        homoglyphs.insert('\u{0445}', 'x');
+        homoglyphs.insert('\u{0425}', 'X');
+        homoglyphs.insert('\u{0391}', 'A');
+        homoglyphs.insert('\u{03B1}', 'a');
+        homoglyphs.insert('\u{0392}', 'B');
+        homoglyphs.insert('\u{0395}', 'E');
+        homoglyphs.insert('\u{03B5}', 'e');
+        homoglyphs.insert('\u{039F}', 'O');
+        homoglyphs.insert('\u{03BF}', 'o');
+        homoglyphs.insert('\u{03A1}', 'P');
+        homoglyphs.insert('\u{03C1}', 'p');
+        homoglyphs.insert('\u{03A4}', 'T');
+        homoglyphs.insert('\u{03A7}', 'X');
+        homoglyphs.insert('\u{03C7}', 'x');
 
         Self {
             default_sql_tools,
@@ -88,8 +163,18 @@ impl SqlChecker {
         let mut result = String::with_capacity(sql.len());
         for ch in sql.chars() {
             let u = ch as u32;
-            if (0x200B..=0x200D).contains(&u) || u == 0x2060 || u == 0x2061 || u == 0x2062 || u == 0x2063 ||
-               u == 0x2064 || u == 0x200E || u == 0x200F || (0x202A..=0x202E).contains(&u) || u == 0xFEFF || u == 0x00AD {
+            if (0x200B..=0x200D).contains(&u)
+                || u == 0x2060
+                || u == 0x2061
+                || u == 0x2062
+                || u == 0x2063
+                || u == 0x2064
+                || u == 0x200E
+                || u == 0x200F
+                || (0x202A..=0x202E).contains(&u)
+                || u == 0xFEFF
+                || u == 0x00AD
+            {
                 continue;
             }
             if (0xFF01..=0xFF5E).contains(&u) {
@@ -198,7 +283,11 @@ impl SqlChecker {
         re_sel.replace_all(&s6, "SELECT").to_string()
     }
 
-    pub fn extract_sql_string(&self, call: &ToolCall, database_field: Option<&str>) -> Option<String> {
+    pub fn extract_sql_string(
+        &self,
+        call: &ToolCall,
+        database_field: Option<&str>,
+    ) -> Option<String> {
         if let Some(db_field) = database_field {
             if let Some(val) = call.arguments.get(db_field).and_then(|v| v.as_str()) {
                 if !val.trim().is_empty() {
@@ -210,18 +299,41 @@ impl SqlChecker {
         self.find_sql_in_params(&call.arguments, &call.name, 0)
     }
 
-    fn find_sql_in_params(&self, params: &HashMap<String, serde_json::Value>, tool: &str, depth: usize) -> Option<String> {
+    fn find_sql_in_params(
+        &self,
+        params: &HashMap<String, serde_json::Value>,
+        tool: &str,
+        depth: usize,
+    ) -> Option<String> {
         if depth > 6 {
             return None;
         }
 
         let lower_tool = tool.to_lowercase();
-        let is_db_tool = self.default_sql_tools.contains(&lower_tool) || lower_tool.contains("sql") || lower_tool.contains("db");
+        let is_db_tool = self.default_sql_tools.contains(&lower_tool)
+            || lower_tool.contains("sql")
+            || lower_tool.contains("db");
         let is_search = self.search_tool_names.contains(&lower_tool);
 
         let priority_fields = [
-            "sql", "stmt", "sql_query", "sql_statement", "raw_sql", "sql_stmt", "query_sql", "db_query",
-            "query", "statement", "command", "cmd", "body", "text", "script", "expression", "code", "q"
+            "sql",
+            "stmt",
+            "sql_query",
+            "sql_statement",
+            "raw_sql",
+            "sql_stmt",
+            "query_sql",
+            "db_query",
+            "query",
+            "statement",
+            "command",
+            "cmd",
+            "body",
+            "text",
+            "script",
+            "expression",
+            "code",
+            "q",
         ];
 
         for &field in &priority_fields {
@@ -247,12 +359,15 @@ impl SqlChecker {
                     if is_search && (k == "query" || k == "q") {
                         continue;
                     }
-                    if self.explicit_sql_fields.contains(&k.to_lowercase()) || self.looks_like_sql(val) {
+                    if self.explicit_sql_fields.contains(&k.to_lowercase())
+                        || self.looks_like_sql(val)
+                    {
                         return Some(val.clone());
                     }
                 }
                 serde_json::Value::Object(map) => {
-                    let map_conv: HashMap<String, serde_json::Value> = map.clone().into_iter().collect();
+                    let map_conv: HashMap<String, serde_json::Value> =
+                        map.clone().into_iter().collect();
                     if let Some(found) = self.find_sql_in_params(&map_conv, tool, depth + 1) {
                         return Some(found);
                     }
@@ -264,8 +379,10 @@ impl SqlChecker {
                                 return Some(str_item.clone());
                             }
                         } else if let serde_json::Value::Object(sub_map) = item {
-                            let map_conv: HashMap<String, serde_json::Value> = sub_map.clone().into_iter().collect();
-                            if let Some(found) = self.find_sql_in_params(&map_conv, tool, depth + 1) {
+                            let map_conv: HashMap<String, serde_json::Value> =
+                                sub_map.clone().into_iter().collect();
+                            if let Some(found) = self.find_sql_in_params(&map_conv, tool, depth + 1)
+                            {
                                 return Some(found);
                             }
                         }
@@ -283,13 +400,15 @@ impl SqlChecker {
 
         // Hex decoding: \xXX or %XX
         let hex_re = Regex::new(r"(?i)(?:\\x|%)([0-9a-f]{2})").unwrap();
-        processed = hex_re.replace_all(&processed, |caps: &regex::Captures| {
-            if let Ok(byte_val) = u8::from_str_radix(&caps[1], 16) {
-                (byte_val as char).to_string()
-            } else {
-                caps[0].to_string()
-            }
-        }).to_string();
+        processed = hex_re
+            .replace_all(&processed, |caps: &regex::Captures| {
+                if let Ok(byte_val) = u8::from_str_radix(&caps[1], 16) {
+                    (byte_val as char).to_string()
+                } else {
+                    caps[0].to_string()
+                }
+            })
+            .to_string();
 
         // String concatenation unrolling: 'DEL' || 'ETE'
         let concat_re = Regex::new(r"'([^']*)'\s*\|\|\s*'([^']*)'").unwrap();
@@ -303,7 +422,10 @@ impl SqlChecker {
         }
 
         // Unquote fully concatenated SQL keywords
-        let kw_re = Regex::new(r"(?i)'(DROP|DELETE|UPDATE|TRUNCATE|ALTER|TABLE|DATABASE|SCHEMA|VIEW|GRANT|REVOKE)'").unwrap();
+        let kw_re = Regex::new(
+            r"(?i)'(DROP|DELETE|UPDATE|TRUNCATE|ALTER|TABLE|DATABASE|SCHEMA|VIEW|GRANT|REVOKE)'",
+        )
+        .unwrap();
         processed = kw_re.replace_all(&processed, "$1").to_string();
 
         processed
@@ -355,9 +477,18 @@ impl SqlChecker {
             if token == "DROP" && i + 1 < tokens.len() {
                 let target = &tokens[i + 1];
                 let ddl_targets = [
-                    "TABLE", "DATABASE", "SCHEMA", "VIEW", "INDEX",
-                    "PROCEDURE", "FUNCTION", "TRIGGER", "USER", "ROLE",
-                    "EXTENSION", "MATERIALIZED"
+                    "TABLE",
+                    "DATABASE",
+                    "SCHEMA",
+                    "VIEW",
+                    "INDEX",
+                    "PROCEDURE",
+                    "FUNCTION",
+                    "TRIGGER",
+                    "USER",
+                    "ROLE",
+                    "EXTENSION",
+                    "MATERIALIZED",
                 ];
                 if ddl_targets.contains(&target.as_str()) {
                     violations.push(AegisViolation {
@@ -378,24 +509,28 @@ impl SqlChecker {
                 pack_id: pack_id.to_string(),
                 severity: severity.clone(),
                 message: "Destructive TRUNCATE statement detected.".to_string(),
-                suggested_fix: Some("TRUNCATE is prohibited in production agent workflows.".to_string()),
+                suggested_fix: Some(
+                    "TRUNCATE is prohibited in production agent workflows.".to_string(),
+                ),
                 context: None,
             });
         }
 
         for (i, token) in tokens.iter().enumerate() {
-            if token == "ALTER" && i + 1 < tokens.len() && tokens[i + 1] == "TABLE" {
-                if tokens[i + 2..].contains(&"DROP".to_string()) {
-                    violations.push(AegisViolation {
-                        rule_id: rule_id.to_string(),
-                        pack_id: pack_id.to_string(),
-                        severity: severity.clone(),
-                        message: "Destructive schema modification 'ALTER TABLE ... DROP' detected.".to_string(),
-                        suggested_fix: Some("Destructive schema alterations are prohibited in production agent workflows.".to_string()),
-                        context: None,
-                    });
-                    break;
-                }
+            if token == "ALTER"
+                && i + 1 < tokens.len()
+                && tokens[i + 1] == "TABLE"
+                && tokens[i + 2..].contains(&"DROP".to_string())
+            {
+                violations.push(AegisViolation {
+                    rule_id: rule_id.to_string(),
+                    pack_id: pack_id.to_string(),
+                    severity: severity.clone(),
+                    message: "Destructive schema modification 'ALTER TABLE ... DROP' detected.".to_string(),
+                    suggested_fix: Some("Destructive schema alterations are prohibited in production agent workflows.".to_string()),
+                    context: None,
+                });
+                break;
             }
         }
 
@@ -431,58 +566,58 @@ impl SqlChecker {
         }
 
         // 3. Prohibit DELETE without WHERE or with tautological WHERE
-        if tokens.contains(&"DELETE".to_string()) {
-            if params.require.as_deref() == Some("WHERE_CLAUSE") || params.require.is_none() {
-                if let Some(where_idx) = tokens.iter().position(|t| t == "WHERE") {
-                    let where_clause = tokens[where_idx + 1..].join(" ");
-                    if self.is_tautology(&where_clause) {
-                        violations.push(AegisViolation {
-                            rule_id: rule_id.to_string(),
-                            pack_id: pack_id.to_string(),
-                            severity: severity.clone(),
-                            message: "Mass DELETE statement detected with tautological WHERE clause (e.g. 1=1).".to_string(),
-                            suggested_fix: Some("Specify target rows with authentic predicate conditions rather than tautologies.".to_string()),
-                            context: None,
-                        });
-                    }
-                } else {
+        if tokens.contains(&"DELETE".to_string())
+            && (params.require.as_deref() == Some("WHERE_CLAUSE") || params.require.is_none())
+        {
+            if let Some(where_idx) = tokens.iter().position(|t| t == "WHERE") {
+                let where_clause = tokens[where_idx + 1..].join(" ");
+                if self.is_tautology(&where_clause) {
                     violations.push(AegisViolation {
                         rule_id: rule_id.to_string(),
                         pack_id: pack_id.to_string(),
                         severity: severity.clone(),
-                        message: "Mass DELETE statement detected without WHERE clause.".to_string(),
-                        suggested_fix: Some("Specify target rows with specific predicate conditions (e.g. 'WHERE id = :id').".to_string()),
+                        message: "Mass DELETE statement detected with tautological WHERE clause (e.g. 1=1).".to_string(),
+                        suggested_fix: Some("Specify target rows with authentic predicate conditions rather than tautologies.".to_string()),
                         context: None,
                     });
                 }
+            } else {
+                violations.push(AegisViolation {
+                    rule_id: rule_id.to_string(),
+                    pack_id: pack_id.to_string(),
+                    severity: severity.clone(),
+                    message: "Mass DELETE statement detected without WHERE clause.".to_string(),
+                    suggested_fix: Some("Specify target rows with specific predicate conditions (e.g. 'WHERE id = :id').".to_string()),
+                    context: None,
+                });
             }
         }
 
         // 4. Prohibit UPDATE without WHERE or with tautological WHERE
-        if tokens.contains(&"UPDATE".to_string()) {
-            if params.require.as_deref() == Some("WHERE_CLAUSE") || params.require.is_none() {
-                if let Some(where_idx) = tokens.iter().position(|t| t == "WHERE") {
-                    let where_clause = tokens[where_idx + 1..].join(" ");
-                    if self.is_tautology(&where_clause) {
-                        violations.push(AegisViolation {
-                            rule_id: rule_id.to_string(),
-                            pack_id: pack_id.to_string(),
-                            severity: severity.clone(),
-                            message: "Mass UPDATE statement detected with tautological WHERE clause (e.g. 1=1).".to_string(),
-                            suggested_fix: Some("Specify target rows with authentic predicate conditions rather than tautologies.".to_string()),
-                            context: None,
-                        });
-                    }
-                } else {
+        if tokens.contains(&"UPDATE".to_string())
+            && (params.require.as_deref() == Some("WHERE_CLAUSE") || params.require.is_none())
+        {
+            if let Some(where_idx) = tokens.iter().position(|t| t == "WHERE") {
+                let where_clause = tokens[where_idx + 1..].join(" ");
+                if self.is_tautology(&where_clause) {
                     violations.push(AegisViolation {
                         rule_id: rule_id.to_string(),
                         pack_id: pack_id.to_string(),
                         severity: severity.clone(),
-                        message: "Mass UPDATE statement detected without WHERE clause.".to_string(),
-                        suggested_fix: Some("Specify target rows with specific predicate conditions (e.g. 'WHERE id = :id').".to_string()),
+                        message: "Mass UPDATE statement detected with tautological WHERE clause (e.g. 1=1).".to_string(),
+                        suggested_fix: Some("Specify target rows with authentic predicate conditions rather than tautologies.".to_string()),
                         context: None,
                     });
                 }
+            } else {
+                violations.push(AegisViolation {
+                    rule_id: rule_id.to_string(),
+                    pack_id: pack_id.to_string(),
+                    severity: severity.clone(),
+                    message: "Mass UPDATE statement detected without WHERE clause.".to_string(),
+                    suggested_fix: Some("Specify target rows with specific predicate conditions (e.g. 'WHERE id = :id').".to_string()),
+                    context: None,
+                });
             }
         }
 
@@ -496,8 +631,14 @@ impl SqlChecker {
                                 rule_id: rule_id.to_string(),
                                 pack_id: pack_id.to_string(),
                                 severity: severity.clone(),
-                                message: format!("LIMIT {} exceeds maximum permitted ceiling of {}.", limit_val, max_limit),
-                                suggested_fix: Some(format!("Reduce LIMIT clause to {} or less.", max_limit)),
+                                message: format!(
+                                    "LIMIT {} exceeds maximum permitted ceiling of {}.",
+                                    limit_val, max_limit
+                                ),
+                                suggested_fix: Some(format!(
+                                    "Reduce LIMIT clause to {} or less.",
+                                    max_limit
+                                )),
                                 context: None,
                             });
                         }
@@ -510,13 +651,16 @@ impl SqlChecker {
     }
 
     fn tokenize_sql(&self, sql: &str) -> Vec<String> {
-        let cleaned: String = sql.chars().map(|c| {
-            if c == '(' || c == ')' || c == ';' || c == ',' {
-                ' '
-            } else {
-                c
-            }
-        }).collect();
+        let cleaned: String = sql
+            .chars()
+            .map(|c| {
+                if c == '(' || c == ')' || c == ';' || c == ',' {
+                    ' '
+                } else {
+                    c
+                }
+            })
+            .collect();
 
         cleaned.split_whitespace().map(|s| s.to_string()).collect()
     }
@@ -529,8 +673,22 @@ impl SqlChecker {
 
         // Literal tautologies
         let literal_tautologies = [
-            "1", "TRUE", "1=1", "1 = 1", "2=2", "2 = 2", "0=0", "0 = 0",
-            "100=100", "100 = 100", "2>1", "2 > 1", "10>5", "10 > 5", "'A'='A'", "'A' = 'A'"
+            "1",
+            "TRUE",
+            "1=1",
+            "1 = 1",
+            "2=2",
+            "2 = 2",
+            "0=0",
+            "0 = 0",
+            "100=100",
+            "100 = 100",
+            "2>1",
+            "2 > 1",
+            "10>5",
+            "10 > 5",
+            "'A'='A'",
+            "'A' = 'A'",
         ];
         for lit in &literal_tautologies {
             if where_trim == *lit || where_trim.starts_with(&format!("{} ", lit)) {
@@ -541,7 +699,12 @@ impl SqlChecker {
         // Direct equality / identity checking: N=N, 'X'='X', id=id, users.id=users.id
         if let Some((left, right)) = where_trim.split_once('=') {
             let l_clean = left.trim().trim_matches('\'').trim_matches('"');
-            let r_clean = right.trim().trim_matches('\'').trim_matches('"').trim_end_matches(';').trim();
+            let r_clean = right
+                .trim()
+                .trim_matches('\'')
+                .trim_matches('"')
+                .trim_end_matches(';')
+                .trim();
             if !l_clean.is_empty() && l_clean == r_clean {
                 return true;
             }
@@ -570,14 +733,20 @@ impl SqlChecker {
         let domain_re4 = Regex::new(r"\b0\s*<\s*[a-zA-Z_]\w*\b").unwrap();
         let domain_re5 = Regex::new(r"\b-\d+\s*(?:<>|!=)\s*[a-zA-Z_]\w*\b").unwrap();
 
-        if domain_re1.is_match(&where_trim) || domain_re2.is_match(&where_trim) ||
-           domain_re3.is_match(&where_trim) || domain_re4.is_match(&where_trim) ||
-           domain_re5.is_match(&where_trim) {
+        if domain_re1.is_match(&where_trim)
+            || domain_re2.is_match(&where_trim)
+            || domain_re3.is_match(&where_trim)
+            || domain_re4.is_match(&where_trim)
+            || domain_re5.is_match(&where_trim)
+        {
             return true;
         }
 
         // OR compound tautology: id = 123 OR 1=1, id = 'abc' OR TRUE
-        let or_re = Regex::new(r"\bOR\s+(?:1\s*=\s*1|2\s*>\s*1|TRUE|1|\d+\s*=\s*\d+|'[^']+'\s*=\s*'[^']+')").unwrap();
+        let or_re = Regex::new(
+            r"\bOR\s+(?:1\s*=\s*1|2\s*>\s*1|TRUE|1|\d+\s*=\s*\d+|'[^']+'\s*=\s*'[^']+')",
+        )
+        .unwrap();
         if or_re.is_match(&where_trim) {
             return true;
         }

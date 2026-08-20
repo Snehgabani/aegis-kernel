@@ -25,21 +25,56 @@ pub struct PiiTokenVault {
 }
 
 impl PiiTokenVault {
-    pub fn new(token_prefix: Option<&str>, hash_length: Option<usize>, salt: Option<Vec<u8>>) -> Self {
+    pub fn new(
+        token_prefix: Option<&str>,
+        hash_length: Option<usize>,
+        salt: Option<Vec<u8>>,
+    ) -> Self {
         let mut patterns = HashMap::new();
         patterns.insert("CREDIT_CARD".to_string(), Regex::new(r"\b(?:4[0-9]{3}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}|5[1-5][0-9]{2}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}|3[47][0-9]{2}[ -]?[0-9]{6}[ -]?[0-9]{5}|6(?:011|5[0-9]{2})[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4})\b").unwrap());
-        patterns.insert("US_SSN".to_string(), Regex::new(r"\b\d{3}-\d{2}-\d{4}\b").unwrap());
-        patterns.insert("EMAIL".to_string(), Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b").unwrap());
-        patterns.insert("OPENAI_API_KEY".to_string(), Regex::new(r"\b(?:sk-ant-api[0-9a-zA-Z_-]{15,}|sk-(?:proj-|live-)?[a-zA-Z0-9_-]{20,})\b").unwrap());
-        patterns.insert("GITHUB_TOKEN".to_string(), Regex::new(r"\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{20,}\b").unwrap());
-        patterns.insert("AWS_ACCESS_KEY".to_string(), Regex::new(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b").unwrap());
-        patterns.insert("STRIPE_KEY".to_string(), Regex::new(r"\b(?:sk|pk|rk)_(?:live|test)_[0-9a-zA-Z]{20,}\b").unwrap());
-        patterns.insert("SLACK_TOKEN".to_string(), Regex::new(r"\bxox[baprs]-[0-9a-zA-Z-]{10,64}\b").unwrap());
-        patterns.insert("JWT_TOKEN".to_string(), Regex::new(r"\beyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*\b").unwrap());
+        patterns.insert(
+            "US_SSN".to_string(),
+            Regex::new(r"\b\d{3}-\d{2}-\d{4}\b").unwrap(),
+        );
+        patterns.insert(
+            "EMAIL".to_string(),
+            Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b").unwrap(),
+        );
+        patterns.insert(
+            "OPENAI_API_KEY".to_string(),
+            Regex::new(
+                r"\b(?:sk-ant-api[0-9a-zA-Z_-]{15,}|sk-(?:proj-|live-)?[a-zA-Z0-9_-]{20,})\b",
+            )
+            .unwrap(),
+        );
+        patterns.insert(
+            "GITHUB_TOKEN".to_string(),
+            Regex::new(r"\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{20,}\b").unwrap(),
+        );
+        patterns.insert(
+            "AWS_ACCESS_KEY".to_string(),
+            Regex::new(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b").unwrap(),
+        );
+        patterns.insert(
+            "STRIPE_KEY".to_string(),
+            Regex::new(r"\b(?:sk|pk|rk)_(?:live|test)_[0-9a-zA-Z]{20,}\b").unwrap(),
+        );
+        patterns.insert(
+            "SLACK_TOKEN".to_string(),
+            Regex::new(r"\bxox[baprs]-[0-9a-zA-Z-]{10,64}\b").unwrap(),
+        );
+        patterns.insert(
+            "JWT_TOKEN".to_string(),
+            Regex::new(r"\beyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*\b").unwrap(),
+        );
 
         let session_salt = salt.unwrap_or_else(|| {
             let mut s = Vec::with_capacity(16);
-            let time_bytes = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos().to_be_bytes();
+            let time_bytes = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+                .to_be_bytes();
             s.extend_from_slice(&time_bytes);
             s
         });
@@ -68,7 +103,10 @@ impl PiiTokenVault {
         let mut token_types = HashMap::new();
 
         for (pattern_name, regex) in &self.patterns {
-            let matches: Vec<String> = regex.find_iter(&sanitized).map(|m| m.as_str().to_string()).collect();
+            let matches: Vec<String> = regex
+                .find_iter(&sanitized)
+                .map(|m| m.as_str().to_string())
+                .collect();
 
             for m in matches {
                 let token = if let Some(existing) = self.value_to_token_map.get(&m) {
@@ -77,7 +115,10 @@ impl PiiTokenVault {
                     let mut mac = HmacSha256::new_from_slice(&self.session_salt);
                     mac.update(m.as_bytes());
                     let hash_bytes = mac.finalize();
-                    let full_hex = hash_bytes.iter().map(|b| format!("{:02x}", b)).collect::<String>();
+                    let full_hex = hash_bytes
+                        .iter()
+                        .map(|b| format!("{:02x}", b))
+                        .collect::<String>();
                     let hash_slice = if full_hex.len() > self.hash_length {
                         &full_hex[..self.hash_length]
                     } else {

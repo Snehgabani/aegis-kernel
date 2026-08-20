@@ -1,6 +1,6 @@
 use aegis_kernel::{
-    AegisEngine, Config, EnclaveAttestation, PiiTokenVault, PolicyCommitmentCircuit,
-    Rule, RuleCondition, RulePack, ToolCall, AegisSeverity,
+    AegisEngine, AegisSeverity, Config, EnclaveAttestation, PiiTokenVault, PolicyCommitmentCircuit,
+    Rule, RuleCondition, RulePack, ToolCall,
 };
 use serde_json::json;
 use std::collections::HashMap;
@@ -17,7 +17,10 @@ fn test_evaluate() {
     let engine = AegisEngine::new(cfg);
 
     let mut args = HashMap::new();
-    args.insert("query".to_string(), json!("SELECT * FROM users WHERE id = 1"));
+    args.insert(
+        "query".to_string(),
+        json!("SELECT * FROM users WHERE id = 1"),
+    );
     let call = ToolCall::new("get_data", args);
 
     let verdict = engine.evaluate(&call);
@@ -30,7 +33,10 @@ fn test_evaluate() {
 
     let verdict2 = engine.evaluate(&call2);
     assert!(!verdict2.allowed);
-    assert!(verdict2.violations.iter().any(|v| v.contains("prohibited") || v.contains("DROP") || v.contains("Destructive")));
+    assert!(verdict2
+        .violations
+        .iter()
+        .any(|v| v.contains("prohibited") || v.contains("DROP") || v.contains("Destructive")));
 }
 
 #[test]
@@ -39,9 +45,21 @@ fn test_sql_invariants_and_tautologies() {
 
     // 1. Valid queries
     let valid_queries = vec![
-        ("db_query", "query", "SELECT id, name FROM users WHERE id = 42"),
-        ("run_sql", "sql", "SELECT * FROM orders WHERE status = 'pending' LIMIT 100"),
-        ("custom_tool", "stmt", "INSERT INTO logs (msg) VALUES ('test user login')"),
+        (
+            "db_query",
+            "query",
+            "SELECT id, name FROM users WHERE id = 42",
+        ),
+        (
+            "run_sql",
+            "sql",
+            "SELECT * FROM orders WHERE status = 'pending' LIMIT 100",
+        ),
+        (
+            "custom_tool",
+            "stmt",
+            "INSERT INTO logs (msg) VALUES ('test user login')",
+        ),
         ("search_kb", "query", "how to delete a record in react"), // Search tool query should be allowed
     ];
     for (tool, param, q) in valid_queries {
@@ -49,7 +67,11 @@ fn test_sql_invariants_and_tautologies() {
         args.insert(param.to_string(), json!(q));
         let call = ToolCall::new(tool, args);
         let verdict = engine.evaluate(&call);
-        assert!(verdict.allowed, "Expected valid query to be allowed: {}, violations: {:?}", q, verdict.violations);
+        assert!(
+            verdict.allowed,
+            "Expected valid query to be allowed: {}, violations: {:?}",
+            q, verdict.violations
+        );
     }
 
     // 2. DDL Attacks
@@ -70,16 +92,17 @@ fn test_sql_invariants_and_tautologies() {
     }
 
     // 3. Mass DELETE and UPDATE without WHERE
-    let mass_mutations = vec![
-        "DELETE FROM users",
-        "UPDATE users SET role = 'admin'",
-    ];
+    let mass_mutations = vec!["DELETE FROM users", "UPDATE users SET role = 'admin'"];
     for q in mass_mutations {
         let mut args = HashMap::new();
         args.insert("query".to_string(), json!(q));
         let call = ToolCall::new("db_query", args);
         let verdict = engine.evaluate(&call);
-        assert!(!verdict.allowed, "Expected mass mutation '{}' to be blocked", q);
+        assert!(
+            !verdict.allowed,
+            "Expected mass mutation '{}' to be blocked",
+            q
+        );
     }
 
     // 4. Tautology Evasion Vectors
@@ -127,7 +150,11 @@ fn test_sql_invariants_and_tautologies() {
         args.insert("query".to_string(), json!(q));
         let call = ToolCall::new("db_query", args);
         let verdict = engine.evaluate(&call);
-        assert!(!verdict.allowed, "Expected comment evasion '{}' to be blocked", q);
+        assert!(
+            !verdict.allowed,
+            "Expected comment evasion '{}' to be blocked",
+            q
+        );
     }
 }
 
@@ -177,11 +204,31 @@ fn test_pii_and_secrets_scanning() {
     let engine = AegisEngine::new_default();
 
     let pii_cases = vec![
-        ("US SSN", "send_email", "body", "Customer SSN is 123-45-6789"),
-        ("OpenAI Key", "api_call", "token", "sk-proj-abcdef1234567890abcdef123456"),
-        ("GitHub Token", "github_sync", "key", "ghp_1234567890abcdefghijklmnopqrstuvwxyz"),
+        (
+            "US SSN",
+            "send_email",
+            "body",
+            "Customer SSN is 123-45-6789",
+        ),
+        (
+            "OpenAI Key",
+            "api_call",
+            "token",
+            "sk-proj-abcdef1234567890abcdef123456",
+        ),
+        (
+            "GitHub Token",
+            "github_sync",
+            "key",
+            "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
+        ),
         ("AWS Key", "s3_upload", "aws_key", "AKIAIOSFODNN7EXAMPLE"),
-        ("Slack Token", "post_slack", "auth", "xoxb-1234567890-abcdef12345"),
+        (
+            "Slack Token",
+            "post_slack",
+            "auth",
+            "xoxb-1234567890-abcdef12345",
+        ),
         ("Sensitive Path", "read_file", "path", "/etc/shadow"),
         ("Destructive Command", "run_shell", "cmd", "rm -rf /"),
     ];
@@ -191,7 +238,11 @@ fn test_pii_and_secrets_scanning() {
         args.insert(param.to_string(), json!(val));
         let call = ToolCall::new(tool, args);
         let verdict = engine.evaluate(&call);
-        assert!(!verdict.allowed, "[{}] Expected PII/Secret to be blocked: {:?}", name, call);
+        assert!(
+            !verdict.allowed,
+            "[{}] Expected PII/Secret to be blocked: {:?}",
+            name, call
+        );
     }
 }
 
@@ -241,18 +292,16 @@ fn test_state_invariants_and_tenant_isolation() {
         name: "Tenant Isolation Guard".to_string(),
         version: "1.0.0".to_string(),
         description: None,
-        rules: vec![
-            Rule {
-                id: "TENANT-001".to_string(),
-                severity: AegisSeverity::Critical,
-                description: "Tenant isolation check".to_string(),
-                suggested_fix: None,
-                condition: RuleCondition {
-                    r#type: "state_invariant".to_string(),
-                    params: tenant_rule_params,
-                },
+        rules: vec![Rule {
+            id: "TENANT-001".to_string(),
+            severity: AegisSeverity::Critical,
+            description: "Tenant isolation check".to_string(),
+            suggested_fix: None,
+            condition: RuleCondition {
+                r#type: "state_invariant".to_string(),
+                params: tenant_rule_params,
             },
-        ],
+        }],
     };
 
     let tenant_engine = AegisEngine::new_with_packs(vec![tenant_pack]);
@@ -274,7 +323,10 @@ fn test_zk_policy_circuit() {
     let proof = proof_res.unwrap();
     assert_eq!(proof.proof_type, "SHA256_PolicyCommitment");
     assert!(!proof.proof_bytes_hex.is_empty());
-    assert!(PolicyCommitmentCircuit::verify_proof(&proof, &proof.public_policy_hash));
+    assert!(PolicyCommitmentCircuit::verify_proof(
+        &proof,
+        &proof.public_policy_hash
+    ));
 
     // Non-compliant proof generation ($50,000 > $10,000) -> Rejected
     let non_compliant = circuit.prove_compliance(50000.0);

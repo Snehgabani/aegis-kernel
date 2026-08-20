@@ -70,13 +70,21 @@ impl PolicyCommitmentCircuit {
         hasher.update(self.policy_id.as_bytes());
         hasher.update(&self.min_threshold.to_be_bytes());
         hasher.update(&self.max_threshold.to_be_bytes());
-        let public_policy_hash = hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect::<String>();
+        let public_policy_hash = hasher
+            .finalize()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
 
         let mut proof_hasher = Sha256::new();
         proof_hasher.update(public_policy_hash.as_bytes());
         proof_hasher.update(&private_value.to_be_bytes());
         proof_hasher.update(b"SHA256_COMMITMENT");
-        let proof_bytes_hex = proof_hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect::<String>();
+        let proof_bytes_hex = proof_hasher
+            .finalize()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
 
         Ok(CommitmentProof {
             proof_type: "SHA256_PolicyCommitment".to_string(),
@@ -145,7 +153,10 @@ impl EnclaveAttestation {
                 "Real NSM/SGX attestation is on the roadmap. See ROADMAP.md.".to_string(),
             );
         } else {
-            report.insert("attestation_status".to_string(), "DEV_SIMULATED".to_string());
+            report.insert(
+                "attestation_status".to_string(),
+                "DEV_SIMULATED".to_string(),
+            );
             report.insert(
                 "note".to_string(),
                 "Development-mode simulated attestation. Set AEGIS_ATTESTATION_MODE=production to request real attestation.".to_string(),

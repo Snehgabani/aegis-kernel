@@ -1,7 +1,13 @@
-use std::collections::HashMap;
 use crate::types::{AegisSeverity, AegisViolation, StateInvariantConditionParams, ToolCall};
+use std::collections::HashMap;
 
 pub struct StateChecker {}
+
+impl Default for StateChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl StateChecker {
     pub fn new() -> Self {
@@ -21,14 +27,21 @@ impl StateChecker {
 
         // 1. Target field filtering
         if let Some(target_field) = &params.target_field {
-            if !call.arguments.contains_key(target_field) && self.find_nested_val(&call.arguments, target_field).is_none() {
+            if !call.arguments.contains_key(target_field)
+                && self
+                    .find_nested_val(&call.arguments, target_field)
+                    .is_none()
+            {
                 return violations;
             }
         }
 
         // 2. Tenant isolation
         if let Some(tenant_field) = &params.tenant_field {
-            let tool_tenant = call.arguments.get(tenant_field).or_else(|| self.find_nested_val(&call.arguments, tenant_field));
+            let tool_tenant = call
+                .arguments
+                .get(tenant_field)
+                .or_else(|| self.find_nested_val(&call.arguments, tenant_field));
             if let Some(state) = state_context {
                 let state_tenant = state.get(tenant_field);
                 if let (Some(t_val), Some(s_val)) = (tool_tenant, state_tenant) {
@@ -73,8 +86,14 @@ impl StateChecker {
         for (k, v) in state {
             ctx.insert(k.clone(), v.clone());
         }
-        ctx.insert("params".to_string(), serde_json::to_value(&call.arguments).unwrap_or(serde_json::Value::Null));
-        ctx.insert("state".to_string(), serde_json::to_value(state).unwrap_or(serde_json::Value::Null));
+        ctx.insert(
+            "params".to_string(),
+            serde_json::to_value(&call.arguments).unwrap_or(serde_json::Value::Null),
+        );
+        ctx.insert(
+            "state".to_string(),
+            serde_json::to_value(state).unwrap_or(serde_json::Value::Null),
+        );
 
         // 4. Precondition check
         if let Some(precond) = &params.precondition {
@@ -96,8 +115,14 @@ impl StateChecker {
                 rule_id: rule_id.to_string(),
                 pack_id: pack_id.to_string(),
                 severity,
-                message: format!("System state invariant violated: '{}' would be breached by this action.", params.assertion),
-                suggested_fix: Some(format!("Action exceeds permitted state boundary. Invariant constraint: '{}'.", params.assertion)),
+                message: format!(
+                    "System state invariant violated: '{}' would be breached by this action.",
+                    params.assertion
+                ),
+                suggested_fix: Some(format!(
+                    "Action exceeds permitted state boundary. Invariant constraint: '{}'.",
+                    params.assertion
+                )),
                 context: None,
             });
         }
@@ -105,7 +130,11 @@ impl StateChecker {
         violations
     }
 
-    fn find_nested_val<'a>(&self, params: &'a HashMap<String, serde_json::Value>, key: &str) -> Option<&'a serde_json::Value> {
+    fn find_nested_val<'a>(
+        &self,
+        params: &'a HashMap<String, serde_json::Value>,
+        key: &str,
+    ) -> Option<&'a serde_json::Value> {
         let lower = key.to_lowercase();
         for (k, v) in params {
             if k.to_lowercase() == lower {
@@ -145,7 +174,7 @@ impl StateChecker {
         let val = self.eval_value(expr, ctx);
         match val {
             serde_json::Value::Bool(b) => b,
-            serde_json::Value::Number(n) => n.as_f64().map_or(false, |f| f != 0.0),
+            serde_json::Value::Number(n) => n.as_f64().is_some_and(|f| f != 0.0),
             serde_json::Value::String(s) => s == "true" || s == "1",
             _ => !val.is_null(),
         }
@@ -238,7 +267,11 @@ impl StateChecker {
         None
     }
 
-    fn eval_arithmetic(&self, expr: &str, ctx: &HashMap<String, serde_json::Value>) -> serde_json::Value {
+    fn eval_arithmetic(
+        &self,
+        expr: &str,
+        ctx: &HashMap<String, serde_json::Value>,
+    ) -> serde_json::Value {
         let expr = expr.trim();
 
         // Addition: +
@@ -266,11 +299,17 @@ impl StateChecker {
         self.eval_value(expr, ctx)
     }
 
-    fn eval_value(&self, token: &str, ctx: &HashMap<String, serde_json::Value>) -> serde_json::Value {
+    fn eval_value(
+        &self,
+        token: &str,
+        ctx: &HashMap<String, serde_json::Value>,
+    ) -> serde_json::Value {
         let token = token.trim();
 
         // String literals '...' or "..."
-        if (token.starts_with('\'') && token.ends_with('\'')) || (token.starts_with('"') && token.ends_with('"')) {
+        if (token.starts_with('\'') && token.ends_with('\''))
+            || (token.starts_with('"') && token.ends_with('"'))
+        {
             if token.len() >= 2 {
                 return serde_json::Value::String(token[1..token.len() - 1].to_string());
             }
@@ -320,7 +359,12 @@ impl StateChecker {
         }
     }
 
-    fn compare_values(&self, left: &serde_json::Value, op: &str, right: &serde_json::Value) -> bool {
+    fn compare_values(
+        &self,
+        left: &serde_json::Value,
+        op: &str,
+        right: &serde_json::Value,
+    ) -> bool {
         if let (Some(l), Some(r)) = (self.to_f64(left), self.to_f64(right)) {
             return match op {
                 "<=" => l <= r,

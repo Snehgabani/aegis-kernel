@@ -15,4 +15,7 @@ pub use sql::SqlChecker;
 pub use state::StateChecker;
 pub use types::*;
 pub use vault::{DetokenizeResult, PiiTokenVault, TokenizeResult};
-pub use zk::{CommitmentProof, EnclaveAttestation, PolicyCommitmentCircuit, CommitmentProof as ZkProof, PolicyCommitmentCircuit as ZkPolicyCircuit};
+pub use zk::{
+    CommitmentProof, CommitmentProof as ZkProof, EnclaveAttestation, PolicyCommitmentCircuit,
+    PolicyCommitmentCircuit as ZkPolicyCircuit,
+};

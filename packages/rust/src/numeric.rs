@@ -1,8 +1,8 @@
+use crate::types::{AegisSeverity, AegisViolation, NumericConditionParams, ToolCall};
 use regex::Regex;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::types::{AegisSeverity, AegisViolation, NumericConditionParams, ToolCall};
 
 pub struct NumericChecker {
     financial_aliases: Vec<String>,
@@ -15,12 +15,21 @@ enum ExtractionStatus {
     Absent,
 }
 
+impl Default for NumericChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NumericChecker {
     pub fn new() -> Self {
         let financial_aliases = [
-            "amount", "total", "value", "sum", "price", "cost", "payout", "payment",
-            "transfer", "balance", "limit", "fee", "debit", "credit", "charge", "subtotal"
-        ].iter().map(|s| s.to_string()).collect();
+            "amount", "total", "value", "sum", "price", "cost", "payout", "payment", "transfer",
+            "balance", "limit", "fee", "debit", "credit", "charge", "subtotal",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
         Self {
             financial_aliases,
@@ -33,7 +42,10 @@ impl NumericChecker {
             serde_json::Value::Number(num) => num.as_f64(),
             serde_json::Value::String(s) => {
                 let trimmed = s.trim();
-                if trimmed.is_empty() || trimmed.eq_ignore_ascii_case("nan") || trimmed.eq_ignore_ascii_case("infinity") {
+                if trimmed.is_empty()
+                    || trimmed.eq_ignore_ascii_case("nan")
+                    || trimmed.eq_ignore_ascii_case("infinity")
+                {
                     return None;
                 }
 
@@ -45,13 +57,20 @@ impl NumericChecker {
                 cleaned = cleaned.replace(',', "");
                 let cleaned_trimmed = cleaned.trim();
 
-                cleaned_trimmed.parse::<f64>().ok().filter(|f| f.is_finite())
+                cleaned_trimmed
+                    .parse::<f64>()
+                    .ok()
+                    .filter(|f| f.is_finite())
             }
             _ => None,
         }
     }
 
-    fn extract_nested_number(&self, params: &HashMap<String, serde_json::Value>, path_str: &str) -> ExtractionStatus {
+    fn extract_nested_number(
+        &self,
+        params: &HashMap<String, serde_json::Value>,
+        path_str: &str,
+    ) -> ExtractionStatus {
         let clean_path = path_str.trim_start_matches("params.");
         let parts: Vec<&str> = clean_path.split('.').collect();
 
@@ -91,7 +110,11 @@ impl NumericChecker {
         ExtractionStatus::Absent
     }
 
-    fn get_path_value<'a>(&self, params: &'a HashMap<String, serde_json::Value>, parts: &[&str]) -> Option<&'a serde_json::Value> {
+    fn get_path_value<'a>(
+        &self,
+        params: &'a HashMap<String, serde_json::Value>,
+        parts: &[&str],
+    ) -> Option<&'a serde_json::Value> {
         if parts.is_empty() {
             return None;
         }
@@ -107,7 +130,11 @@ impl NumericChecker {
         Some(current)
     }
 
-    fn find_nested_value<'a>(&self, params: &'a HashMap<String, serde_json::Value>, target: &str) -> Option<&'a serde_json::Value> {
+    fn find_nested_value<'a>(
+        &self,
+        params: &'a HashMap<String, serde_json::Value>,
+        target: &str,
+    ) -> Option<&'a serde_json::Value> {
         let lower_target = target.to_lowercase();
         for (k, v) in params {
             if k.to_lowercase() == lower_target {
@@ -126,7 +153,11 @@ impl NumericChecker {
         None
     }
 
-    fn find_nested_value_map<'a>(&self, map: &'a serde_json::Map<String, serde_json::Value>, target: &str) -> Option<&'a serde_json::Value> {
+    fn find_nested_value_map<'a>(
+        &self,
+        map: &'a serde_json::Map<String, serde_json::Value>,
+        target: &str,
+    ) -> Option<&'a serde_json::Value> {
         let lower_target = target.to_lowercase();
         for (k, v) in map {
             if k.to_lowercase() == lower_target {
@@ -164,8 +195,14 @@ impl NumericChecker {
                     rule_id: rule_id.to_string(),
                     pack_id: pack_id.to_string(),
                     severity,
-                    message: format!("Numeric parameter '{}' contains invalid non-numeric value: {}.", params.field, raw),
-                    suggested_fix: Some(format!("Ensure '{}' is a valid finite numeric value or formatted currency string.", params.field)),
+                    message: format!(
+                        "Numeric parameter '{}' contains invalid non-numeric value: {}.",
+                        params.field, raw
+                    ),
+                    suggested_fix: Some(format!(
+                        "Ensure '{}' is a valid finite numeric value or formatted currency string.",
+                        params.field
+                    )),
                     context: None,
                 });
                 return violations;
@@ -175,7 +212,11 @@ impl NumericChecker {
                 let mut effective_min = params.min;
                 if effective_min.is_none() {
                     let lower_field = params.field.to_lowercase();
-                    if self.financial_aliases.iter().any(|a| lower_field.contains(a)) {
+                    if self
+                        .financial_aliases
+                        .iter()
+                        .any(|a| lower_field.contains(a))
+                    {
                         effective_min = Some(0.0);
                     }
                 }
@@ -186,8 +227,14 @@ impl NumericChecker {
                             rule_id: rule_id.to_string(),
                             pack_id: pack_id.to_string(),
                             severity: severity.clone(),
-                            message: format!("Numeric parameter '{}' ({}) is below minimum allowed value of {}.", params.field, val, min_val),
-                            suggested_fix: Some(format!("Increase value of '{}' to at least {}.", params.field, min_val)),
+                            message: format!(
+                                "Numeric parameter '{}' ({}) is below minimum allowed value of {}.",
+                                params.field, val, min_val
+                            ),
+                            suggested_fix: Some(format!(
+                                "Increase value of '{}' to at least {}.",
+                                params.field, min_val
+                            )),
                             context: None,
                         });
                     }
@@ -199,8 +246,14 @@ impl NumericChecker {
                             rule_id: rule_id.to_string(),
                             pack_id: pack_id.to_string(),
                             severity: severity.clone(),
-                            message: format!("Numeric parameter '{}' ({}) exceeds maximum allowed limit of {}.", params.field, val, max_val),
-                            suggested_fix: Some(format!("Reduce value of '{}' to {} or less.", params.field, max_val)),
+                            message: format!(
+                                "Numeric parameter '{}' ({}) exceeds maximum allowed limit of {}.",
+                                params.field, val, max_val
+                            ),
+                            suggested_fix: Some(format!(
+                                "Reduce value of '{}' to {} or less.",
+                                params.field, max_val
+                            )),
                             context: None,
                         });
                     }
@@ -208,12 +261,15 @@ impl NumericChecker {
 
                 // Sliding window rate limit
                 if let Some(rate_limit) = &params.rate_limit {
-                    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis();
                     let window_ms = 60 * 1000;
                     let key = format!("{}:{}:{}", pack_id, rule_id, call.name);
 
                     let mut windows = self.rate_limit_windows.lock().unwrap();
-                    let timestamps = windows.entry(key).or_insert_with(Vec::new);
+                    let timestamps = windows.entry(key).or_default();
                     timestamps.retain(|&t| now.saturating_sub(t) < window_ms);
                     timestamps.push(now);
                     let count = timestamps.len();
