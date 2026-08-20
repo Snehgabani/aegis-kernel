@@ -84,3 +84,50 @@ export DO_NOT_TRACK=1
 * **GDPR (Regulation (EU) 2016/679)**: Information collected is truly anonymous aggregate data per Recital 26 and does not constitute personal data.
 * **EU AI Act (Article 13)**: Operational statistics support transparent risk management and algorithmic accountability.
 * **California Consumer Privacy Act (CCPA / CPRA)**: Aegis does not sell, share, or monetize any user or device data.
+
+---
+
+## 🔭 OpenTelemetry GenAI Semantic Conventions (opt-in, local, zero-egress)
+
+Aegis emits **OpenTelemetry GenAI-conformant spans** when — and only when — you
+register a sink. Aegis itself never sends telemetry anywhere; the span is handed
+to *your* callback so you can forward it to your own collector (OTLP → Datadog,
+Grafana, Langfuse, Arize, Braintrust all ingest the `gen_ai.*` conventions
+natively in 2026).
+
+```ts
+import { AegisEngine, formatGenAiDurationObservation } from '@aegis-kernel/core';
+
+const engine = new AegisEngine({
+  observability: {
+    agentName: 'billing-agent',
+    onSpan: (span) => {
+      myOtelExporter.emit(span);                              // your pipeline
+      myHistogram.record(formatGenAiDurationObservation(span)); // gen_ai.client.operation.duration
+    },
+  },
+});
+```
+
+Each evaluation emits one span:
+
+- **Name**: `execute_tool {tool}` · kind INTERNAL
+- **Required conventions**: `gen_ai.operation.name=execute_tool`,
+  `gen_ai.provider.name=aegis`, `gen_ai.tool.name`, `gen_ai.tool.call.id`
+- **Verdict correlation**: `aegis.verdict.allowed`, `aegis.proof.hash`
+  (Merkle commitment — join spans with the cryptographic ledger),
+  `aegis.violations.count`, `aegis.violations.rule_ids`
+- **Blocked calls**: `error.type=aegis_policy_violation:{ruleId}`, span status
+  `STATUS_CODE_ERROR`, plus one content-free `aegis.rule.violation` **span event**
+  per violation (rule id + severity)
+- **Duration metric**: `gen_ai.client.operation.duration` (unit `s`) via
+  `formatGenAiDurationObservation(span)`
+
+**Zero content capture (by design):** tool call *parameters never appear* in
+spans, attributes, or events — deterministic verdicts need no payload sampling,
+and params are precisely where PII lives. The GenAI conventions' opt-in content
+events are intentionally not implemented.
+
+**Status note:** the GenAI semantic conventions carry OpenTelemetry
+"Development" stability status (as of mid-2026); attribute names follow the
+current registry and may be tracked upstream.

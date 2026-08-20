@@ -47,6 +47,17 @@ export interface AegisConfig {
   };
   onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
   identityManager?: AgentIdentityManager;
+  /**
+   * Opt-in OTel GenAI-conformant span emission (zero-egress: you own the sink).
+   * When set, every evaluation emits one `execute_tool {tool}` span following
+   * the OpenTelemetry GenAI semantic conventions (gen_ai.operation.name,
+   * gen_ai.tool.name, gen_ai.tool.call.id, error.type; content-free — tool
+   * params are never captured). See telemetry/otel.ts.
+   */
+  observability?: {
+    onSpan?: (span: import('./telemetry/otel.js').GenAiSpan) => void;
+    agentName?: string;
+  };
 }
 
 import type { AegisForensicDiagnosticTrace } from './diagnostics/forensic-trace.js';

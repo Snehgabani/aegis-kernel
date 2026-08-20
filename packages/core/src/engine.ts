@@ -12,6 +12,7 @@ import type {
   StateProvider,
   ToolCall,
 } from './types.js';
+import { formatGenAiExecuteToolSpan } from './telemetry/otel.js';
 import {
   computePolicyCommitmentHash,
   computeToolCallFingerprint,
@@ -43,6 +44,7 @@ export class AegisEngine {
   private policyCommitmentHash: string;
   private defaultStateProvider?: StateProvider;
   private onViolation?: (verdict: AegisVerdict, toolCall: ToolCall) => void;
+  private observability?: AegisConfig['observability'];
   private logger: AegisEventLogger;
   private ledger: LearningLedgerManager;
   private identityManager?: AgentIdentityManager;
@@ -61,6 +63,7 @@ export class AegisEngine {
     this.defaultStateProvider = config?.stateProvider;
     this.onViolation = config?.onViolation;
     this.identityManager = config?.identityManager;
+    this.observability = config?.observability;
 
     // Initialize 6 Checkers
     this.sqlChecker = new SqlChecker();
@@ -254,6 +257,18 @@ export class AegisEngine {
           options.onViolation(verdict, toolCall);
         } else if (this.onViolation) {
           this.onViolation(verdict, toolCall);
+        }
+      }
+
+      // Opt-in OTel GenAI span emission (zero-egress: sink is caller-owned).
+      // Sink failures must never affect the verdict.
+      if (this.observability?.onSpan) {
+        try {
+          this.observability.onSpan(
+            formatGenAiExecuteToolSpan(safeToolCall, verdict, { agentName: this.observability.agentName })
+          );
+        } catch (err) {
+          console.warn('[aegis] observability span sink threw; span dropped:', (err as Error).message);
         }
       }
 
