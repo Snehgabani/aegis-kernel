@@ -8,7 +8,7 @@ In-process AST analysis · <1.5ms latency · zero network egress · TypeScript &
 <br>
 
 [![CI](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10182/badge)](https://www.bestpractices.dev/projects/10182)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14173/badge)](https://www.bestpractices.dev/projects/14173)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-532%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![npm](https://img.shields.io/badge/npm-@aegis--kernel%2Fcore-10b981.svg?logo=npm)](https://www.npmjs.com/package/@aegis-kernel/core)
@@ -363,7 +363,7 @@ Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kern
 - [Architecture Docs](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable API and policy reference
 - [Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream with CSV export
 - [Supply Chain Trust & Provenance](./docs/security/SUPPLY_CHAIN_TRUST_AND_PROVENANCE.md) — SLSA L3, Sigstore signing, SBOM & reproducible builds
-- [OpenSSF Best Practices Evidence](./docs/compliance/OPENSSF_BEST_PRACTICES_EVIDENCE.md) — Criteria mapping for OpenSSF Badge #10182
+- [OpenSSF Best Practices Evidence](./docs/compliance/OPENSSF_BEST_PRACTICES_EVIDENCE.md) — Criteria mapping for OpenSSF Badge #14173
 - [Limitations and Boundaries](./docs/LIMITATIONS_AND_BOUNDARIES.md) — Honest scope and architectural constraints
 - [EU AI Act Mapping](./docs/compliance/EU_AI_ACT_MAPPING.md) — Articles 9–15 crosswalk
 - [Formal Specification](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations
