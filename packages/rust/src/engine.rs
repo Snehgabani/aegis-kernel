@@ -1,4 +1,4 @@
-use sha2::{Digest, Sha256};
+use crate::crypto::Sha256;
 use std::collections::HashMap;
 use std::time::Instant;
 use crate::numeric::NumericChecker;
@@ -237,7 +237,8 @@ impl AegisEngine {
             hasher.update(b"\0");
         }
 
-        format!("{:x}", hasher.finalize())
+        let digest = hasher.finalize();
+        digest.iter().map(|b| format!("{:02x}", b)).collect::<String>()
     }
 
     pub fn evaluate(&self, call: &ToolCall) -> Verdict {
@@ -347,8 +348,8 @@ impl AegisEngine {
         hasher.update(call.name.as_bytes());
         hasher.update(allowed.to_string().as_bytes());
         hasher.update(self.policy_commitment_hash.as_bytes());
-        hasher.update(structured_violations.len().to_be_bytes());
-        let proof_hash = format!("{:x}", hasher.finalize());
+        hasher.update(&structured_violations.len().to_be_bytes());
+        let proof_hash = hasher.finalize_hex();
 
         let violations: Vec<String> = structured_violations.iter().map(|v| v.message.clone()).collect();
         let suggested_fix = structured_violations.iter().find_map(|v| v.suggested_fix.clone());

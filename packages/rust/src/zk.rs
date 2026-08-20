@@ -1,5 +1,5 @@
+use crate::crypto::Sha256;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -35,15 +35,15 @@ impl ZkPolicyCircuit {
 
         let mut hasher = Sha256::new();
         hasher.update(self.policy_id.as_bytes());
-        hasher.update(self.min_threshold.to_be_bytes());
-        hasher.update(self.max_threshold.to_be_bytes());
-        let public_policy_hash = format!("{:x}", hasher.finalize());
+        hasher.update(&self.min_threshold.to_be_bytes());
+        hasher.update(&self.max_threshold.to_be_bytes());
+        let public_policy_hash = hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect::<String>();
 
         let mut proof_hasher = Sha256::new();
         proof_hasher.update(public_policy_hash.as_bytes());
-        proof_hasher.update(private_value.to_be_bytes());
+        proof_hasher.update(&private_value.to_be_bytes());
         proof_hasher.update(b"ZK_SNARK_PLONKY3_PROOF_OF_COMPLIANCE");
-        let proof_bytes_hex = format!("{:x}", proof_hasher.finalize());
+        let proof_bytes_hex = proof_hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect::<String>();
 
         Ok(ZkProof {
             proof_type: "Plonky3_Recursive_SNARK".to_string(),
@@ -66,7 +66,7 @@ impl EnclaveAttestation {
         let mut hasher = Sha256::new();
         hasher.update(enclave_id.as_bytes());
         hasher.update(b"AEGIS_NITRO_ENCLAVE_ROOT_OF_TRUST");
-        let pcr0 = format!("{:x}", hasher.finalize());
+        let pcr0 = hasher.finalize_hex();
 
         report.insert("enclave_id".to_string(), enclave_id.to_string());
         report.insert("pcr0".to_string(), pcr0);

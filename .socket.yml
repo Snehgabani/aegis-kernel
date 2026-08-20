@@ -1,0 +1,18 @@
+version: 2
+
+# Exclude documentation and build artifacts from package scanning
+projectIgnorePaths:
+  - "dist/**"
+  - "node_modules/**"
+  - "site/**"
+  - "docs/**"
+
+# Policy rules for Socket.dev security evaluation
+issueRules:
+  # Obfuscated code rule: note node-sql-parser contains legitimate PEG.js generated parser lookup tables
+  obfuscatedCode: false
+  # Network access / telemetry rules
+  telemetry: true
+  envVars: false
+  installScripts: true
+  bannedDependencies: true

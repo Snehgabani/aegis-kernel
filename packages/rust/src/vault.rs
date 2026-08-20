@@ -1,9 +1,6 @@
-use hmac::{Hmac, Mac};
+use crate::crypto::HmacSha256;
 use regex::Regex;
-use sha2::Sha256;
 use std::collections::HashMap;
-
-type HmacSha256 = Hmac<Sha256>;
 
 #[derive(Debug, Clone)]
 pub struct TokenizeResult {
@@ -77,9 +74,10 @@ impl PiiTokenVault {
                 let token = if let Some(existing) = self.value_to_token_map.get(&m) {
                     existing.clone()
                 } else {
-                    let mut mac = HmacSha256::new_from_slice(&self.session_salt).expect("HMAC can take key of any size");
+                    let mut mac = HmacSha256::new_from_slice(&self.session_salt);
                     mac.update(m.as_bytes());
-                    let full_hex = format!("{:x}", mac.finalize().into_bytes());
+                    let hash_bytes = mac.finalize();
+                    let full_hex = hash_bytes.iter().map(|b| format!("{:02x}", b)).collect::<String>();
                     let hash_slice = if full_hex.len() > self.hash_length {
                         &full_hex[..self.hash_length]
                     } else {
