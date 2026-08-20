@@ -12,6 +12,7 @@ jobs:
   welcome:
     name: Welcome First-Time Contributors
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && !endsWith(github.actor, '[bot]')
     permissions:
       issues: write
       pull-requests: write

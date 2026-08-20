@@ -12,6 +12,11 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "commander"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-dependencies:
         patterns:
@@ -61,6 +66,9 @@ updates:
       - "dependencies"
       - "docker"
       - "security"
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
 
   # 6. Gateway Service Docker Containers
   - package-ecosystem: "docker"
@@ -73,6 +81,9 @@ updates:
       - "dependencies"
       - "docker"
       - "security"
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
 
   # 7. GitHub Actions Workflows
   - package-ecosystem: "github-actions"
