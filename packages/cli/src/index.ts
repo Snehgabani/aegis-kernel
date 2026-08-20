@@ -13,6 +13,7 @@ import { runComplianceExport, runExplainToolCall } from './compliance-cli.js';
 import { runVerifyProof } from './verify-proof-cli.js';
 import { runScan } from './scan-cli.js';
 import { runMcpInventoryScan, printMcpScanResult } from './mcp-inventory.js';
+import { runRedTeam } from './redteam-cli.js';
 import { runReplay } from './replay-cli.js';
 import { runDoctor } from './doctor-cli.js';
 import { runAuditReport } from './audit-report-cli.js';
@@ -44,6 +45,29 @@ program
     printMcpScanResult(result);
     const blocking = result.findings.filter((f) => f.severity === 'critical' || f.severity === 'high');
     if (blocking.length > 0) process.exitCode = 1;
+  });
+
+program
+  .command('red-team [action]')
+  .description('Adaptive red-team harness: TAP payload-mutation tree search + MCP tool-poisoning stress')
+  .option('--suite <suite>', 'tap | poisoning | all (default all)')
+  .option('--depth <n>', 'TAP search depth (default 4)', parseInt)
+  .option('--branching <n>', 'TAP branching factor (default 4)', parseInt)
+  .option('-o, --output <path>', 'Write red-team evidence JSON report')
+  .action((action: string | undefined, opts: { suite?: string; depth?: number; branching?: number; output?: string }) => {
+    if (action && action !== 'run') {
+      console.error(`Unknown red-team action '${action}'. Usage: aegis red-team run`);
+      process.exitCode = 1;
+      return;
+    }
+    void runRedTeam({
+      suite: (opts.suite as 'tap' | 'poisoning' | 'all') ?? 'all',
+      depth: opts.depth,
+      branching: opts.branching,
+      output: opts.output,
+    }).then((code) => {
+      if (code !== 0) process.exitCode = code;
+    });
   });
 
 program

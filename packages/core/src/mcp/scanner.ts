@@ -15,7 +15,7 @@ export interface MCPToolDefinition {
 export interface ToolScanResult {
   toolName: string;
   isPoisoned: boolean;
-  threats: ('INVISIBLE_UNICODE_CHARACTERS' | 'INDIRECT_PROMPT_INJECTION' | 'OBFUSCATED_BASE64' | 'UNBOUNDED_PROPERTIES' | 'HOMOGLYPH_SPOOFING')[];
+  threats: ('INVISIBLE_UNICODE_CHARACTERS' | 'INDIRECT_PROMPT_INJECTION' | 'OBFUSCATED_BASE64' | 'UNBOUNDED_PROPERTIES' | 'HOMOGLYPH_SPOOFING' | 'CAPABILITY_ESCALATION')[];
   sanitizedDescription?: string;
 }
 
@@ -105,6 +105,45 @@ export class MCPToolPoisoningScanner {
     const broaderHomoglyphRegex = /[\u0400-\u04FF\u0370-\u03FF\u0590-\u05FF\u2150-\u218F\u00C0-\u017F]/;
     if (broaderHomoglyphRegex.test(decodedText)) {
       threats.push('HOMOGLYPH_SPOOFING');
+    }
+
+    // 6. Unbounded input schema (added 2026-08-20): a poisoned or lazy schema that
+    // accepts arbitrary properties, or properties with no type constraint at all,
+    // defeats downstream deterministic validation before it runs.
+    if (tool.inputSchema && typeof tool.inputSchema === 'object') {
+      const schema = tool.inputSchema as Record<string, unknown>;
+      const isUnboundedRoot = schema.additionalProperties === true;
+      let hasConstraintlessProperty = false;
+      const props = schema.properties;
+      if (props && typeof props === 'object' && !Array.isArray(props)) {
+        for (const propSchema of Object.values(props as Record<string, unknown>)) {
+          if (
+            !propSchema ||
+            typeof propSchema !== 'object' ||
+            (!('type' in propSchema) && !('enum' in propSchema) && !('const' in propSchema) && !('$ref' in propSchema) && !('anyOf' in propSchema) && !('oneOf' in propSchema))
+          ) {
+            hasConstraintlessProperty = true;
+            break;
+          }
+        }
+      }
+      if (isUnboundedRoot || hasConstraintlessProperty) {
+        threats.push('UNBOUNDED_PROPERTIES');
+      }
+    }
+
+    // 7. Capability escalation (added 2026-08-20): a tool whose NAME advertises a
+    // read-only capability while its DESCRIPTION claims destructive powers is the
+    // classic confused-deputy / rug-pulled-tool signal (OWASP ASI02).
+    if (tool.description && tool.name) {
+      const readonlyName = /^(read|get|list|search|fetch|view|peek|query)[_-]/i.test(tool.name);
+      const destructiveDescription =
+        /\b(delete|drop|remove|write|update|destroy|wipe|overwrite|truncate|grant|disable)\b/i.test(
+          tool.description
+        );
+      if (readonlyName && destructiveDescription) {
+        threats.push('CAPABILITY_ESCALATION');
+      }
     }
 
     return {

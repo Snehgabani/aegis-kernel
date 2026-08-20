@@ -10,7 +10,7 @@ In-process AST analysis · <1.5ms latency · zero network egress · TypeScript &
 [![CI](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14173/badge)](https://www.bestpractices.dev/projects/14173)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-590%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Tests](https://img.shields.io/badge/tests-611%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![npm](https://img.shields.io/badge/npm-@aegis--kernel%2Fcore-10b981.svg?logo=npm)](https://www.npmjs.com/package/@aegis-kernel/core)
 [![PyPI](https://img.shields.io/badge/PyPI-aegis--kernel-10b981.svg?logo=pypi)](https://pypi.org/project/aegis-kernel/)
 
@@ -151,7 +151,9 @@ Every published figure is traceable to a committed, reproducible artifact in **[
 | Independent red-team audit | 32 vectors (25 adversarial + 7 benign controls) | 32/32 verified, 0 bypasses |
 | Throughput (Apple Silicon) | Statistical benchmark harness | 2,861 ops/sec, P50 0.22ms, P95 4.74ms |
 | Latency (per-workload, measured) | benign ≈ 0.037ms p50 · SQL simple ≈ 1.10ms · SQL complex ≈ 1.85ms | [evidence](./.benchmark/evidence.json) |
-| Test suite | 80 TS files + Python/Go/Rust suites | 590/590 TS, 11/11 Py, 17/17 Go, 8/8 Rust passing |
+| Test suite | 83 TS files + Python/Go/Rust suites | 611/611 TS, 11/11 Py, 17/17 Go, 8/8 Rust passing |
+| Adaptive red-team (TAP, depth 4 × b4) | 3 attack trees × 341 nodes | 0 bypasses, 100% resilience |
+| Tool-poisoning stress suite | 12 vectors across 12 classes | 12/12 detected, 0 false positives |
 | Coverage | Core engine source | 84% statements, 85% lines |
 
 > **Honesty note (2026-08-20):** earlier revisions of this README quoted
@@ -220,7 +222,7 @@ git clone https://github.com/Snehgabani/aegis-kernel.git
 cd aegis-kernel
 npm install
 npm run build   # builds all workspace packages (tsup)
-npm test        # 590/590 TypeScript tests across 80 files (+11 Python, 17 Go, 8 Rust)
+npm test        # 611/611 TypeScript tests across 83 files (+11 Python, 17 Go, 8 Rust)
 ```
 
 ---
@@ -246,6 +248,8 @@ npx aegis init                    # create aegis.config.yaml
 npx aegis doctor                  # health check across all subsystems
 npx aegis eval all --output e.json # academic benchmarks (InjecAgent, AgentDojo)
 npx aegis scan .                  # scan workspace for prompt injection threats
+npx aegis scan-mcp . --pin        # audit MCP server inventories + pin a lock manifest
+npx aegis red-team run            # adaptive TAP red-team + tool-poisoning stress
 npx aegis test                    # security bounds testbed
 npx aegis repl                    # interactive evaluation REPL
 npx aegis benchmark --tricky      # statistical benchmark harness

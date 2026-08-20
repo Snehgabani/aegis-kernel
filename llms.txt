@@ -24,10 +24,10 @@ Aegis is an open-source deterministic safety kernel for AI agent tool calls. It 
 - [@aegis-kernel/core](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/core): TypeScript invariant engine — SQL AST parsing, numeric bounds, PII vault, Merkle audit
 - [@aegis-kernel/mcp](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/mcp): Model Context Protocol middleware (JSON-RPC 2.0)
 - [@aegis-kernel/langchain](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/langchain): LangChain / CrewAI / AutoGen adapter
-- [@aegis-kernel/cli](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/cli): CLI for benchmarks, scanning, audit reports
+- [@aegis-kernel/cli](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/cli): CLI for benchmarks, workspace/MCP-inventory scanning (scan-mcp with lock-file pinning), adaptive red-team harness, audit reports
 - [aegis-kernel (PyPI)](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/python): Python SDK with @aegis_guard decorator
 - [packages/go](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/go): Go SDK — SQL validation, PII vault, state DSL
-- [packages/rust](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/rust): Rust crate — zero-allocation SQL checker, ZK policy circuits
+- [packages/rust](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/rust): Rust crate — zero-allocation SQL checker, SHA-256 policy commitments (hash-based range commitments, not zero-knowledge proofs)
 
 ## API Reference
 

@@ -1,4 +1,5 @@
 import type { AegisSeverity, AegisViolation, RegexConditionParams, ToolCall } from '../types.js';
+import { HOMOGLYPH_MAP } from '../normalizers/homoglyphs.generated.js';
 
 // Pre-compiled high-recall regex patterns for PII, Secrets, and Compliance Invariants
 export const DEFAULT_PII_PATTERNS = {
@@ -107,10 +108,98 @@ export class PiiChecker {
   }
 
   private normalizeString(text: string): string {
-    // Strip zero-width and invisible control characters used for regex evasion
-    const stripped = text.replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, '');
+    // Strip zero-width, bidi-override/-isolate, space-separator, and invisible
+    // control characters used for regex evasion. Red-team hardened 2026-08-20:
+    // the original narrow set was bypassable with EN-SPACES between digits and
+    // bidi isolates (see red-team harness, TAP PII exfiltration tree).
+    const stripped = text.replace(
+      /[\u00AD\u061C\u180E\u2000-\u200F\u202A-\u202E\u202F\u205F\u2060-\u2064\u2066-\u206F\u3000\uFEFF]/g,
+      ''
+    );
     // Normalize unicode forms (NFKD)
     return stripped.normalize('NFKD');
+  }
+
+  /**
+   * Confusable folding (UTS #39 map) — applied before decode attempts because
+   * attackers homoglyph-corrupt the base64 ALPHABET itself (Cyrillic look-alikes
+   * inside the run): the attacker can reverse their own mapping, so the scanner
+   * must fold before decoding to see the same payload.
+   */
+  private foldHomoglyphs(text: string): string {
+    return Array.from(text)
+      .map((ch) => HOMOGLYPH_MAP[ch] ?? ch)
+      .join('');
+  }
+
+  private static readonly MAX_DECODE_DEPTH = 3;
+  private static readonly MAX_DECODE_VARIANTS = 16;
+
+  /**
+   * Layered evasion decoding (2026-08-20, red-team finding). Bounded recursive
+   * cascade: at each layer, fold confusables + strip invisibles/separators, then
+   * attempt percent / hex / base64 decodes and recurse into decoded results.
+   * Catches base64(base64(spaced(homoglyph(PII))))-style layering. Bounds:
+   * depth ≤ 3, ≤16 variants, ≤4KB per run — hot-path safe.
+   */
+  private decodeEvasions(text: string): string[] {
+    const out: string[] = [];
+    const seen = new Set<string>();
+
+    const tryPush = (candidate: string): void => {
+      if (candidate.length < 4 || out.length >= PiiChecker.MAX_DECODE_VARIANTS) return;
+      // Keep decodes that are mostly printable AFTER stripping invisible
+      // evasion chars (a decoded payload with separators is still a payload)
+      const printable = candidate.replace(/[^\x20-\x7E\n\r\t]/g, '');
+      if (printable.length / candidate.length > 0.7 && !seen.has(candidate)) {
+        seen.add(candidate);
+        out.push(candidate);
+      }
+    };
+
+    const cascade = (input: string, depth: number): void => {
+      if (depth > PiiChecker.MAX_DECODE_DEPTH) return;
+      const clean = this.normalizeString(this.foldHomoglyphs(input));
+      tryPush(clean);
+
+      // Percent-encoding (%41%42…): 3+ consecutive sequences
+      const pctMatch = clean.match(/(?:%[0-9A-Fa-f]{2}){3,}/);
+      if (pctMatch) {
+        try {
+          cascade(decodeURIComponent(pctMatch[0]), depth + 1);
+        } catch {
+          /* malformed — ignore */
+        }
+      }
+
+      // Hex escapes (\x41\x42…)
+      const hexMatch = clean.match(/(?:\\x[0-9A-Fa-f]{2}){3,}/);
+      if (hexMatch) {
+        cascade(
+          hexMatch[0].replace(/\\x([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))),
+          depth + 1
+        );
+      }
+
+      // Base64 runs (≥16 chars, standard or URL-safe)
+      const b64Runs = clean.match(/[A-Za-z0-9+/=_-]{16,}/g) ?? [];
+      for (const run of b64Runs.slice(0, 4)) {
+        if (run.length > 4096) continue;
+        const normalizedB64 = run.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
+        if (normalizedB64.length < 16) continue;
+        try {
+          const decoded = Buffer.from(normalizedB64, 'base64').toString('utf8');
+          if (decoded.replace(/[^\x00-\x7F]/g, '').length >= 4) {
+            cascade(decoded, depth + 1);
+          }
+        } catch {
+          /* not valid base64 — ignore */
+        }
+      }
+    };
+
+    cascade(text, 0);
+    return out;
   }
 
   private collectStringValues(
@@ -123,6 +212,17 @@ export class PiiChecker {
       const normalized = this.normalizeString(obj);
       if (normalized !== obj) {
         collected.push(normalized);
+      }
+      // Direct confusable folding (homoglyph'd PII without encoding layers)
+      const folded = this.foldHomoglyphs(normalized);
+      if (folded !== normalized && !collected.includes(folded)) {
+        collected.push(folded);
+      }
+      // Red-team hardening: scan decoded-evasion variants of this string too
+      for (const variant of this.decodeEvasions(normalized)) {
+        if (!collected.includes(variant)) {
+          collected.push(variant);
+        }
       }
     } else if (typeof obj === 'number' || typeof obj === 'boolean') {
       collected.push(String(obj));

@@ -16,3 +16,4 @@ export * from './adaptive/tap-red-team.js';
 export * from './blinded/double-blind-harness.js';
 export * from './fuzz/ast-grammar-fuzzer.js';
 
+export * from './adaptive/poisoning-stress.js';

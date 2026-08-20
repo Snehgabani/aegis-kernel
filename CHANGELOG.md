@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > (see `docs/RELEASE_CHECKLIST.md`).
 
 ### Security
+- **Red-team finding fixed (PII checker layered-evasion bypass)**: base64-wrapped
+  PII, homoglyph-corrupted base64 alphabets, separator-spaced payloads
+  (EN-SPACE/NBSP), bidi overrides/isolates, percent/hex encoding, and
+  double-base64 wrapping could evade PII detection (TAP resilience was 67.5% on
+  the PII exfiltration tree). The checker now runs a bounded recursive
+  strip→fold(UTS #39)→decode cascade before pattern matching; resilience is
+  100% at full search depth, pinned by regression tests R1–R6.
+- **MCP scanner coverage gaps closed**: `UNBOUNDED_PROPERTIES` now actually fires
+  (additionalProperties:true / constraint-less properties) and the new
+  `CAPABILITY_ESCALATION` threat flags read-named tools advertising destructive
+  capabilities (OWASP ASI02 confused-deputy).
 - **Gateway license bootstrap is now fail-closed** (`services/gateway`): removed the
   hardcoded HMAC fallback secret that allowed enterprise-license forgery against
   deployments without `AEGIS_LICENSE_SECRET`. Verification is asymmetric-by-default
@@ -38,6 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/LIMITATIONS_AND_BOUNDARIES.md`).
 
 ### Added
+- `aegis red-team run` — adaptive red-team harness (TAP payload-mutation tree search,
+  depth 4 × branching 4, 3 attack families + MCP tool-poisoning stress suite of 12
+  vectors; exit 1 on any bypass or detection miss; JSON evidence artifact).
+- `aegis scan-mcp` — MCP server inventory security audit (auth presence, transport
+  security, package pinning, `aegis-mcp-lock.json` pin & rug-pull drift detection,
+  embedded tool-poisoning scan; secret values never hashed or logged).
+- Gateway: pluggable durable audit store (`AuditStore` interface; JSONL persistence
+  with boot replay + crash tolerance; D1 reference schema documented).
+- OTel GenAI observability spans; canonical-benchmark CI pipeline (templates +
+  installer); SBOM/SLSA release attachment wiring (templates).
 - `benchmarks/` committable evidence directory (reports, checksums, corrections register).
 - Canonical benchmark fetch pipeline repaired: correct upstream URLs (previous
   both 404), dynamic AgentDojo suite discovery, SHA-256 manifest, fail-loud

@@ -112,6 +112,24 @@ pre-existing tests were modified except where correctness required it
 | WS-10 RELEASE-WIRING | ✅ done | SBOMs attach to GitHub releases (least-privilege job), SLSA provenance on release events; checklist now verifies automatic steps (review P2 #17) |
 | WS-10b DELIVERY-CONSTRAINT | ✅ handled | Session token lacks GitHub `workflows` permission → workflow definitions shipped as versioned templates in `scripts/ci-templates/` + `install-ci-templates.sh` installer (maintainer installs; `--check` mode is a CI drift guard); `.github/workflows/` left at upstream state |
 
+## 7. Execution record — cycle 3 (2026-08-20, adaptive red-team + real security fix)
+
+| WS | Status | Result |
+|----|--------|--------|
+| WS-11 REDTEAM | ✅ done | `aegis red-team run`: TAP depth-4×4 search across 3 attack families (341 nodes each) + 12-vector tool-poisoning stress suite; strict exit semantics; JSON evidence artifact. **Found a REAL bypass on first live fire** (see WS-11b) |
+| WS-11b SECURITY FIX | ✅ done | PII checker layered-evasion bypass (base64-wrap, homoglyph-corrupted b64 alphabet, separator-spacing, bidi, percent/hex, double-b64): TAP resilience 67.5% → 93.8% (first fix) → **100%** (bounded recursive strip→UTS#39-fold→decode cascade). Regression tests R1–R6 + benign controls; pre-existing DATA-002/JWT and US_NPI semantics preserved and documented |
+| WS-11c SCANNER GAPS | ✅ done | MCP scanner: UNBOUNDED_PROPERTIES now fires; new CAPABILITY_ESCALATION threat (read-named tools advertising destructive powers, OWASP ASI02); both core+ mcp copies kept in sync |
+| WS-12 DOCS-SYNC | ✅ done | CHANGELOG (cycle-2/3 features + security fix), README commands & benchmark rows, llms.txt refresh incl. removing a surviving "ZK policy circuits" overclaim (Rust source itself was already honest) |
+
+**Security finding record (first real product of the harness):** the red-team
+command was run once at depth 3 on live fire and immediately surfaced 13
+bypassing payload mutations — proving both the review's thesis (static suites
+flatter defenses) and the harness's value. The fix chain (wider invisible-char
+strip set → decode-before-match → fold-before-decode → recursive cascade) is
+exactly the OODA discipline applied to the engine itself.
+
+Cycle-3 final gate: **611/611 TS tests (83 files) · 11/11 Python · build green · audit clean.**
+
 Cycle-2 final gate: **590/590 TS tests (80 files) · 11/11 Python · build green · npm audit clean · tsc clean.**
 
 **Carried to next cycle** (not executable in this sandbox): Go/Rust toolchain
