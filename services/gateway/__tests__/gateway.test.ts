@@ -152,4 +152,147 @@ describe('Aegis Cloud Gateway Service', () => {
     expect(verifyData.tier).toBe('pro');
     expect(verifyData.payload?.features).toContain('hipaa_guard');
   });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FAIL-CLOSED LICENSE SECURITY (regression tests for hardcoded-secret defect)
+  // Fixed 2026-08-20: the gateway previously fell back to a hardcoded HMAC
+  // secret, letting anyone who read the MIT source forge enterprise licenses.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  it('SEC-1: license forged with the OLD hardcoded secret must be REJECTED when AEGIS_LICENSE_SECRET is unset', async () => {
+    const unconfigured = createGatewayApp({ STRIPE_WEBHOOK_SECRET: 'whsec_test_secret_456' });
+    const crypto = await import('node:crypto');
+
+    // Attack: forge an enterprise license using the historically hardcoded secret
+    const OLD_HARDCODED_SECRET = 'aegis_enterprise_lic_verification_secret_v1_deterministic';
+    const forgedPayload = Buffer.from(
+      JSON.stringify({
+        customerId: 'cust_attacker',
+        customerEmail: 'attacker@evil.example',
+        plan: 'enterprise',
+        issuedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+        features: ['soc2_guard', 'custom_packs'],
+        maxMonthlyChecks: 'unlimited',
+        algorithm: 'hmac-sha256',
+      }),
+      'utf8'
+    ).toString('base64url');
+    const forgedSig = crypto.createHmac('sha256', OLD_HARDCODED_SECRET).update(forgedPayload).digest('hex');
+    const forgedLicense = `aegis_lic_${forgedPayload}.${forgedSig}`;
+
+    const res = await unconfigured.request('/api/license/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ licenseKey: forgedLicense }),
+    });
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.valid).toBe(false);
+    expect(data.active).toBe(false);
+    expect(data.tier).toBe('community');
+  });
+
+  it('SEC-2: Stripe license issuance must fail CLOSED (503) when AEGIS_LICENSE_SECRET is unset', async () => {
+    const unconfigured = createGatewayApp({ STRIPE_WEBHOOK_SECRET: 'whsec_test_secret_456' });
+    const crypto = await import('node:crypto');
+
+    const webhookPayload = {
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_x', customer: 'cust_x', amount_total: 49900 } },
+    };
+    const rawBody = JSON.stringify(webhookPayload);
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = crypto
+      .createHmac('sha256', 'whsec_test_secret_456')
+      .update(`${timestamp}.${rawBody}`)
+      .digest('hex');
+
+    const res = await unconfigured.request('/api/billing/stripe-webhook', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': `t=${timestamp},v1=${signature}`,
+      },
+      body: rawBody,
+    });
+    expect(res.status).toBe(503);
+    const data = await res.json();
+    expect(data.error).toContain('disabled');
+    expect(data.licenseKey).toBeUndefined();
+  });
+
+  it('SEC-3: Ed25519 asymmetric licenses must still verify with no secret configured', async () => {
+    const unconfigured = createGatewayApp({ STRIPE_WEBHOOK_SECRET: 'whsec_test_secret_456' });
+    const crypto = await import('node:crypto');
+
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+    const compiledPublicKey = (
+      await import('@aegis-kernel/core')
+    ).DEFAULT_AEGIS_PUBLIC_KEY_PEM;
+
+    // Issue with a vendor private key against the compiled-in public key is the
+    // real issuer flow; for the test we inject the matching public key instead.
+    const gatewayWithVendorKey = createGatewayApp({
+      STRIPE_WEBHOOK_SECRET: 'whsec_test_secret_456',
+      AEGIS_PUBLIC_KEY: publicKey.export({ type: 'spki', format: 'pem' }).toString(),
+    });
+
+    const payload = Buffer.from(
+      JSON.stringify({
+        customerId: 'cust_legit',
+        customerEmail: 'buyer@corp.example',
+        plan: 'enterprise',
+        issuedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+        features: ['soc2_guard'],
+        maxMonthlyChecks: 'unlimited',
+        algorithm: 'ed25519',
+      }),
+      'utf8'
+    ).toString('base64url');
+    const sig = crypto.sign(null, Buffer.from(payload, 'utf8'), privateKey).toString('hex');
+    const license = `aegis_lic_ed25519_${payload}.${sig}`;
+
+    const res = await gatewayWithVendorKey.request('/api/license/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ licenseKey: license }),
+    });
+    const data = await res.json();
+    expect(data.valid).toBe(true);
+    expect(data.tier).toBe('enterprise');
+
+    // Tampered token must fail even with the same key configured
+    const tampered = `aegis_lic_ed25519_${payload}.${'0'.repeat(128)}`;
+    const badRes = await gatewayWithVendorKey.request('/api/license/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ licenseKey: tampered }),
+    });
+    const badData = await badRes.json();
+    expect(badData.valid).toBe(false);
+
+    // Default app (compiled-in key) must reject keys from a foreign vendor keypair
+    const foreignRes = await unconfigured.request('/api/license/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ licenseKey: license }),
+    });
+    const foreignData = await foreignRes.json();
+    expect(foreignData.valid).toBe(false);
+
+    // Silence unused-var lint: compiled key exists for real deployments
+    expect(typeof compiledPublicKey).toBe('string');
+  });
+
+  it('SEC-4: AEGIS_ALLOW_UNSAFE_LICENSE=1 must be refused in production boot', () => {
+    expect(() =>
+      createGatewayApp({
+        NODE_ENV: 'production',
+        AEGIS_ALLOW_UNSAFE_LICENSE: '1',
+        STRIPE_WEBHOOK_SECRET: 'whsec_test_secret_456',
+      })
+    ).toThrow(/not permitted in production/);
+  });
 });

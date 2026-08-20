@@ -6,13 +6,55 @@ import { renderPrometheusMetrics } from './metrics.js';
 
 export interface GatewayEnv {
   AEGIS_LICENSE_SECRET?: string;
+  AEGIS_PUBLIC_KEY?: string;
+  AEGIS_ALLOW_UNSAFE_LICENSE?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  NODE_ENV?: string;
 }
 
+/**
+ * @security FAIL-CLOSED LICENSE BOOTSTRAP
+ *
+ * Historical defect (fixed 2026-08-20): this constructor previously fell back to
+ * a hardcoded HMAC secret published in the MIT-licensed source, allowing anyone
+ * to forge enterprise licenses against deployments that did not set
+ * AEGIS_LICENSE_SECRET.
+ *
+ * Current behavior:
+ * - License VERIFICATION is asymmetric by default (Ed25519 public key compiled
+ *   into @aegis-kernel/core). No secret is required or desired for verification.
+ * - HMAC verification/issuance requires an explicitly configured
+ *   AEGIS_LICENSE_SECRET. Without it, HMAC tokens are rejected and the Stripe
+ *   fulfillment endpoint fails closed (503) instead of minting forgeable keys.
+ * - AEGIS_ALLOW_UNSAFE_LICENSE=1 (local demos only) is refused in production.
+ */
 export function createGatewayApp(env?: GatewayEnv) {
+  const nodeEnv = env?.NODE_ENV || process.env.NODE_ENV;
+  const isProduction = nodeEnv === 'production';
+  const secretKey = env?.AEGIS_LICENSE_SECRET || process.env.AEGIS_LICENSE_SECRET || '';
+  const allowUnsafe = env?.AEGIS_ALLOW_UNSAFE_LICENSE || process.env.AEGIS_ALLOW_UNSAFE_LICENSE;
+  const publicKeyPem = env?.AEGIS_PUBLIC_KEY || process.env.AEGIS_PUBLIC_KEY;
+
+  // Fail closed: the "unsafe" escape hatch is for local demos only.
+  if (isProduction && allowUnsafe === '1') {
+    throw new Error(
+      'AEGIS_ALLOW_UNSAFE_LICENSE=1 is not permitted in production. ' +
+        'Refusing to start (fail-closed licensing policy).'
+    );
+  }
+
+  if (isProduction && !secretKey) {
+    // Asymmetric Ed25519 verification with the compiled-in public key requires no
+    // secret; HMAC license paths are disabled until a secret is configured.
+    console.warn(
+      '[aegis-gateway] production boot without AEGIS_LICENSE_SECRET: ' +
+        'asymmetric Ed25519 license verification active (recommended); HMAC license ' +
+        'verification and Stripe license issuance are DISABLED (fail-closed).'
+    );
+  }
+
   const app = new Hono();
-  const secretKey = env?.AEGIS_LICENSE_SECRET || 'aegis_enterprise_lic_verification_secret_v1_deterministic';
-  const licenseManager = new AegisLicenseManager(secretKey);
+  const licenseManager = new AegisLicenseManager(secretKey || undefined, publicKeyPem);
   const probeEngine = new AegisEngine();
 
   // In-memory audit event store (backed by Cloudflare D1 / PostgreSQL in production)
@@ -150,6 +192,20 @@ export function createGatewayApp(env?: GatewayEnv) {
     const eventType = payload?.type;
 
     if (eventType === 'checkout.session.completed' || eventType === 'invoice.payment_succeeded') {
+      // Fail closed: never mint HMAC license keys without an explicitly configured secret.
+      if (!secretKey) {
+        console.error(
+          '[aegis-gateway] Stripe fulfillment reached without AEGIS_LICENSE_SECRET: refusing to issue license (fail-closed).'
+        );
+        return c.json(
+          {
+            error:
+              'License issuance is disabled: AEGIS_LICENSE_SECRET is not configured on the gateway. ' +
+              'Configure the gateway with an Ed25519 issuer key or set AEGIS_LICENSE_SECRET to fulfill purchases.',
+          },
+          503
+        );
+      }
       const session = payload.data?.object;
       const customerEmail = session?.customer_details?.email || session?.customer_email || 'customer@aegis-kernel.dev';
       const customerId = session?.customer || `cust_${Date.now()}`;
@@ -231,8 +287,22 @@ export function createGatewayApp(env?: GatewayEnv) {
     if (!body.licenseKey) {
       return c.json({ valid: false, error: 'Missing licenseKey parameter' }, 400);
     }
-    const result = licenseManager.verifyLicenseKey(body.licenseKey);
-    return c.json(result);
+    try {
+      const result = licenseManager.verifyLicenseKey(body.licenseKey);
+      return c.json(result);
+    } catch (err) {
+      // Fail closed: e.g. HMAC token presented while no AEGIS_LICENSE_SECRET is
+      // configured. Report as invalid rather than 500, and never accept it.
+      return c.json(
+        {
+          valid: false,
+          active: false,
+          tier: 'community',
+          error: `License verification failed (fail-closed): ${(err as Error).message}`,
+        },
+        200
+      );
+    }
   });
 
   // 6. Stripe Customer Portal Session generator
