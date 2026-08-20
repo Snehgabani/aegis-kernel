@@ -82,7 +82,7 @@ export DO_NOT_TRACK=1
 ## ⚖️ Legal & Regulatory Compliance
 
 * **GDPR (Regulation (EU) 2016/679)**: Information collected is truly anonymous aggregate data per Recital 26 and does not constitute personal data.
-* **EU AI Act (Article 13)**: Operational statistics support transparent risk management and algorithmic accountability.
+* **EU AI Act**: Anonymous operational statistics support transparent risk management and algorithmic accountability under the live Article 50 transparency obligations (since 2026-08-02) and the Articles 9-15 high-risk package applicable 2027-12-02 (Regulation (EU) 2026/1744 timeline).
 * **California Consumer Privacy Act (CCPA / CPRA)**: Aegis does not sell, share, or monetize any user or device data.
 
 ---

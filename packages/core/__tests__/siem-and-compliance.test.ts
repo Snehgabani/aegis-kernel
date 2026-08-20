@@ -146,6 +146,18 @@ describe('Enterprise GRC Compliance Dossier & Tamper-Proof Merkle Root', () => {
     expect(frameworks).toContain('NIST_AI_RMF');
   });
 
+  it('maps the LIVE Article 50 transparency obligation (in force 2026-08-02) and dates the high-risk package', () => {
+    const dossier = generateComplianceDossier(events);
+    const euClauses = dossier.frameworkMappings.filter((m) => m.framework === 'EU_AI_ACT');
+    const art50 = euClauses.find((m) => m.clauseId === 'Article 50');
+    expect(art50).toBeDefined();
+    expect(art50!.clauseTitle).toContain('2026-08-02');
+    expect(art50!.satisfactionStatus).toBe('SATISFIED');
+    // High-risk articles must be framed with their post-Omnibus applicability date
+    const art12 = euClauses.find((m) => m.clauseId === 'Article 12');
+    expect(art12!.clauseTitle).toContain('2027-12-02');
+  });
+
   it('should render executive Markdown compliance report for auditors', () => {
     const dossier = generateComplianceDossier(events);
     const md = renderComplianceMarkdown(dossier);

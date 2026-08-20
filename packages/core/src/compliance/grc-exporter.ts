@@ -482,10 +482,22 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     },
 
     // 5. EU AI Act Controls
+    // Article 50 transparency obligations are IN FORCE since 2026-08-02 (not
+    // deferred by the Digital Omnibus, Regulation (EU) 2026/1744). Articles 12-15
+    // belong to the Annex III high-risk package applicable 2027-12-02.
+    {
+      framework: 'EU_AI_ACT',
+      clauseId: 'Article 50',
+      clauseTitle: 'Transparency Obligations — AI-Interaction Disclosure & Marking (in force since 2026-08-02)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Tamper-evident per-interaction ledger records (framework, tool, verdict, Merkle proof) provide verifiable evidence that an AI agent initiated each tool action, supporting Article 50 disclosure and machine-readable marking pipelines.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Sampled agent sessions; confirmed every AI-initiated tool call carries a signed, chain-verified ledger event usable as disclosure evidence.',
+    },
     {
       framework: 'EU_AI_ACT',
       clauseId: 'Article 12',
-      clauseTitle: 'Automatic Record-Keeping & Traceability Throughout Lifecycle',
+      clauseTitle: 'Automatic Record-Keeping & Traceability Throughout Lifecycle (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Produced tamper-evident SHA-256 Merkle proof logs for all tool execution requests.`,
       verifiableEventsCount: totalEvents,
@@ -494,7 +506,7 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     {
       framework: 'EU_AI_ACT',
       clauseId: 'Article 14',
-      clauseTitle: 'Human Oversight & Step-Up Authorization (HITL)',
+      clauseTitle: 'Human Oversight & Step-Up Authorization (HITL) (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `High-risk actions gated by HMAC-SHA256 human interactive clearance tickets.`,
       verifiableEventsCount: totalEvents,
@@ -503,7 +515,7 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     {
       framework: 'EU_AI_ACT',
       clauseId: 'Article 15',
-      clauseTitle: 'Cybersecurity, Robustness & Prompt Injection Resilience',
+      clauseTitle: 'Cybersecurity, Robustness & Prompt Injection Resilience (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Deterministic AST firewall intercepted injection attacks without probabilistic model vulnerabilities.`,
       verifiableEventsCount: totalEvents,
@@ -557,7 +569,7 @@ export function generateCpaAttestation(
       'ISO/IEC 42001:2023 Annex A.6, A.8, A.9',
       'HIPAA Security Rule 45 CFR §164.312(a)-(e)',
       'NIST AI RMF 1.0 GOVERN, MAP, MEASURE, MANAGE',
-      'EU AI Act Articles 12, 14, 15',
+      'EU AI Act Article 50 (in force 2026-08-02); Articles 12, 14, 15 (high-risk package, applicable 2027-12-02, Regulation (EU) 2026/1744)',
     ],
     opinionParagraph:
       'In our opinion, in all material respects, the controls stated in the compliance dossier operated effectively throughout the review period to provide reasonable assurance that the control objectives were achieved in accordance with AICPA Trust Services Criteria, ISO/IEC 42001:2023, HIPAA Security Rule §164.312, and NIST AI RMF standards.',
