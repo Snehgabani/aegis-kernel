@@ -21,17 +21,25 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8787
 
+# Create dedicated non-root user and group with UID >= 10000
+RUN addgroup -g 10001 -S aegis && adduser -u 10001 -S aegis -G aegis
+
 # Copy built distribution files and required runtime packages
 COPY package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/core/dist ./packages/core/dist
-COPY --from=builder /app/packages/core/packs ./packages/core/packs
-COPY --from=builder /app/packages/core/package.json ./packages/core/package.json
-COPY --from=builder /app/services/gateway/dist ./services/gateway/dist
-COPY --from=builder /app/services/gateway/package.json ./services/gateway/package.json
+COPY --from=builder --chown=10001:10001 /app/node_modules ./node_modules
+COPY --from=builder --chown=10001:10001 /app/packages/core/dist ./packages/core/dist
+COPY --from=builder --chown=10001:10001 /app/packages/core/packs ./packages/core/packs
+COPY --from=builder --chown=10001:10001 /app/packages/core/package.json ./packages/core/package.json
+COPY --from=builder --chown=10001:10001 /app/services/gateway/dist ./services/gateway/dist
+COPY --from=builder --chown=10001:10001 /app/services/gateway/package.json ./services/gateway/package.json
+
+RUN mkdir -p /tmp /app/.aegis && chown -R 10001:10001 /tmp /app/.aegis
+
+USER 10001:10001
 
 EXPOSE 8787
 
-USER 1000:1000
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8787/api/health || exit 1
 
 CMD ["node", "services/gateway/dist/index.cjs"]

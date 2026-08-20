@@ -13,17 +13,25 @@ COPY services/ ./services/
 RUN npm install
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=8787
 
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/services/gateway/dist ./services/gateway/dist
+# Create dedicated non-root user and group with UID >= 10000
+RUN addgroup -g 10001 -S aegis && adduser -u 10001 -S aegis -G aegis
+
+COPY --from=builder --chown=10001:10001 /app/package.json ./
+COPY --from=builder --chown=10001:10001 /app/node_modules ./node_modules
+COPY --from=builder --chown=10001:10001 /app/packages ./packages
+COPY --from=builder --chown=10001:10001 /app/services/gateway/dist ./services/gateway/dist
+
+# Ensure writable temporary and cache directories with proper permissions
+RUN mkdir -p /tmp /app/.aegis && chown -R 10001:10001 /tmp /app/.aegis
+
+USER 10001:10001
 
 EXPOSE 8787
 

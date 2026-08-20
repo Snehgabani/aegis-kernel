@@ -14,13 +14,20 @@ resource "aws_ecs_task_definition" "aegis" {
   memory                   = "512"
 
   container_definitions = jsonencode([{
-    name      = "aegis-kernel"
-    image     = "aegis-kernel:latest"
-    essential = true
+    name                   = "aegis-kernel"
+    image                  = "aegis-kernel:latest"
+    essential              = true
+    user                   = "10001:10001"
+    readonlyRootFilesystem = true
     portMappings = [{
       containerPort = 8080
       hostPort      = 8080
     }]
+    linuxParameters = {
+      capabilities = {
+        drop = ["ALL"]
+      }
+    }
     logConfiguration = {
       logDriver = "awslogs"
       options = {

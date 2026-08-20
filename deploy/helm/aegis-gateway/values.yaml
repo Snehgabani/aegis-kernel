@@ -2,8 +2,8 @@ replicaCount: 3
 
 image:
   repository: ghcr.io/snehgabani/aegis-gateway
-  pullPolicy: IfNotPresent
-  tag: "v1.0.0"
+  pullPolicy: Always
+  tag: "1.0.1"
 
 service:
   type: ClusterIP
@@ -29,11 +29,18 @@ env:
   PORT: "8787"
   LOG_LEVEL: info
 
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
 securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 10001
+  runAsGroup: 10001
   capabilities:
     drop:
       - ALL

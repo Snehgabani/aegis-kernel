@@ -5,6 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: aegis-gateway
     app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -17,10 +18,26 @@ spec:
         app.kubernetes.io/name: aegis-gateway
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      podSecurityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.podSecurityContext.runAsUser | default 10001 }}
+        runAsGroup: {{ .Values.podSecurityContext.runAsGroup | default 10001 }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup | default 10001 }}
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: gateway
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation | default false }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem | default true }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot | default true }}
+            runAsUser: {{ .Values.securityContext.runAsUser | default 10001 }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup | default 10001 }}
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: {{ .Values.service.targetPort }}
               name: http
@@ -43,9 +60,21 @@ spec:
               value: "{{ .Values.env.PORT }}"
             - name: NODE_ENV
               value: "{{ .Values.env.NODE_ENV }}"
+            - name: TMPDIR
+              value: "/tmp"
             - name: AEGIS_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: aegis-secrets
                   key: secret-key
                   optional: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: aegis-data
+              mountPath: /app/.aegis
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: aegis-data
+          emptyDir: {}
