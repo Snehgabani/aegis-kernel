@@ -1,6 +1,6 @@
 use aegis_kernel::{
-    AegisEngine, Config, EnclaveAttestation, PiiTokenVault, Rule, RuleCondition,
-    RulePack, ToolCall, ZkPolicyCircuit, AegisSeverity,
+    AegisEngine, CommitmentProof, Config, EnclaveAttestation, PiiTokenVault, PolicyCommitmentCircuit,
+    Rule, RuleCondition, RulePack, ToolCall, AegisSeverity,
 };
 use serde_json::json;
 use std::collections::HashMap;
@@ -266,15 +266,15 @@ fn test_state_invariants_and_tenant_isolation() {
 
 #[test]
 fn test_zk_policy_circuit() {
-    let circuit = ZkPolicyCircuit::new("policy_max_wire_transfer_10k", 0.0, 10000.0);
+    let circuit = PolicyCommitmentCircuit::new("policy_max_wire_transfer_10k", 0.0, 10000.0);
 
     // Compliant proof generation ($5,000 <= $10,000)
     let proof_res = circuit.prove_compliance(5000.0);
     assert!(proof_res.is_ok());
     let proof = proof_res.unwrap();
-    assert_eq!(proof.proof_type, "Plonky3_Recursive_SNARK");
+    assert_eq!(proof.proof_type, "SHA256_PolicyCommitment");
     assert!(!proof.proof_bytes_hex.is_empty());
-    assert!(ZkPolicyCircuit::verify_proof(&proof, &proof.public_policy_hash));
+    assert!(PolicyCommitmentCircuit::verify_proof(&proof, &proof.public_policy_hash));
 
     // Non-compliant proof generation ($50,000 > $10,000) -> Rejected
     let non_compliant = circuit.prove_compliance(50000.0);
@@ -283,8 +283,11 @@ fn test_zk_policy_circuit() {
 
 #[test]
 fn test_enclave_attestation() {
+    // Temporarily set development mode for testing (default if unset)
     let report = EnclaveAttestation::generate_attestation_report("enclave_nitro_prod_01");
     assert_eq!(report.get("enclave_id").unwrap(), "enclave_nitro_prod_01");
-    assert_eq!(report.get("attestation_status").unwrap(), "VALID_VERIFIED");
+    // In development mode (default), attestation is simulated
+    assert_eq!(report.get("attestation_status").unwrap(), "DEV_SIMULATED");
     assert!(report.contains_key("pcr0"));
+    assert!(report.contains_key("note"));
 }

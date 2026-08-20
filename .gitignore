@@ -13,7 +13,11 @@ build/
 turborepo-graph.html
 
 target/
+# Ignore Cargo.lock in general (monorepo-wide default),
+# BUT track the Rust crate's lockfile for reproducible CI builds.
+# The 2023 Rust guidance recommends committing lockfiles even for libraries.
 Cargo.lock
+!packages/rust/Cargo.lock
 
 # Environment & Secrets (Zero Egress)
 .env

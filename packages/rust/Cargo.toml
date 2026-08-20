@@ -2,9 +2,9 @@
 name = "aegis-kernel"
 version = "1.0.1"
 edition = "2021"
-description = "Deterministic Safety Invariant Kernel & Zero-Knowledge Attestation Crate for AI Agents"
+description = "Deterministic Safety Invariant Kernel & Policy Commitment Crate for AI Agents"
 authors = ["Sneh Gabani <sneh.gabani1999@gmail.com>"]
-license = "Apache-2.0"
+license = "MIT"
 repository = "https://github.com/Snehgabani/aegis-kernel"
 homepage = "https://snehgabani.github.io/aegis-kernel/playground.html"
 documentation = "https://docs.rs/aegis-kernel"

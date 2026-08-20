@@ -130,6 +130,12 @@ Each tier is designed to fail closed: if any stage throws an internal error, the
 
 **Explicitly out of scope:** Aegis does not handle conversational tone moderation, hate speech detection, or multimodal content filtering. Those are best served by LLM-based systems like NeMo Guardrails or Llama Guard. Aegis is designed to complement them at the tool boundary.
 
+> **🏗️ Feature Maturity Notes:**
+> - **Zero-Knowledge Proofs:** The codebase uses SHA-256 **hash commitments**, not zk-SNARKs. True Groth16/PLONK proofs are on the roadmap.
+> - **WASM Sandbox:** The `WasmPluginRunner` provides the interface architecture; actual WASM compilation/validation is coming in v1.1.0.
+> - **Enclave Attestation:** `EnclaveAttestation` is a **development simulation** — set `AEGIS_ATTESTATION_MODE=production` to request real attestation (AWS Nitro/Intel SGX integration pending).
+> See [LIMITATIONS_AND_BOUNDARIES.md](./docs/LIMITATIONS_AND_BOUNDARIES.md) and [ROADMAP.md](./docs/ROADMAP.md) for details.
+
 ---
 
 ## Benchmarks
@@ -193,7 +199,7 @@ Aegis is designed to run as the second stage in a defense-in-depth pipeline:
 | **TypeScript / Node.js** | Core engine | Full AST parsing, JSON schema compilation, Merkle audit chain, CLI, MCP middleware, live playground |
 | **Python (≥3.9)** | Native engine, zero deps | SQL token parsing, financial aliases, PII vault, state DSL, framework adapters (CrewAI, AutoGen, LangChain) |
 | **Go (≥1.21)** | Native engine | SQL token/AST validation, comment de-obfuscation, tautology engine, PII vault, state DSL |
-| **Rust (≥1.75)** | Native crate | Zero-allocation SQL invariant checker, tautology folding, HMAC token vault, ZK policy circuits |
+| **Rust (≥1.75)** | Native crate | Zero-allocation SQL invariant checker, tautology folding, HMAC token vault, policy commitment circuit |
 
 > Go and Rust SDKs cover a subset of checks and are not full ports of the TypeScript engine. See each package's README for exact scope.
 
