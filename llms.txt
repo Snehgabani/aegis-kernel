@@ -2,9 +2,12 @@
 
 Aegis is an open-source deterministic safety kernel for AI agent tool calls. It intercepts database queries, financial transactions, and API requests proposed by autonomous agents, verifies them against structural invariants using AST analysis, and blocks unsafe operations in under 1.5ms with zero network egress.
 
-## Core Concepts
+## Core Documentation
 
 - [README](https://github.com/Snehgabani/aegis-kernel/blob/main/README.md): Project overview, installation, and quickstart
+- [Getting Started](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/GETTING_STARTED.md): Installation, setup, and integration tutorials
+- [Security User Guide](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/SECURITY_USER_GUIDE.md): Secure configuration, operational dos and don'ts
+- [API Reference](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/API_REFERENCE.md): Exhaustive public classes, inputs, outputs, REST endpoints, and CLI options
 - [White Paper](https://github.com/Snehgabani/aegis-kernel/blob/main/WHITE_PAPER.md): Technical report, threat model, formal proofs
 - [Limitations and Boundaries](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/LIMITATIONS_AND_BOUNDARIES.md): Honest scope, architectural constraints, benchmark methodology
 

@@ -355,15 +355,19 @@ Report via [GitHub Security Advisories](https://github.com/Snehgabani/aegis-kern
 
 ## Documentation
 
+- [Getting Started](./docs/GETTING_STARTED.md) — Installation, quickstart, and integration tutorials
+- [API Reference](./docs/API_REFERENCE.md) — Exhaustive public classes, inputs, outputs, REST endpoints, and CLI options
+- [Security User Guide](./docs/SECURITY_USER_GUIDE.md) — Secure configuration, operational dos and don'ts
 - [White Paper](./WHITE_PAPER.md) — Technical report with threat model and formal proofs
 - [Interactive Playground](https://snehgabani.github.io/aegis-kernel/playground/) — Test invariants live in the browser
 - [Architecture Docs](https://snehgabani.github.io/aegis-kernel/docs/) — Searchable API and policy reference
 - [Audit Dashboard](https://snehgabani.github.io/aegis-kernel/dashboard/) — Live audit stream with CSV export
-- [Formal Specification](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations
-- [2026 Threat Landscape Report](./docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md) — OWASP MCP attack vectors
 - [Supply Chain Trust & Provenance](./docs/security/SUPPLY_CHAIN_TRUST_AND_PROVENANCE.md) — SLSA L3, Sigstore signing, SBOM & reproducible builds
+- [OpenSSF Best Practices Evidence](./docs/compliance/OPENSSF_BEST_PRACTICES_EVIDENCE.md) — Criteria mapping for OpenSSF Badge #10182
 - [Limitations and Boundaries](./docs/LIMITATIONS_AND_BOUNDARIES.md) — Honest scope and architectural constraints
 - [EU AI Act Mapping](./docs/compliance/EU_AI_ACT_MAPPING.md) — Articles 9–15 crosswalk
+- [Formal Specification](./docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md) — LaTeX mathematical foundations
+- [2026 Threat Landscape Report](./docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md) — OWASP MCP attack vectors
 - [Privacy Policy](./PRIVACY.md) — Zero-egress data handling
 - [Ethics Charter](./ETHICS_AND_RESPONSIBLE_AI.md) — Dual-use policy and civil safety
 - [Telemetry](./TELEMETRY.md) — Anonymous metrics, opt-out guide, GDPR compliance
