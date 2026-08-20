@@ -56,8 +56,8 @@ jobs:
             if [ "$(npm view "$PKG_NAME@$PKG_VER" version 2>/dev/null)" == "$PKG_VER" ]; then
               echo "  ⏩ $PKG_NAME@$PKG_VER is already published on npm, skipping."
             else
-              echo "  📦 Publishing $PKG_NAME@$PKG_VER to npm..."
-              (cd "$PKG" && npm publish --access public)
+              echo "  📦 Publishing $PKG_NAME@$PKG_VER to npm with Sigstore provenance..."
+              (cd "$PKG" && npm publish --access public --provenance)
             fi
           done
 

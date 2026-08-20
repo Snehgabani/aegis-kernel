@@ -1,0 +1,44 @@
+name: Reproducible Build Verification Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  verify-determinism:
+    name: Verify Bit-for-Bit Deterministic Builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Build Pass 1
+        run: |
+          npm ci
+          npm run build
+          mkdir -p /tmp/build-pass-1
+          cp -r packages/*/dist /tmp/build-pass-1/
+
+      - name: Clean & Build Pass 2
+        run: |
+          npm run clean || rm -rf packages/*/dist
+          npm run build
+          mkdir -p /tmp/build-pass-2
+          cp -r packages/*/dist /tmp/build-pass-2/
+
+      - name: Compare Checksums (Zero Binary Drift)
+        run: |
+          (cd /tmp/build-pass-1 && find . -type f -exec sha256sum {} + | sort) > /tmp/pass1.sha256
+          (cd /tmp/build-pass-2 && find . -type f -exec sha256sum {} + | sort) > /tmp/pass2.sha256
+          diff -u /tmp/pass1.sha256 /tmp/pass2.sha256 || (echo "❌ Non-deterministic build detected!" && exit 1)
+          echo "✅ Verified: Pass 1 and Pass 2 distributions are bit-for-bit identical."

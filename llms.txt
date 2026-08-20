@@ -44,9 +44,10 @@ Aegis is an open-source deterministic safety kernel for AI agent tool calls. It 
 - [Benchmark Comparison](https://snehgabani.github.io/aegis-kernel/compare-nemo.html): Side-by-side latency and accuracy metrics
 - [Interactive Playground](https://snehgabani.github.io/aegis-kernel/playground/): Test adversarial attacks live in the browser
 
-## Security and Compliance
+## Security, Trust and Compliance
 
 - [Security Policy](https://github.com/Snehgabani/aegis-kernel/blob/main/SECURITY.md): Responsible disclosure and Safe Harbor
+- [Supply Chain Trust & Provenance](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/security/SUPPLY_CHAIN_TRUST_AND_PROVENANCE.md): SLSA Level 3, Sigstore keyless signing, SPDX/CycloneDX SBOMs, reproducible builds
 - [Compliance Self-Assessment](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/COMPLIANCE_SELF_ASSESSMENT.md): SOC 2, HIPAA control mapping
 - [EU AI Act Mapping](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/compliance/EU_AI_ACT_MAPPING.md): Articles 9–15 crosswalk
 - [2026 Threat Landscape](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md): OWASP MCP attack vectors

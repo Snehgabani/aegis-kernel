@@ -71,8 +71,8 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
           for pkg in core cli mcp langchain openai anthropic diagnostics evals; do
             if [ -d "packages/$pkg" ]; then
-              echo "Publishing @aegis-kernel/$pkg to npm..."
-              (cd "packages/$pkg" && npm publish --access public) || echo "Failed to publish $pkg or already published"
+              echo "Publishing @aegis-kernel/$pkg to npm with Sigstore provenance..."
+              (cd "packages/$pkg" && npm publish --access public --provenance) || echo "Failed to publish $pkg or already published"
             fi
           done
         env:

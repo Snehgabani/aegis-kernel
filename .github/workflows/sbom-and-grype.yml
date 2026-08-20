@@ -1,8 +1,9 @@
-name: Anchore Syft SBOM & Grype Vulnerability Scanner
+name: Dual SBOM Generation (SPDX & CycloneDX) & Vulnerability Audit
 
 on:
   push:
     branches: [main]
+    tags: ['v*']
   schedule:
     - cron: '0 3 * * 2' # Weekly on Tuesday at 03:00 UTC
   workflow_dispatch:
@@ -20,23 +21,32 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Generate SPDX SBOM with Anchore Syft
+      - name: Generate SPDX JSON SBOM with Anchore Syft
         uses: anchore/sbom-action@v0
         with:
           path: '.'
           format: 'spdx-json'
           output-file: 'aegis-spdx-sbom.json'
 
+      - name: Generate CycloneDX JSON SBOM with Anchore Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: '.'
+          format: 'cyclonedx-json'
+          output-file: 'aegis-cyclonedx-sbom.json'
+
       - name: Scan SBOM with Anchore Grype
-        uses: anchore/scan-action@v7
+        uses: anchore/scan-action@v6
         with:
           sbom: 'aegis-spdx-sbom.json'
           fail-build: false
           severity-cutoff: 'critical'
 
-      - name: Archive SBOM Artifact
+      - name: Archive SBOM Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: aegis-spdx-sbom
-          path: aegis-spdx-sbom.json
+          name: aegis-sboms
+          path: |
+            aegis-spdx-sbom.json
+            aegis-cyclonedx-sbom.json
           retention-days: 90
