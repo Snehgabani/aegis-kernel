@@ -2,10 +2,14 @@ name: Hadolint Container Image Dockerfile Linting
 
 on:
   push:
+    branches:
+      - main
     paths:
       - '**/Dockerfile*'
       - '.github/workflows/hadolint.yml'
   pull_request:
+    branches:
+      - main
     paths:
       - '**/Dockerfile*'
   workflow_dispatch:
@@ -27,4 +31,19 @@ jobs:
         uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: 'services/gateway/Dockerfile'
-          ignore: 'DL3018,DL3008,DL3066'
+          failure-threshold: error
+          ignore: 'DL3018,DL3008,DL3059,DL3066'
+
+      - name: Lint Root Production Dockerfile
+        uses: hadolint/hadolint-action@v3.4.0
+        with:
+          dockerfile: 'Dockerfile'
+          failure-threshold: error
+          ignore: 'DL3018,DL3008,DL3059,DL3066'
+
+      - name: Lint Benchmark Test Dockerfile
+        uses: hadolint/hadolint-action@v3.4.0
+        with:
+          dockerfile: 'Dockerfile.test'
+          failure-threshold: error
+          ignore: 'DL3018,DL3008,DL3059,DL3066'

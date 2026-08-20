@@ -21,8 +21,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8787
 
-# Create dedicated non-root user and group with UID >= 10000
-RUN addgroup -g 10001 -S aegis && adduser -u 10001 -S aegis -G aegis
+# Upgrade all Alpine OS packages (libssl3, libcrypto3, busybox, etc.) to eliminate CVEs
+# and create dedicated non-root user 10001:10001
+RUN apk upgrade --no-cache && \
+    addgroup -g 10001 -S aegis && \
+    adduser -u 10001 -S aegis -G aegis && \
+    mkdir -p /tmp /app/.aegis && \
+    chown -R 10001:10001 /tmp /app/.aegis
 
 # Copy built distribution files and required runtime packages
 COPY package*.json ./
@@ -32,8 +37,6 @@ COPY --from=builder --chown=10001:10001 /app/packages/core/packs ./packages/core
 COPY --from=builder --chown=10001:10001 /app/packages/core/package.json ./packages/core/package.json
 COPY --from=builder --chown=10001:10001 /app/services/gateway/dist ./services/gateway/dist
 COPY --from=builder --chown=10001:10001 /app/services/gateway/package.json ./services/gateway/package.json
-
-RUN mkdir -p /tmp /app/.aegis && chown -R 10001:10001 /tmp /app/.aegis
 
 USER 10001:10001
 

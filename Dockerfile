@@ -10,8 +10,7 @@ COPY packages/ ./packages/
 COPY services/ ./services/
 
 # Install dependencies and build
-RUN npm install
-RUN npm run build
+RUN npm install && npm run build
 
 FROM node:22-alpine AS runner
 
@@ -20,16 +19,18 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8787
 
-# Create dedicated non-root user and group with UID >= 10000
-RUN addgroup -g 10001 -S aegis && adduser -u 10001 -S aegis -G aegis
+# Upgrade all Alpine OS packages (libssl3, libcrypto3, busybox, etc.) to eliminate CVEs
+# and create dedicated non-root user 10001:10001
+RUN apk upgrade --no-cache && \
+    addgroup -g 10001 -S aegis && \
+    adduser -u 10001 -S aegis -G aegis && \
+    mkdir -p /tmp /app/.aegis && \
+    chown -R 10001:10001 /tmp /app/.aegis
 
 COPY --from=builder --chown=10001:10001 /app/package.json ./
 COPY --from=builder --chown=10001:10001 /app/node_modules ./node_modules
 COPY --from=builder --chown=10001:10001 /app/packages ./packages
 COPY --from=builder --chown=10001:10001 /app/services/gateway/dist ./services/gateway/dist
-
-# Ensure writable temporary and cache directories with proper permissions
-RUN mkdir -p /tmp /app/.aegis && chown -R 10001:10001 /tmp /app/.aegis
 
 USER 10001:10001
 
