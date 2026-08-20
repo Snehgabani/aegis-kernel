@@ -26,6 +26,8 @@
     "test:security": "bash scripts/security-audit.sh",
     "test:integration": "vitest run packages/core/__tests__/exfiltration-integration.test.ts packages/core/__tests__/deception-and-distributed.test.ts",
     "test:all": "vitest run && bash scripts/security-audit.sh",
+    "gen:homoglyphs": "node scripts/gen-homoglyph-maps.mjs",
+    "fetch:benchmarks": "node scripts/fetch-canonical-benchmarks.mjs",
     "lint": "turbo run lint --no-daemon --concurrency=4",
     "clean": "turbo run clean"
   },

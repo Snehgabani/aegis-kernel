@@ -1,0 +1,55 @@
+name: Rust Crate Matrix & Quality Assurance
+
+on:
+  push:
+    paths:
+      - 'packages/rust/**'
+      - '.github/workflows/rust-crate.yml'
+  pull_request:
+    paths:
+      - 'packages/rust/**'
+      - '.github/workflows/rust-crate.yml'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  rust-matrix:
+    name: Rust Engine Invariant Matrix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        rust-version: ['stable', 'beta']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Rust Toolchain (${{ matrix.rust-version }})
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-version }}
+          components: clippy, rustfmt
+
+      - name: Rust Dependency Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/rust -> target
+
+      - name: Compile Rust Crate
+        run: cargo build --verbose
+        working-directory: packages/rust
+
+      - name: Run Rust Kernel Test Suite
+        run: cargo test --verbose
+        working-directory: packages/rust
+
+      - name: Check Formatting (rustfmt)
+        run: cargo fmt --all -- --check
+        working-directory: packages/rust
+
+      - name: Run Clippy Linter (-D warnings)
+        run: cargo clippy -- -D warnings
+        working-directory: packages/rust

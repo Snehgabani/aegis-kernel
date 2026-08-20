@@ -8,11 +8,39 @@ on:
   pull_request:
     paths:
       - 'packages/go/**'
+      - '.github/workflows/go-build.yml'
   workflow_dispatch:
 
 permissions: read-all
 
 jobs:
+  test-go:
+    name: Go Engine Invariant Test Matrix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ['1.21', '1.22', '1.23']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache-dependency-path: packages/go/go.sum
+
+      - name: Run Go Unit Tests
+        working-directory: packages/go
+        run: go test -v -count=1 ./...
+
+      - name: Run Go Vet Linter
+        working-directory: packages/go
+        run: go vet ./...
+
   build-go:
     name: Compile Go SDK across Target Architectures
     runs-on: ubuntu-latest
