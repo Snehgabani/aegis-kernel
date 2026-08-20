@@ -1,0 +1,52 @@
+# Aegis Invariant Kernel
+
+Aegis is an open-source deterministic safety kernel for AI agent tool calls. It intercepts database queries, financial transactions, and API requests proposed by autonomous agents, verifies them against structural invariants using AST analysis, and blocks unsafe operations in under 1.5ms with zero network egress.
+
+## Core Concepts
+
+- [README](https://github.com/Snehgabani/aegis-kernel/blob/main/README.md): Project overview, installation, and quickstart
+- [White Paper](https://github.com/Snehgabani/aegis-kernel/blob/main/WHITE_PAPER.md): Technical report, threat model, formal proofs
+- [Limitations and Boundaries](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/LIMITATIONS_AND_BOUNDARIES.md): Honest scope, architectural constraints, benchmark methodology
+
+## Installation
+
+- TypeScript: `npm install @aegis-kernel/core`
+- Python (zero dependencies): `pip install aegis-kernel`
+- MCP: `npx -y @smithery/cli install sneh-gabani1999/aegis-kernel --client claude`
+- Go: `go get github.com/Snehgabani/aegis-kernel/packages/go`
+- Rust: `cargo add aegis-kernel --git https://github.com/Snehgabani/aegis-kernel`
+
+## Packages
+
+- [@aegis-kernel/core](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/core): TypeScript invariant engine — SQL AST parsing, numeric bounds, PII vault, Merkle audit
+- [@aegis-kernel/mcp](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/mcp): Model Context Protocol middleware (JSON-RPC 2.0)
+- [@aegis-kernel/langchain](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/langchain): LangChain / CrewAI / AutoGen adapter
+- [@aegis-kernel/cli](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/cli): CLI for benchmarks, scanning, audit reports
+- [aegis-kernel (PyPI)](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/python): Python SDK with @aegis_guard decorator
+- [packages/go](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/go): Go SDK — SQL validation, PII vault, state DSL
+- [packages/rust](https://github.com/Snehgabani/aegis-kernel/tree/main/packages/rust): Rust crate — zero-allocation SQL checker, ZK policy circuits
+
+## API Reference
+
+- [Interactive Documentation](https://snehgabani.github.io/aegis-kernel/docs/): Searchable API and policy reference
+- [Formal Specification](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/research/FORMAL_SPECIFICATION_AND_SYSTEM_ARCHITECTURE.md): LaTeX mathematical foundations
+
+## Examples
+
+- [CrewAI Financial Analyst](https://github.com/Snehgabani/aegis-kernel/tree/main/examples/crewai-financial-analyst): SQL evasion defense + disbursement ceiling
+- [LangGraph Multi-Agent](https://github.com/Snehgabani/aegis-kernel/tree/main/examples/langgraph-multi-agent): Cross-agent privilege escalation defense
+- [FastAPI MCP Gateway](https://github.com/Snehgabani/aegis-kernel/tree/main/examples/fastapi-mcp-gateway): Zero-trust JSON-RPC schema pinning
+- [OpenAI SQL Agent](https://github.com/Snehgabani/aegis-kernel/tree/main/examples/openai-sql-agent): Tautology folding + mass DELETE prevention
+- [Python Trading Guard](https://github.com/Snehgabani/aegis-kernel/tree/main/examples/python-trading-guard): Drawdown velocity bounds
+
+## Benchmarks
+
+- [Benchmark Comparison](https://snehgabani.github.io/aegis-kernel/compare-nemo.html): Side-by-side latency and accuracy metrics
+- [Interactive Playground](https://snehgabani.github.io/aegis-kernel/playground/): Test adversarial attacks live in the browser
+
+## Security and Compliance
+
+- [Security Policy](https://github.com/Snehgabani/aegis-kernel/blob/main/SECURITY.md): Responsible disclosure and Safe Harbor
+- [Compliance Self-Assessment](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/COMPLIANCE_SELF_ASSESSMENT.md): SOC 2, HIPAA control mapping
+- [EU AI Act Mapping](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/compliance/EU_AI_ACT_MAPPING.md): Articles 9–15 crosswalk
+- [2026 Threat Landscape](https://github.com/Snehgabani/aegis-kernel/blob/main/docs/research/2026_AGENT_SECURITY_LANDSCAPE_AND_THREAT_MODEL.md): OWASP MCP attack vectors

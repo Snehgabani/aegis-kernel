@@ -1,47 +1,108 @@
-# 🤖 Autonomous AI Agent Instructions & Operating Manual (AGENTS.md)
+# AGENTS.md — Instructions for AI Coding Agents
 
-This file contains operational instructions for all autonomous AI coding agents (including **Devin**, **Claude Code**, **Antigravity**, **OpenHands**, **Cursor**, and **Aider**) working inside the **Aegis Invariant Kernel** repository.
+This file provides context for AI coding agents (Claude Code, Cursor, Copilot, Windsurf) working with the Aegis Invariant Kernel codebase.
 
----
+## Project structure
 
-## 🎯 Primary Directives
+```
+aegis-kernel/
+├── packages/
+│   ├── core/          # TypeScript invariant engine (main library)
+│   ├── mcp/           # Model Context Protocol middleware
+│   ├── langchain/     # LangChain / CrewAI / AutoGen adapter
+│   ├── cli/           # CLI tool (aegis init, eval, scan, etc.)
+│   ├── evals/         # Academic benchmark evaluation suite
+│   ├── python/        # Python SDK (zero dependencies)
+│   ├── go/            # Go SDK
+│   └── rust/          # Rust crate
+├── examples/          # Reference architectures (CrewAI, LangGraph, FastAPI, etc.)
+├── services/          # Supporting services
+├── site/              # GitHub Pages (playground, docs, dashboard)
+├── scripts/           # Build and verification scripts
+└── docs/              # Technical documentation, compliance, research
+```
 
-1. **Safety & Zero-Egress Invariant**: Never add external HTTP calls or telemetric egress to `packages/core`. All evaluations must be purely local and deterministic.
-2. **ReDoS Immunity**: Every regex pattern must be linear $O(N)$ with zero catastrophic backtracking. Prefer tokenizers or single-pass state machines.
-3. **Process Reward Verification**: Always run `npm run build && npm run test` before finalizing any edit. Never commit code that breaks any of the 47 test suites.
-4. **Sub-1.5ms Performance**: Ensure benchmark tests in `packages/evals` maintain $\ge 100\%$ F1 score and $P_{95} < 5\text{ms}$.
-
----
-
-## 🛠️ Monorepo Quick Reference
-
-| Package | Path | Purpose |
-| :--- | :--- | :--- |
-| `@aegis-kernel/core` | `packages/core` | Core runtime engine, AST checkers, HMAC proofs, GRC exporter |
-| `@aegis-kernel/cli` | `packages/cli` | Command-line tool (`aegis init`, `scan`, `test`, `doctor`) |
-| `@aegis-kernel/mcp` | `packages/mcp` | Model Context Protocol security proxy and tool poisoning scanner |
-| `@aegis-kernel/langchain` | `packages/langchain` | LangChain / LangGraph tool call interceptor |
-| `@aegis-kernel/openai` | `packages/openai` | OpenAI SDK tool call wrapper |
-| `@aegis-kernel/anthropic` | `packages/anthropic` | Anthropic Claude SDK tool call wrapper |
-| `@aegis-kernel/evals` | `packages/evals` | Adversarial testbed (100 tricky attack vectors) |
-| `@aegis-kernel/diagnostics` | `packages/diagnostics` | Subsystem diagnostic suite (`AegisDiagnostics`) |
-
----
-
-## 🧪 Verification Loop
-
-Before submitting or pushing changes, run this complete verification sequence:
+## Build and test
 
 ```bash
-# 1. Build and verify type consistency
-npm run build
-
-# 2. Run all unit and integration tests
-npm run test
-
-# 3. Verify repository health
-node packages/cli/bin/aegis.js doctor
-
-# 4. Verify all 25 operational subsystems
-node scripts/live-e2e-proof.mjs
+npm install            # install all workspace dependencies
+npm run build          # build all TypeScript packages (tsup)
+npm test               # run all 532 tests across 74 suites (vitest)
+npm run lint           # ESLint across all packages
 ```
+
+Python tests:
+```bash
+cd packages/python && python -m pytest
+```
+
+Go tests:
+```bash
+cd packages/go && go test -v ./...
+```
+
+Rust tests:
+```bash
+cd packages/rust && cargo test
+```
+
+## Key conventions
+
+- **Monorepo**: Uses npm workspaces + Turborepo for orchestration
+- **Module format**: ESM (`"type": "module"` in package.json)
+- **TypeScript**: Strict mode, compiled with tsup
+- **Testing**: Vitest for TypeScript, pytest for Python, `go test` for Go, `cargo test` for Rust
+- **Node.js**: Requires >=18.0
+- **Python**: Requires >=3.9, zero external dependencies
+
+## How to use Aegis in user code
+
+### TypeScript — protect a tool call
+```typescript
+import { AegisEngine } from '@aegis-kernel/core';
+
+const engine = new AegisEngine({ mode: 'enforce' });
+const result = engine.evaluate({
+  tool: 'database_query',
+  params: { query: 'SELECT * FROM users WHERE id = 1' }
+});
+// result.verdict: 'ALLOWED' | 'BLOCKED' | 'REASK'
+```
+
+### Python — decorator pattern
+```python
+from aegis_kernel import aegis_guard
+
+@aegis_guard(tool_name="database_exec")
+def run_query(query: str):
+    return db.execute(query)
+```
+
+### MCP middleware
+```typescript
+import { AegisMCPMiddleware } from '@aegis-kernel/mcp';
+
+const middleware = new AegisMCPMiddleware({
+  mode: 'enforce',
+  packs: ['@aegis/sql-guard', '@aegis/data-guard']
+});
+const safeHandler = middleware.wrapToolHandler('database_query', handler);
+```
+
+## Package imports
+
+| Package | npm name | Main export |
+|:---|:---|:---|
+| Core engine | `@aegis-kernel/core` | `AegisEngine`, `AegisStreamInterceptor`, `ConversationTracker`, `ExecutionDAG`, `PolicyEngine` |
+| MCP middleware | `@aegis-kernel/mcp` | `AegisMCPMiddleware` |
+| LangChain adapter | `@aegis-kernel/langchain` | `AegisLangChainGuard` |
+| CLI | `@aegis-kernel/cli` | CLI binary (`npx aegis`) |
+| Python SDK | `aegis-kernel` (PyPI) | `aegis_guard` decorator, `PythonStateChecker`, `PythonPiiTokenVault` |
+
+## Common tasks
+
+- **Add a new invariant check**: Implement in `packages/core/src/`, add tests in `packages/core/__tests__/`
+- **Add a new CLI command**: Add to `packages/cli/src/`
+- **Add a benchmark**: Add dataset to `packages/evals/src/benchmarks/`
+- **Modify policy DSL**: Core logic in `packages/core/src/policy/`
+- **Update documentation site**: Edit files in `site/`
