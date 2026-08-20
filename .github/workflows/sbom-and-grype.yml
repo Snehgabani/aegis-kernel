@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Generate SPDX JSON SBOM with Anchore Syft
         uses: anchore/sbom-action@v0
@@ -36,14 +36,14 @@ jobs:
           output-file: 'aegis-cyclonedx-sbom.json'
 
       - name: Scan SBOM with Anchore Grype
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@v7
         with:
           sbom: 'aegis-spdx-sbom.json'
           fail-build: false
           severity-cutoff: 'critical'
 
       - name: Archive SBOM Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aegis-sboms
           path: |
