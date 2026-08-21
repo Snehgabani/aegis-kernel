@@ -84,6 +84,13 @@ export interface DossierOptions {
   systemName?: string;
   signKey?: string;
   signAlgorithm?: 'ed25519' | 'hmac-sha256';
+  /**
+   * When signing with Ed25519, the issuer's public key (PEM/SPKI). Embedded in
+   * the dossier so an auditor can independently verify the root signature from
+   * the artifact alone. For non-repudiation this key MUST also be pinned
+   * out-of-band (the embedded copy is for discoverability, not trust).
+   */
+  publicKeyPem?: string;
 }
 
 export interface DossierVerificationFinding {
@@ -360,9 +367,18 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     {
       framework: 'SOC2_TYPE_II',
       clauseId: 'CC6.8',
-      clauseTitle: 'Change Management & Invariant Policy Versioning',
+      clauseTitle: 'Detection & Mitigation of Unauthorized Software (Anti-Malware)',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `Maintained immutable cryptographic policy commitment hashes for all active rule packs and deterministic safety policies.`,
+      evidenceDescription: `Deterministic AST firewall and real-time STIX 2.1 / OpenDXL threat-intelligence feeds detect and block unauthorized (malicious agentic) tool invocations in-process with zero network egress.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Sampled blocked tool calls; verified deterministic interception and threat-intel indicator emission (STIX pattern, indicator UUID conformance).',
+    },
+    {
+      framework: 'SOC2_TYPE_II',
+      clauseId: 'CC8.1',
+      clauseTitle: 'Change Management — Authorized Changes to Infrastructure, Data & Software',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Maintained immutable cryptographic policy commitment hashes for all active rule packs and deterministic safety policies, binding each ledger event to the exact policy version in force.`,
       verifiableEventsCount: totalEvents,
       auditorTestingProcedure: 'Re-evaluated policy commitment hashes against version-controlled RulePack manifests in secure storage.',
     },
@@ -443,20 +459,25 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
       auditorTestingProcedure: 'Validated PII token vault redaction and strict egress domain whitelisting.',
     },
 
-    // 4. NIST AI RMF 1.0 Controls
+    // 4. NIST AI RMF 1.0 Controls (NIST AI 100-1, Tables 1-4)
+    // Category/subcategory IDs corrected against the published framework:
+    //   GOVERN 1.2 = trustworthy AI characteristics integrated into policies;
+    //   MAP 2      = categorization of the AI system is performed;
+    //   MEASURE 2  = AI system trustworthiness is evaluated;
+    //   MANAGE 1.3 = AI risk response options.
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'GOVERN-1.2',
-      clauseTitle: 'Transparent Invariant Policies & Risk Tolerances',
+      clauseId: 'GOVERN 1.2',
+      clauseTitle: 'Characteristics of Trustworthy AI Integrated into Policies, Processes, Procedures & Practices',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `Declarative invariant rule packs published, versioned, and auditable by compliance stakeholders.`,
+      evidenceDescription: `Declarative invariant rule packs are published, versioned, and cryptographically committed, embedding trustworthy-AI characteristics (valid & reliable, safe, secure, explainable) into the operational policy layer.`,
       verifiableEventsCount: totalEvents,
       auditorTestingProcedure: 'Inspected active policy rulepacks and cryptographic hash commitments.',
     },
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'MAP-1.5',
-      clauseTitle: 'Categorization of System Risks & Threat Surface',
+      clauseId: 'MAP 2',
+      clauseTitle: 'Categorization of the AI System is Performed (Threat & Vulnerability Surface Mapping)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Mapped tool actions against OWASP GenAI Top 10 and MITRE ATLAS matrices for proactive vulnerability containment.`,
       verifiableEventsCount: totalEvents,
@@ -464,8 +485,8 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     },
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'MEASURE-2.6',
-      clauseTitle: 'Continuous Assessment & Real-Time Verification',
+      clauseId: 'MEASURE 2',
+      clauseTitle: 'AI System Trustworthiness is Evaluated (Continuous Assessment & Real-Time Verification)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Real-time evaluation of all tool invocations against safety thresholds with benchmarked sub-millisecond latency.`,
       verifiableEventsCount: totalEvents,
@@ -473,8 +494,8 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     },
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'MANAGE-1.3 / MANAGE-2.4',
-      clauseTitle: 'Deterministic Fail-Safe Boundaries & Contingency Actions',
+      clauseId: 'MANAGE 1.3',
+      clauseTitle: 'AI Risk Response Options (Deterministic Fail-Safe Boundaries & Contingency Actions)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Zero-trust fail-closed security posture enforced across all agent tool parameters.`,
       verifiableEventsCount: totalEvents,
@@ -508,18 +529,18 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
       clauseId: 'Article 14',
       clauseTitle: 'Human Oversight & Step-Up Authorization (HITL) (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `High-risk actions gated by HMAC-SHA256 human interactive clearance tickets.`,
+      evidenceDescription: `High-risk actions gated by signed HITL tickets and W3C JSON-LD Verifiable Credentials (Ed25519) recording a named human approver, enabling the Art. 14(4) capabilities: monitor (a), interpret output (c), and disregard/override/reverse or halt via a fail-closed stop path (d)/(e).`,
       verifiableEventsCount: totalEvents,
-      auditorTestingProcedure: 'Simulated high-value transaction escalation; verified cryptographic clearance token validation.',
+      auditorTestingProcedure: 'Simulated high-value escalation; verified a distinct natural person signed the approval, the credential proof verifies against the issuer key, and the decision is tamper-evident.',
     },
     {
       framework: 'EU_AI_ACT',
       clauseId: 'Article 15',
-      clauseTitle: 'Cybersecurity, Robustness & Prompt Injection Resilience (high-risk package, applicable 2027-12-02)',
+      clauseTitle: 'Accuracy, Robustness & Cybersecurity (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `Deterministic AST firewall intercepted injection attacks without probabilistic model vulnerabilities.`,
+      evidenceDescription: `Deterministic AST firewall provides resilience against attempts to exploit system vulnerabilities (Art. 15(4)): prompt injection, SQL tautologies, and schema rug-pulls are intercepted without probabilistic model dependence; WORM ledger provides fallback integrity for audit.`,
       verifiableEventsCount: totalEvents,
-      auditorTestingProcedure: 'Subjected agent to adversarial prompt injection suite; confirmed zero invariant bypasses.',
+      auditorTestingProcedure: 'Subjected agent to adversarial prompt injection / injection suite; confirmed zero invariant bypasses and re-verified Merkle chain integrity.',
     },
   ];
 }
@@ -630,7 +651,11 @@ export function generateComplianceDossier(
   };
 
   if (options.signKey) {
-    return signComplianceDossier(dossier, options.signKey, options.signAlgorithm);
+    const signed = signComplianceDossier(dossier, options.signKey, options.signAlgorithm);
+    if (signed.signatureType === 'ED25519' && options.publicKeyPem) {
+      signed.publicKeyPem = options.publicKeyPem;
+    }
+    return signed;
   }
 
   return dossier;
@@ -705,14 +730,16 @@ export function verifyDossierProof(
       });
     }
   } else {
-    // If events are not embedded, verify Merkle root format and tamper-proof claim
+    // If events are not embedded, the Merkle root CANNOT be cryptographically
+    // recomputed. Report only a format check, and explicitly flag that the
+    // integrity claim is UNVERIFIED (never claim merkleRootValid in summary mode).
     const isValidHex64 = typeof dossier.merkleRootHash === 'string' && /^[a-f0-9]{64}$/i.test(dossier.merkleRootHash);
     if (isValidHex64) {
-      merkleRootValid = true;
+      merkleRootValid = false;
       findings.push({
         category: 'MERKLE_TREE',
-        status: 'PASS',
-        message: `Merkle Root Hash syntax valid: ${dossier.merkleRootHash} (Summary Mode)`,
+        status: 'WARN',
+        message: `Merkle Root Hash format valid (${dossier.merkleRootHash}), but events are not embedded — integrity is NOT cryptographically verified (summary mode).`,
       });
     } else {
       merkleRootValid = false;
@@ -791,7 +818,7 @@ export function verifyDossierProof(
     { fw: 'SOC2_TYPE_II', clause: 'CC6.8' },
     { fw: 'ISO_42001_2023', clause: 'Annex A.6.2.7' },
     { fw: 'HIPAA_164_312', clause: '§164.312(b)' },
-    { fw: 'NIST_AI_RMF', clause: 'MANAGE-1.3 / MANAGE-2.4' },
+    { fw: 'NIST_AI_RMF', clause: 'MANAGE 1.3' },
   ];
 
   let satisfiedCount = 0;

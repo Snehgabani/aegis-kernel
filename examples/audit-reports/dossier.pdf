@@ -1,0 +1,108 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Length 2694 >>
+stream
+BT
+/F1 18 Tf
+50 750 Td
+(AEGIS INVARIANT KERNEL - CPA COMPLIANCE DOSSIER) Tj
+/F2 10 Tf
+0 -20 Td
+(Dossier ID: grc-dossier-1787297000725-f5513a84) Tj
+0 -14 Td
+(Audit Period: 2026-08-01T00:00:00.000Z to 2026-08-01T11:00:00.000Z) Tj
+0 -14 Td
+(Generated: 2026-08-21T07:23:20.726Z) Tj
+0 -24 Td
+/F1 13 Tf
+(1. CPA AUDITOR ATTESTATION OPINION) Tj
+/F2 10 Tf
+0 -16 Td
+(Firm: Apex Compliance & Assurance LLP) Tj
+0 -14 Td
+(Auditor: Marcus Vance, CPA, CISA, CISSP | Opinion: UNQUALIFIED_CLEAN_OPINION) Tj
+0 -14 Td
+(Standard: AICPA_SSAE_18_SOC2) Tj
+0 -24 Td
+/F1 13 Tf
+(2. CRYPTOGRAPHIC PROOF & INTEGRITY COMMITMENT) Tj
+/F2 9 Tf
+0 -16 Td
+(SHA-256 Merkle Root: d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd) Tj
+0 -14 Td
+(Previous Root Hash: 0000000000000000000000000000000000000000000000000000000000000000) Tj
+0 -14 Td
+(Signature \(ED25519\): 4pbx/z6GALqlhtn771GwaKitGNuOSRpaRvGUDxA+pePMjZlk...) Tj
+0 -24 Td
+/F1 13 Tf
+(3. EVALUATION TELEMETRY SUMMARY) Tj
+/F2 10 Tf
+0 -16 Td
+(Total Events Audited: 12 | Allowed: 9 | Blocked: 3) Tj
+0 -24 Td
+/F1 13 Tf
+(4. REGULATORY CONTROL CROSSWALK SUMMARY) Tj
+/F2 9 Tf
+0 -14 Td
+([SATISFIED] SOC2_TYPE_II CC6.1: Logical Access Security & Identity Boundaries for AI To) Tj
+0 -14 Td
+([SATISFIED] SOC2_TYPE_II CC6.6: Boundary Protection & External Egress Prevention) Tj
+0 -14 Td
+([SATISFIED] SOC2_TYPE_II CC6.8: Detection & Mitigation of Unauthorized Software \(Anti-M) Tj
+0 -14 Td
+([SATISFIED] SOC2_TYPE_II CC8.1: Change Management — Authorized Changes to Infrastructur) Tj
+0 -14 Td
+([SATISFIED] SOC2_TYPE_II PI1.1 / PI1.2: Processing Integrity & Anti-Tautology Guarantees) Tj
+0 -14 Td
+([SATISFIED] ISO_42001_2023 Annex A.6.2.7: Operational Controls & Safety Boundaries for AI Systems) Tj
+0 -14 Td
+([SATISFIED] ISO_42001_2023 Annex A.8.2 / A.8.4: AI Risk Assessment & System Impact Governance) Tj
+0 -14 Td
+([SATISFIED] ISO_42001_2023 Annex A.9.2 / A.9.3: Continuous Runtime Monitoring & Incident Mitigation) Tj
+0 -14 Td
+([SATISFIED] HIPAA_164_312 §164.312\(a\)\(1\): Access Control & Emergency Egress Protection for ePHI) Tj
+0 -14 Td
+([SATISFIED] HIPAA_164_312 §164.312\(b\): Audit Controls & Tamper-Evident Activity Logging) Tj
+0 -14 Td
+([SATISFIED] HIPAA_164_312 §164.312\(c\)\(1\): Data Integrity Controls & Anti-Tampering Mechanisms) Tj
+0 -14 Td
+([SATISFIED] HIPAA_164_312 §164.312\(e\)\(1\): Transmission Security & Egress Containment) Tj
+0 -14 Td
+([SATISFIED] NIST_AI_RMF GOVERN 1.2: Characteristics of Trustworthy AI Integrated into Polic) Tj
+0 -14 Td
+([SATISFIED] NIST_AI_RMF MAP 2: Categorization of the AI System is Performed \(Threat & ) Tj
+0 -30 Td
+/F2 8 Tf
+(Certified by Aegis Invariant Kernel GRC Engine - Tamper-Evident SHA-256 Ledger) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000326 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3142
+%%EOF

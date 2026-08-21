@@ -228,7 +228,8 @@ async function runLiveProof() {
 
   const stixBundle = formatStixTaxiiIndicator(sampleEvent);
   assert(stixBundle !== null && stixBundle.type === 'bundle', 'STIX 2.1 CTI threat bundle generated');
-  assert(stixBundle.objects[0].type === 'indicator', 'STIX observable is indicator');
+  assert(stixBundle.objects.some(o => o.type === 'indicator'), 'STIX observable is indicator');
+  assert(stixBundle.objects.some(o => o.type === 'identity'), 'STIX producer identity is present');
   console.log('');
 
   // 9. GRC DOSSIER

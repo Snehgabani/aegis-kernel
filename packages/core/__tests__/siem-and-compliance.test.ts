@@ -74,10 +74,12 @@ describe('Enterprise SIEM & Threat Intelligence Formatter', () => {
     expect(stix).not.toBeNull();
     expect(stix?.type).toBe('bundle');
     expect(stix?.objects[0].spec_version).toBe('2.1');
-    expect(stix?.objects).toHaveLength(1);
-    expect(stix?.objects[0].type).toBe('indicator');
-    expect(stix?.objects[0].name).toContain('Adversarial AI Agent Tool Misuse: SQL-NO-DROP');
-    expect(stix?.objects[0].external_references?.[0].source_name).toBe('mitre-atlas');
+    // Producer identity + one indicator per fired rule.
+    expect(stix?.objects).toHaveLength(2);
+    expect(stix?.objects[0].type).toBe('identity');
+    expect(stix?.objects[1].type).toBe('indicator');
+    expect(stix?.objects[1].name).toContain('Adversarial AI Agent Tool Misuse: SQL-NO-DROP');
+    expect(stix?.objects[1].external_references?.[0].source_name).toBe('mitre-atlas');
   });
 
   it('should return null STIX bundle for allowed/benign events', () => {

@@ -1,0 +1,58 @@
+{
+  "manifestId": "aegis-worm-cce23de9-08c6-4fdb-82ea-ff0f8e9e0396",
+  "schema": "aegis-worm-bundle/1.0",
+  "provider": "aws-s3",
+  "dossierId": "grc-dossier-1787297000725-f5513a84",
+  "merkleRootHash": "d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd",
+  "previousRootHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "generatedAt": "2026-08-21T07:23:20.728Z",
+  "retention": {
+    "mode": "COMPLIANCE",
+    "retainUntil": "2033-08-01T00:00:00.000Z",
+    "legalHold": true
+  },
+  "bucket": "aegis-compliance-lock",
+  "files": [
+    {
+      "key": "aegis-compliance/grc-dossier-1787297000725-f5513a84.json",
+      "contentType": "application/json",
+      "sha256": "411d607a8b36a1908522d8c7a0c717a1bf3a5781fd6b635ed6e6aafdc7773881",
+      "sizeBytes": 34737
+    },
+    {
+      "key": "aegis-compliance/grc-dossier-1787297000725-f5513a84.html",
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "71938d9767bb903dabfc889ce4ad8da82052d666bfaf9ffc19a67529c015b67b",
+      "sizeBytes": 13421
+    },
+    {
+      "key": "aegis-compliance/grc-dossier-1787297000725-f5513a84.pdf",
+      "contentType": "application/pdf",
+      "sha256": "fc69f2a0113f922a39ab8adb7f50aaf122ba0b5818bffd02bf0da4e42c11491b",
+      "sizeBytes": 3346
+    }
+  ],
+  "chainOfCustody": [
+    {
+      "sequence": 0,
+      "fileKey": "aegis-compliance/grc-dossier-1787297000725-f5513a84.json",
+      "sha256": "411d607a8b36a1908522d8c7a0c717a1bf3a5781fd6b635ed6e6aafdc7773881",
+      "previousEntryHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "entryHash": "a4f7cfd65faf353a372305d626b533021fc1e79221c76984040e9d687bf910ed"
+    },
+    {
+      "sequence": 1,
+      "fileKey": "aegis-compliance/grc-dossier-1787297000725-f5513a84.html",
+      "sha256": "71938d9767bb903dabfc889ce4ad8da82052d666bfaf9ffc19a67529c015b67b",
+      "previousEntryHash": "a4f7cfd65faf353a372305d626b533021fc1e79221c76984040e9d687bf910ed",
+      "entryHash": "07adafb912a99f3b9622bb56e5497d1956924e18017b1999945bd74dcc49a505"
+    },
+    {
+      "sequence": 2,
+      "fileKey": "aegis-compliance/grc-dossier-1787297000725-f5513a84.pdf",
+      "sha256": "fc69f2a0113f922a39ab8adb7f50aaf122ba0b5818bffd02bf0da4e42c11491b",
+      "previousEntryHash": "07adafb912a99f3b9622bb56e5497d1956924e18017b1999945bd74dcc49a505",
+      "entryHash": "2d6cb53efe8122021913a183aff7b7877ff77260011f97d85bf067aa730f2822"
+    }
+  ]
+}
