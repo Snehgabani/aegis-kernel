@@ -15,7 +15,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 6 0 obj
-<< /Length 2680 >>
+<< /Length 2694 >>
 stream
 BT
 /F1 18 Tf
@@ -23,11 +23,11 @@ BT
 (AEGIS INVARIANT KERNEL - CPA COMPLIANCE DOSSIER) Tj
 /F2 10 Tf
 0 -20 Td
-(Dossier ID: grc-dossier-1787296104372-1b12d21f) Tj
+(Dossier ID: grc-dossier-1787297000725-f5513a84) Tj
 0 -14 Td
 (Audit Period: 2026-08-01T00:00:00.000Z to 2026-08-01T11:00:00.000Z) Tj
 0 -14 Td
-(Generated: 2026-08-21T07:08:24.372Z) Tj
+(Generated: 2026-08-21T07:23:20.726Z) Tj
 0 -24 Td
 /F1 13 Tf
 (1. CPA AUDITOR ATTESTATION OPINION) Tj
@@ -47,7 +47,7 @@ BT
 0 -14 Td
 (Previous Root Hash: 0000000000000000000000000000000000000000000000000000000000000000) Tj
 0 -14 Td
-(Signature \(ED25519\): kjltixcebICdNk1kYdi9ZB4V0LW38qr6L6uZ+HqO1rkPEYGb...) Tj
+(Signature \(ED25519\): 4pbx/z6GALqlhtn771GwaKitGNuOSRpaRvGUDxA+pePMjZlk...) Tj
 0 -24 Td
 /F1 13 Tf
 (3. EVALUATION TELEMETRY SUMMARY) Tj
@@ -83,9 +83,9 @@ BT
 0 -14 Td
 ([SATISFIED] HIPAA_164_312 §164.312\(e\)\(1\): Transmission Security & Egress Containment) Tj
 0 -14 Td
-([SATISFIED] NIST_AI_RMF GOVERN-1.2: Transparent Invariant Policies & Risk Tolerances) Tj
+([SATISFIED] NIST_AI_RMF GOVERN 1.2: Characteristics of Trustworthy AI Integrated into Polic) Tj
 0 -14 Td
-([SATISFIED] NIST_AI_RMF MAP-1.5: Categorization of System Risks & Threat Surface) Tj
+([SATISFIED] NIST_AI_RMF MAP 2: Categorization of the AI System is Performed \(Threat & ) Tj
 0 -30 Td
 /F2 8 Tf
 (Certified by Aegis Invariant Kernel GRC Engine - Tamper-Evident SHA-256 Ledger) Tj
@@ -104,5 +104,5 @@ xref
 trailer
 << /Size 7 /Root 1 0 R >>
 startxref
-3128
+3142
 %%EOF

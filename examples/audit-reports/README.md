@@ -1,6 +1,6 @@
 # Aegis Invariant Kernel — Sample Audit Evidence Bundle (Big-4 Ready)
 
-Generated: 2026-08-21T07:08:24.393Z
+Generated: 2026-08-21T07:23:20.747Z
 
 This directory is a self-contained, cryptographically sealed evidence package
 for an independent auditor examining **SOC 2 Type II**, **ISO/IEC 42001:2023**,

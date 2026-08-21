@@ -76,7 +76,7 @@ export function runVerifyProof(
     console.log(`            - SOC 2 Type II: CC6.1, CC6.6, CC6.8, PI1.1, PI1.2`);
     console.log(`            - ISO/IEC 42001:2023: Annex A.6.2.7, A.8.2/8.4, A.9.2/9.3`);
     console.log(`            - HIPAA Security Rule: §164.312(a)(1), (b), (c)(1), (e)(1)`);
-    console.log(`            - NIST AI RMF 1.0: GOVERN-1.2, MAP-1.5, MEASURE-2.6, MANAGE-1.3/2.4`);
+    console.log(`            - NIST AI RMF 1.0: GOVERN 1.2, MAP 2, MEASURE 2, MANAGE 1.3`);
     console.log(`            - EU AI Act: Articles 12, 14, 15`);
   } else {
     console.log(`  ❌ [FAIL] Regulatory Control Crosswalk: Incomplete control mappings!`);

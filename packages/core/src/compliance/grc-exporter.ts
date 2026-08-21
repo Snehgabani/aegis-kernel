@@ -459,20 +459,25 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
       auditorTestingProcedure: 'Validated PII token vault redaction and strict egress domain whitelisting.',
     },
 
-    // 4. NIST AI RMF 1.0 Controls
+    // 4. NIST AI RMF 1.0 Controls (NIST AI 100-1, Tables 1-4)
+    // Category/subcategory IDs corrected against the published framework:
+    //   GOVERN 1.2 = trustworthy AI characteristics integrated into policies;
+    //   MAP 2      = categorization of the AI system is performed;
+    //   MEASURE 2  = AI system trustworthiness is evaluated;
+    //   MANAGE 1.3 = AI risk response options.
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'GOVERN-1.2',
-      clauseTitle: 'Transparent Invariant Policies & Risk Tolerances',
+      clauseId: 'GOVERN 1.2',
+      clauseTitle: 'Characteristics of Trustworthy AI Integrated into Policies, Processes, Procedures & Practices',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `Declarative invariant rule packs published, versioned, and auditable by compliance stakeholders.`,
+      evidenceDescription: `Declarative invariant rule packs are published, versioned, and cryptographically committed, embedding trustworthy-AI characteristics (valid & reliable, safe, secure, explainable) into the operational policy layer.`,
       verifiableEventsCount: totalEvents,
       auditorTestingProcedure: 'Inspected active policy rulepacks and cryptographic hash commitments.',
     },
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'MAP-1.5',
-      clauseTitle: 'Categorization of System Risks & Threat Surface',
+      clauseId: 'MAP 2',
+      clauseTitle: 'Categorization of the AI System is Performed (Threat & Vulnerability Surface Mapping)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Mapped tool actions against OWASP GenAI Top 10 and MITRE ATLAS matrices for proactive vulnerability containment.`,
       verifiableEventsCount: totalEvents,
@@ -480,8 +485,8 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     },
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'MEASURE-2.6',
-      clauseTitle: 'Continuous Assessment & Real-Time Verification',
+      clauseId: 'MEASURE 2',
+      clauseTitle: 'AI System Trustworthiness is Evaluated (Continuous Assessment & Real-Time Verification)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Real-time evaluation of all tool invocations against safety thresholds with benchmarked sub-millisecond latency.`,
       verifiableEventsCount: totalEvents,
@@ -489,8 +494,8 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     },
     {
       framework: 'NIST_AI_RMF',
-      clauseId: 'MANAGE-1.3 / MANAGE-2.4',
-      clauseTitle: 'Deterministic Fail-Safe Boundaries & Contingency Actions',
+      clauseId: 'MANAGE 1.3',
+      clauseTitle: 'AI Risk Response Options (Deterministic Fail-Safe Boundaries & Contingency Actions)',
       satisfactionStatus: 'SATISFIED',
       evidenceDescription: `Zero-trust fail-closed security posture enforced across all agent tool parameters.`,
       verifiableEventsCount: totalEvents,
@@ -725,14 +730,16 @@ export function verifyDossierProof(
       });
     }
   } else {
-    // If events are not embedded, verify Merkle root format and tamper-proof claim
+    // If events are not embedded, the Merkle root CANNOT be cryptographically
+    // recomputed. Report only a format check, and explicitly flag that the
+    // integrity claim is UNVERIFIED (never claim merkleRootValid in summary mode).
     const isValidHex64 = typeof dossier.merkleRootHash === 'string' && /^[a-f0-9]{64}$/i.test(dossier.merkleRootHash);
     if (isValidHex64) {
-      merkleRootValid = true;
+      merkleRootValid = false;
       findings.push({
         category: 'MERKLE_TREE',
-        status: 'PASS',
-        message: `Merkle Root Hash syntax valid: ${dossier.merkleRootHash} (Summary Mode)`,
+        status: 'WARN',
+        message: `Merkle Root Hash format valid (${dossier.merkleRootHash}), but events are not embedded — integrity is NOT cryptographically verified (summary mode).`,
       });
     } else {
       merkleRootValid = false;
@@ -811,7 +818,7 @@ export function verifyDossierProof(
     { fw: 'SOC2_TYPE_II', clause: 'CC6.8' },
     { fw: 'ISO_42001_2023', clause: 'Annex A.6.2.7' },
     { fw: 'HIPAA_164_312', clause: '§164.312(b)' },
-    { fw: 'NIST_AI_RMF', clause: 'MANAGE-1.3 / MANAGE-2.4' },
+    { fw: 'NIST_AI_RMF', clause: 'MANAGE 1.3' },
   ];
 
   let satisfiedCount = 0;

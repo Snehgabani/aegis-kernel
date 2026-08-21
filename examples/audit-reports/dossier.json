@@ -1,6 +1,6 @@
 {
-  "dossierId": "grc-dossier-1787296104372-1b12d21f",
-  "generatedAt": "2026-08-21T07:08:24.372Z",
+  "dossierId": "grc-dossier-1787297000725-f5513a84",
+  "generatedAt": "2026-08-21T07:23:20.726Z",
   "periodStart": "2026-08-01T00:00:00.000Z",
   "periodEnd": "2026-08-01T11:00:00.000Z",
   "totalEventsAudited": 12,
@@ -122,17 +122,17 @@
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "GOVERN-1.2",
-      "clauseTitle": "Transparent Invariant Policies & Risk Tolerances",
+      "clauseId": "GOVERN 1.2",
+      "clauseTitle": "Characteristics of Trustworthy AI Integrated into Policies, Processes, Procedures & Practices",
       "satisfactionStatus": "SATISFIED",
-      "evidenceDescription": "Declarative invariant rule packs published, versioned, and auditable by compliance stakeholders.",
+      "evidenceDescription": "Declarative invariant rule packs are published, versioned, and cryptographically committed, embedding trustworthy-AI characteristics (valid & reliable, safe, secure, explainable) into the operational policy layer.",
       "verifiableEventsCount": 12,
       "auditorTestingProcedure": "Inspected active policy rulepacks and cryptographic hash commitments."
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "MAP-1.5",
-      "clauseTitle": "Categorization of System Risks & Threat Surface",
+      "clauseId": "MAP 2",
+      "clauseTitle": "Categorization of the AI System is Performed (Threat & Vulnerability Surface Mapping)",
       "satisfactionStatus": "SATISFIED",
       "evidenceDescription": "Mapped tool actions against OWASP GenAI Top 10 and MITRE ATLAS matrices for proactive vulnerability containment.",
       "verifiableEventsCount": 12,
@@ -140,8 +140,8 @@
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "MEASURE-2.6",
-      "clauseTitle": "Continuous Assessment & Real-Time Verification",
+      "clauseId": "MEASURE 2",
+      "clauseTitle": "AI System Trustworthiness is Evaluated (Continuous Assessment & Real-Time Verification)",
       "satisfactionStatus": "SATISFIED",
       "evidenceDescription": "Real-time evaluation of all tool invocations against safety thresholds with benchmarked sub-millisecond latency.",
       "verifiableEventsCount": 12,
@@ -149,8 +149,8 @@
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "MANAGE-1.3 / MANAGE-2.4",
-      "clauseTitle": "Deterministic Fail-Safe Boundaries & Contingency Actions",
+      "clauseId": "MANAGE 1.3",
+      "clauseTitle": "AI Risk Response Options (Deterministic Fail-Safe Boundaries & Contingency Actions)",
       "satisfactionStatus": "SATISFIED",
       "evidenceDescription": "Zero-trust fail-closed security posture enforced across all agent tool parameters.",
       "verifiableEventsCount": 12,
@@ -304,17 +304,17 @@
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "GOVERN-1.2",
-      "clauseTitle": "Transparent Invariant Policies & Risk Tolerances",
+      "clauseId": "GOVERN 1.2",
+      "clauseTitle": "Characteristics of Trustworthy AI Integrated into Policies, Processes, Procedures & Practices",
       "satisfactionStatus": "SATISFIED",
-      "evidenceDescription": "Declarative invariant rule packs published, versioned, and auditable by compliance stakeholders.",
+      "evidenceDescription": "Declarative invariant rule packs are published, versioned, and cryptographically committed, embedding trustworthy-AI characteristics (valid & reliable, safe, secure, explainable) into the operational policy layer.",
       "verifiableEventsCount": 12,
       "auditorTestingProcedure": "Inspected active policy rulepacks and cryptographic hash commitments."
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "MAP-1.5",
-      "clauseTitle": "Categorization of System Risks & Threat Surface",
+      "clauseId": "MAP 2",
+      "clauseTitle": "Categorization of the AI System is Performed (Threat & Vulnerability Surface Mapping)",
       "satisfactionStatus": "SATISFIED",
       "evidenceDescription": "Mapped tool actions against OWASP GenAI Top 10 and MITRE ATLAS matrices for proactive vulnerability containment.",
       "verifiableEventsCount": 12,
@@ -322,8 +322,8 @@
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "MEASURE-2.6",
-      "clauseTitle": "Continuous Assessment & Real-Time Verification",
+      "clauseId": "MEASURE 2",
+      "clauseTitle": "AI System Trustworthiness is Evaluated (Continuous Assessment & Real-Time Verification)",
       "satisfactionStatus": "SATISFIED",
       "evidenceDescription": "Real-time evaluation of all tool invocations against safety thresholds with benchmarked sub-millisecond latency.",
       "verifiableEventsCount": 12,
@@ -331,8 +331,8 @@
     },
     {
       "framework": "NIST_AI_RMF",
-      "clauseId": "MANAGE-1.3 / MANAGE-2.4",
-      "clauseTitle": "Deterministic Fail-Safe Boundaries & Contingency Actions",
+      "clauseId": "MANAGE 1.3",
+      "clauseTitle": "AI Risk Response Options (Deterministic Fail-Safe Boundaries & Contingency Actions)",
       "satisfactionStatus": "SATISFIED",
       "evidenceDescription": "Zero-trust fail-closed security posture enforced across all agent tool parameters.",
       "verifiableEventsCount": 12,
@@ -416,8 +416,8 @@
     "cryptographicNonRepudiationSeal": {
       "merkleRoot": "d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd",
       "signatureAlgorithm": "ED25519",
-      "signature": "kjltixcebICdNk1kYdi9ZB4V0LW38qr6L6uZ+HqO1rkPEYGb+X/eb3uwYYUxW3oIg3FfEWG9NeU0FGx5tuUFBw==",
-      "signedAt": "2026-08-21T07:08:24.373Z"
+      "signature": "4pbx/z6GALqlhtn771GwaKitGNuOSRpaRvGUDxA+pePMjZlkEat4WKKOfF42kos1A7jnjB7abZBYrwwc3QYUAw==",
+      "signedAt": "2026-08-21T07:23:20.727Z"
     }
   },
   "events": [
@@ -640,7 +640,7 @@
     "integrityVerified": true,
     "signatureVerified": true
   },
-  "merkleRootSignature": "kjltixcebICdNk1kYdi9ZB4V0LW38qr6L6uZ+HqO1rkPEYGb+X/eb3uwYYUxW3oIg3FfEWG9NeU0FGx5tuUFBw==",
+  "merkleRootSignature": "4pbx/z6GALqlhtn771GwaKitGNuOSRpaRvGUDxA+pePMjZlkEat4WKKOfF42kos1A7jnjB7abZBYrwwc3QYUAw==",
   "signatureType": "ED25519",
-  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAYZuUTI7bDiEiAsXm6RZFtYLjfurRBI2NluX9K1sfd0Q=\n-----END PUBLIC KEY-----\n"
+  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAs0TE/tXg3sLfg7BXPoZ8fhCmd5SZGFMde3TTEJT8j3Q=\n-----END PUBLIC KEY-----\n"
 }

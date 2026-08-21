@@ -62,6 +62,42 @@ describe('JCS (RFC 8785) canonicalization — official test vectors', () => {
   });
 });
 
+describe('base58btc codec — canonical Bitcoin reference vectors', () => {
+  // Official base58 test vectors from Bitcoin Core (base58_tests.cpp).
+  const vectors: [string, string][] = [
+    ['', ''],
+    ['61', '2g'],
+    ['626262', 'a3gV'],
+    ['636363', 'aPEr'],
+    ['73696d706c792061206c6f6e6720737472696e67', '2cFupjhnEsSn59qHXstmK2ffpLv2'],
+    ['00eb15231dfceb60925886b67d065299925915aeb172c06647', '1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L'],
+    ['516b6fcd0f', 'ABnLTmg'],
+    ['bf4f89001e670274dd', '3SEo3LWLoPntC'],
+    ['572e4794', '3EFU7m'],
+    ['ecac89cad93923c02321', 'EJDM8drfXA6uyA'],
+    ['10c8511e', 'Rt5zm'],
+    ['00000000000000000000', '1111111111'],
+  ];
+
+  it('encodes exactly as Bitcoin Core (including leading-zero handling)', () => {
+    for (const [hex, expected] of vectors) {
+      const bytes = hex === '' ? new Uint8Array(0) : Uint8Array.from(Buffer.from(hex, 'hex'));
+      expect(toBase58(bytes)).toBe(expected);
+    }
+  });
+
+  it('decodes reference encodings back to the original bytes', () => {
+    for (const [hex, encoded] of vectors) {
+      if (hex === '') {
+        expect(fromBase58('').length).toBe(0);
+        continue;
+      }
+      const decoded = fromBase58(encoded);
+      expect(decoded.toString('hex')).toBe(hex);
+    }
+  });
+});
+
 describe('base58btc codec — round-trip property', () => {
   it('decode(encode(x)) === x for arbitrary byte arrays', () => {
     fc.assert(
@@ -97,19 +133,29 @@ describe('STIX 2.1 conformance', () => {
     userOverride: false,
   };
 
-  it('emits RFC 4122 UUID identifiers (bundle-- and indicator--)', () => {
+  it('emits RFC 4122 UUID identifiers (bundle--, identity-- and indicator--)', () => {
     const bundle = formatStixTaxiiIndicator(blocked)!;
     expect(bundle.id).toMatch(/^bundle--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-    expect(bundle.objects[0].id).toMatch(/^indicator--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(bundle.objects[0].id).toMatch(/^identity--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(bundle.objects[1].id).toMatch(/^indicator--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 
   it('emits a single-observation-expression pattern (no cross-SCO AND)', () => {
     const bundle = formatStixTaxiiIndicator(blocked)!;
-    const pattern = (bundle.objects[0] as { pattern: string }).pattern;
+    const pattern = (bundle.objects[1] as { pattern: string }).pattern;
     expect(pattern).toBe(`[process:name = 'execute_sql']`);
     // Must not mix process:name and file:hashes in one [...] expression.
     expect(pattern).not.toMatch(/\]\s*AND\s*\[?.*file:hashes/);
-    expect((bundle.objects[0] as { pattern_version: string }).pattern_version).toBe('2.1');
+    expect((bundle.objects[1] as { pattern_version: string }).pattern_version).toBe('2.1');
+  });
+
+  it('includes a producer identity with created_by_ref and canonical TLP marking', () => {
+    const bundle = formatStixTaxiiIndicator(blocked)!;
+    const identity = bundle.objects[0] as { type: string; id: string };
+    const indicator = bundle.objects[1] as { created_by_ref?: string; object_marking_refs?: string[] };
+    expect(identity.type).toBe('identity');
+    expect(indicator.created_by_ref).toBe(identity.id);
+    expect(indicator.object_marking_refs).toContain('marking-definition--f88d31f6-486f-44da-b317-01333bde0b82');
   });
 
   it('passes the built-in structural validator', () => {

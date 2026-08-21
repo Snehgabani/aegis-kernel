@@ -93,10 +93,19 @@ describe('Real-time STIX 2.1 & OpenDXL threat intelligence feeds', () => {
     const bundle = formatStixTaxiiIndicator(makeBlockedEvent('evt-stix'));
     expect(bundle).not.toBeNull();
     expect(bundle!.id).toMatch(/^bundle--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-    expect(bundle!.objects[0].id).toMatch(/^indicator--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+
+    // First object is the producer identity; indicators carry created_by_ref.
+    const identity = bundle!.objects[0];
+    expect(identity.type).toBe('identity');
+    expect(identity.id).toMatch(/^identity--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+
+    const indicator = bundle!.objects[1] as { id: string; pattern: string; created_by_ref?: string; object_marking_refs?: string[] };
+    expect(indicator.id).toMatch(/^indicator--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     // Pattern is a single observation expression (no cross-SCO AND).
-    const pattern = (bundle!.objects[0] as { pattern: string }).pattern;
-    expect(pattern).toBe("[process:name = 'execute_sql']");
+    expect(indicator.pattern).toBe("[process:name = 'execute_sql']");
+    expect(indicator.created_by_ref).toBe(identity.id);
+    // TLP:AMBER canonical marking referenced (never re-embedded).
+    expect(indicator.object_marking_refs).toContain('marking-definition--f88d31f6-486f-44da-b317-01333bde0b82');
     expect(validateStixBundle(bundle!).valid).toBe(true);
   });
 
@@ -213,6 +222,27 @@ describe('WORM (Write-Once Read-Many) S3 / GCS Object Lock compliance bundle', (
       '2026-08-16T00:00:00.000Z'
     );
     expect(gov.retentionPolicy.isLocked).toBe(false);
+  });
+
+  it('detects tampering of the manifest itself (self-seal check)', () => {
+    const bundle = buildWormComplianceBundle(
+      dossier,
+      { html: renderComplianceHTML, pdf: renderCompliancePDF },
+      { provider: 'aws-s3', retention: { mode: 'GOVERNANCE', retainUntil: '2033-08-16T00:00:00.000Z' } }
+    );
+
+    // Mutate the manifest (e.g. rewrite a file size) without touching files.
+    const tampered = {
+      ...bundle,
+      manifest: {
+        ...bundle.manifest,
+        files: bundle.manifest.files.map((f, i) => (i === 0 ? { ...f, sizeBytes: f.sizeBytes + 1 } : f)),
+      },
+    };
+
+    const report = verifyWormComplianceBundle(tampered);
+    expect(report.valid).toBe(false);
+    expect(report.findings.some((f) => f.category === 'MANIFEST_SEAL' && f.status === 'FAIL')).toBe(true);
   });
 
   it('verifies an intact WORM bundle (all findings PASS)', () => {
@@ -339,6 +369,15 @@ describe('End-to-end compliance dossier pipeline for Big 4 auditors', () => {
     makeAllowedEvent('evt-e2e-2'),
     makeAllowedEvent('evt-e2e-3'),
   ];
+
+  it('does NOT claim Merkle validity in summary mode (events omitted)', () => {
+    const dossier = generateComplianceDossier(events, [], '0'.repeat(64), { includeEvents: false });
+    const verification = verifyDossierProof(dossier);
+    // Without embedded events the root cannot be recomputed — honesty over assurance.
+    expect(verification.merkleRootValid).toBe(false);
+    expect(verification.valid).toBe(false);
+    expect(verification.findings.some((f) => f.category === 'MERKLE_TREE' && f.status === 'WARN')).toBe(true);
+  });
 
   it('produces a signed, verifiable dossier and WORM bundle from raw events', () => {
     const { publicKey, privateKey } = generateAuditKeyPairEd25519();

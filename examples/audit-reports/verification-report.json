@@ -1,7 +1,7 @@
 {
   "dossierVerification": {
     "valid": true,
-    "dossierId": "grc-dossier-1787296104372-1b12d21f",
+    "dossierId": "grc-dossier-1787297000725-f5513a84",
     "merkleRootHash": "d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd",
     "merkleRootValid": true,
     "signatureValid": true,
@@ -54,12 +54,17 @@
   },
   "wormVerification": {
     "valid": true,
-    "bundleId": "aegis-worm-c571ee0f-87c8-454c-9b7d-70b7379ed8d5",
+    "bundleId": "aegis-worm-cce23de9-08c6-4fdb-82ea-ff0f8e9e0396",
     "findings": [
       {
         "category": "MANIFEST",
         "status": "PASS",
         "message": "Manifest schema and file table valid."
+      },
+      {
+        "category": "MANIFEST_SEAL",
+        "status": "PASS",
+        "message": "Manifest self-seal (SHA-256) recomputed successfully."
       },
       {
         "category": "MERKLE_ROOT",

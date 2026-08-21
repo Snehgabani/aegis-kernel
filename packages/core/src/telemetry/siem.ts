@@ -53,16 +53,45 @@ export interface StixDomainObject {
   indicator_types: string[];
   pattern: string;
   pattern_type: 'stix';
+  pattern_version?: string;
   valid_from: string;
   confidence: number;
+  created_by_ref?: string;
+  object_marking_refs?: string[];
   external_references?: { source_name: string; external_id: string; url?: string }[];
+}
+
+export interface StixIdentityObject {
+  type: 'identity';
+  spec_version: '2.1';
+  id: string;
+  created: string;
+  modified: string;
+  name: string;
+  identity_class: 'organization';
+  contact_information?: string;
 }
 
 export interface StixBundle {
   type: 'bundle';
   id: string;
-  objects: StixDomainObject[];
+  objects: (StixDomainObject | StixIdentityObject)[];
 }
+
+/**
+ * Canonical STIX 2.1 TLP marking-definition identifiers. These are defined by
+ * the STIX specification itself and MUST be referenced (never re-defined or
+ * embedded) by producers — see STIX Best Practices §3.5.
+ */
+export const STIX_TLP_MARKING_DEFINITIONS: Record<'red' | 'amber' | 'green' | 'white', string> = {
+  red: 'marking-definition--5e57c739-391a-4eb3-b6be-7d15ca92d5ed',
+  amber: 'marking-definition--f88d31f6-486f-44da-b317-01333bde0b82',
+  green: 'marking-definition--34098fce-860f-48ae-8e50-ebd3cc5e41da',
+  white: 'marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9',
+};
+
+/** Producer identity SDO for the Aegis kernel (referenced via created_by_ref). */
+const AEGIS_PRODUCER_IDENTITY_ID = `identity--${uuidv5('aegis:producer:identity')}`;
 
 /**
  * Common Event Format (CEF) generator for ArcSight, Splunk, Microsoft Sentinel, QRadar.
@@ -158,7 +187,10 @@ export function formatSplunkHecPayload(
  * Converts security violations into standard STIX 2.1 Cyber Threat Intelligence (CTI) Indicator Bundle.
  * Enables automated threat feed sharing with CISA JCDC, MITRE ATLAS, and ISAC communities.
  */
-export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
+export function formatStixTaxiiIndicator(
+  event: AegisEvent,
+  options: { tlp?: 'red' | 'amber' | 'green' | 'white'; producerName?: string } = {}
+): StixBundle | null {
   if (event.verdict !== 'BLOCKED' || event.rulesFired.length === 0) {
     return null;
   }
@@ -166,6 +198,20 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
   // RFC 4122 UUIDv5-derived identifiers (STIX 2.1 §2.9 requires [type]--[UUID]).
   const bundleId = `bundle--${uuidv5(`aegis:event:${event.id}`)}`;
   const nowIso = new Date().toISOString();
+  const tlp = options.tlp ?? 'amber';
+
+  // Producer identity — Best Practices §3.4/§3.6: all SDOs should carry
+  // created_by_ref to the producer's Identity, and the Identity must be in the bundle.
+  const producerIdentity: StixIdentityObject = {
+    type: 'identity',
+    spec_version: '2.1',
+    id: AEGIS_PRODUCER_IDENTITY_ID,
+    created: nowIso,
+    modified: nowIso,
+    name: options.producerName ?? 'Aegis Invariant Kernel',
+    identity_class: 'organization',
+    contact_information: 'security@aegis-kernel.dev',
+  };
 
   const indicators: StixDomainObject[] = event.rulesFired.map((violation, idx) => {
     const indicatorId = `indicator--${uuidv5(`aegis:event:${event.id}:rule:${idx}:${violation.ruleId}`)}`;
@@ -188,6 +234,8 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
       pattern_version: '2.1',
       valid_from: event.timestamp,
       confidence: 95,
+      created_by_ref: producerIdentity.id,
+      object_marking_refs: [STIX_TLP_MARKING_DEFINITIONS[tlp]],
       external_references: [
         {
           source_name: 'mitre-atlas',
@@ -210,7 +258,7 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
   return {
     type: 'bundle',
     id: bundleId,
-    objects: indicators,
+    objects: [producerIdentity, ...indicators],
   };
 }
 
@@ -230,17 +278,27 @@ export function validateStixBundle(bundle: StixBundle): { valid: boolean; findin
     findings.push('bundle.objects must be a non-empty array.');
   }
 
+  const identityIds = new Set<string>();
   for (const obj of bundle.objects) {
     if (!/^[a-z0-9-]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(obj.id)) {
       findings.push(`${obj.type} id must be <type>--<RFC4122 UUID>.`);
     }
     if (obj.spec_version !== '2.1') findings.push(`${obj.id} spec_version must be "2.1".`);
+    if (obj.type === 'identity') {
+      identityIds.add(obj.id);
+      if ((obj as StixIdentityObject).identity_class !== 'organization') {
+        findings.push(`${obj.id} producer identity should have identity_class "organization".`);
+      }
+    }
     if (obj.type === 'indicator') {
       if (obj.pattern_type !== 'stix') findings.push(`${obj.id} pattern_type must be "stix".`);
       if (typeof obj.pattern !== 'string' || !obj.pattern.startsWith('[')) {
         findings.push(`${obj.id} pattern must be a bracketed STIX pattern expression.`);
       }
       if (typeof obj.valid_from !== 'string') findings.push(`${obj.id} missing valid_from.`);
+      if (!obj.created_by_ref || !identityIds.has(obj.created_by_ref)) {
+        findings.push(`${obj.id} created_by_ref must reference a producer identity present in the bundle.`);
+      }
     }
   }
 

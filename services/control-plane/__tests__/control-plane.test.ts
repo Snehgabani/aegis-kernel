@@ -59,7 +59,9 @@ describe('Aegis Enterprise SaaS Control Plane Suite', () => {
 
     expect(stixFeed.length).toBe(1);
     expect(stixFeed[0].type).toBe('bundle');
-    expect(stixFeed[0].objects[0].type).toBe('indicator');
+    // Producer identity SDO first, then the indicator (Best Practices §3.4/3.6).
+    expect(stixFeed[0].objects[0].type).toBe('identity');
+    expect(stixFeed[0].objects.some((o: any) => o.type === 'indicator')).toBe(true);
   });
 
   it('should format Azure Marketplace SaaS Metered billing records', () => {

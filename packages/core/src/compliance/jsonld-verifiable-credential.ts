@@ -38,28 +38,39 @@ export const ED25519_MULTICODEC_PREFIX = Buffer.from([0xed, 0x01]);
 
 /**
  * Base58btc encode (exported so auditors can independently decode proof values).
+ *
+ * Implemented to match Bitcoin Core's EncodeBase58 (base58_tests.cpp vectors):
+ * leading zero bytes → '1' each; empty input → empty string.
  */
 export function toBase58(bytes: Uint8Array): string {
-  const digits = [0];
-  for (const byte of bytes) {
-    let carry = byte;
-    for (let j = 0; j < digits.length; j++) {
-      carry += digits[j] << 8;
-      digits[j] = carry % 58;
-      carry = (carry / 58) | 0;
+  let zeroes = 0;
+  let begin = 0;
+  while (begin < bytes.length && bytes[begin] === 0) {
+    zeroes++;
+    begin++;
+  }
+
+  const size = Math.max(1, Math.floor(((bytes.length - begin) * 138) / 100) + 1);
+  const b58 = new Uint8Array(size);
+  let length = 0;
+
+  while (begin < bytes.length) {
+    let carry = bytes[begin];
+    let i = 0;
+    for (let it = size - 1; (carry !== 0 || i < length) && it >= 0; it--, i++) {
+      carry += 256 * b58[it];
+      b58[it] = carry % 58;
+      carry = Math.floor(carry / 58);
     }
-    while (carry > 0) {
-      digits.push(carry % 58);
-      carry = (carry / 58) | 0;
-    }
+    length = i;
+    begin++;
   }
-  let encoded = '';
-  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
-    encoded += '1';
-  }
-  for (let i = digits.length - 1; i >= 0; i--) {
-    encoded += BASE58_ALPHABET[digits[i]];
-  }
+
+  let it = size - length;
+  while (it < size && b58[it] === 0) it++;
+
+  let encoded = '1'.repeat(zeroes);
+  while (it < size) encoded += BASE58_ALPHABET[b58[it++]];
   return encoded;
 }
 
@@ -67,28 +78,45 @@ export function toBase58(bytes: Uint8Array): string {
  * Base58btc decode (exported so auditors can independently verify proof values).
  */
 export function fromBase58(input: string): Buffer {
+  if (input === '') {
+    return Buffer.alloc(0);
+  }
   if (!/^[1-9A-HJ-NP-Za-km-z]+$/.test(input)) {
     throw new Error('Invalid base58btc string');
   }
-  const bytes = [0];
-  for (const char of input) {
+
+  let zeroes = 0;
+  let begin = 0;
+  while (begin < input.length && input[begin] === '1') {
+    zeroes++;
+    begin++;
+  }
+
+  const rest = input.slice(begin);
+  const size = Math.max(1, Math.floor((rest.length * 733) / 1000) + 1);
+  const b256 = new Uint8Array(size);
+  let length = 0;
+
+  for (const char of rest) {
     const value = BASE58_ALPHABET.indexOf(char);
     if (value < 0) throw new Error('Invalid base58btc character');
     let carry = value;
-    for (let j = 0; j < bytes.length; j++) {
-      carry += bytes[j] * 58;
-      bytes[j] = carry & 0xff;
-      carry >>= 8;
+    let i = 0;
+    for (let it = size - 1; (carry !== 0 || i < length) && it >= 0; it--, i++) {
+      carry += 58 * b256[it];
+      b256[it] = carry & 0xff;
+      carry = Math.floor(carry / 256);
     }
-    while (carry > 0) {
-      bytes.push(carry & 0xff);
-      carry >>= 8;
-    }
+    length = i;
   }
-  for (let i = 0; i < input.length && input[i] === '1'; i++) {
-    bytes.push(0);
-  }
-  return Buffer.from(bytes.reverse());
+
+  let it = size - length;
+  while (it < size && b256[it] === 0) it++;
+
+  const out = Buffer.alloc(zeroes + (size - it));
+  let o = zeroes;
+  while (it < size) out[o++] = b256[it++];
+  return out;
 }
 
 /* ────────────────────────────────────────────────────────────────────────────

@@ -92,7 +92,7 @@ export interface WormBundleOptions {
 }
 
 export interface WormBundleVerificationFinding {
-  category: 'MANIFEST' | 'CHAIN_OF_CUSTODY' | 'FILE_INTEGRITY' | 'RETENTION' | 'MERKLE_ROOT';
+  category: 'MANIFEST' | 'MANIFEST_SEAL' | 'CHAIN_OF_CUSTODY' | 'FILE_INTEGRITY' | 'RETENTION' | 'MERKLE_ROOT';
   status: 'PASS' | 'FAIL';
   message: string;
 }
@@ -310,6 +310,15 @@ export function verifyWormComplianceBundle(bundle: WormComplianceBundle): WormBu
     findings.push({ category: 'MANIFEST', status: 'PASS', message: 'Manifest schema and file table valid.' });
   } else {
     findings.push({ category: 'MANIFEST', status: 'FAIL', message: 'Manifest missing or invalid schema.' });
+  }
+
+  // 2. Manifest self-seal: recompute the bundle's manifestSha256 and confirm it
+  // matches, so a tampered manifest is itself detectable.
+  const recomputedManifestSha = computeSha256Hex(JSON.stringify(bundle.manifest));
+  if (bundle.manifestSha256 === recomputedManifestSha) {
+    findings.push({ category: 'MANIFEST_SEAL', status: 'PASS', message: 'Manifest self-seal (SHA-256) recomputed successfully.' });
+  } else {
+    findings.push({ category: 'MANIFEST_SEAL', status: 'FAIL', message: 'Manifest self-seal mismatch — manifest has been modified.' });
   }
 
   // 2. Merkle root format

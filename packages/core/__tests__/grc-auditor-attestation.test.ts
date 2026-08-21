@@ -89,7 +89,10 @@ describe('GRC Compliance Dossier & CPA Auditor Attestation Generator', () => {
     expect(clauseIds).toContain('CC6.8');
     expect(clauseIds).toContain('§164.312(b)');
     expect(clauseIds).toContain('Annex A.6.2.7');
-    expect(clauseIds).toContain('MANAGE-1.3 / MANAGE-2.4');
+    expect(clauseIds).toContain('MANAGE 1.3');
+    expect(clauseIds).toContain('GOVERN 1.2');
+    expect(clauseIds).toContain('MAP 2');
+    expect(clauseIds).toContain('MEASURE 2');
   });
 
   it('should render compliance outputs in Markdown, HTML, and PDF formats', () => {

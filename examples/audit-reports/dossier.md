@@ -1,10 +1,10 @@
 # 🛡️ Aegis Invariant Kernel — Executive GRC Compliance Dossier
-**Dossier ID:** `grc-dossier-1787296104372-1b12d21f`  
-**Generated At:** 2026-08-21T07:08:24.372Z  
+**Dossier ID:** `grc-dossier-1787297000725-f5513a84`  
+**Generated At:** 2026-08-21T07:23:20.726Z  
 **Audit Period:** 2026-08-01T00:00:00.000Z → 2026-08-01T11:00:00.000Z  
 **Previous Root Hash:** `0000000000000000000000000000000000000000000000000000000000000000`  
 **Merkle Root Integrity Hash:** `d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd`  
-**Digital Signature (ED25519):** `kjltixcebICdNk1kYdi9ZB4V0LW38qr6...`  
+**Digital Signature (ED25519):** `4pbx/z6GALqlhtn771GwaKitGNuOSRpa...`  
 
 
 ---
@@ -63,10 +63,10 @@
 | **HIPAA_164_312** | `§164.312(b)` | Audit Controls & Tamper-Evident Activity Logging | ✅ SATISFIED | 12 | Verified Merkle root hash recalculation across the immutable event ledger. |
 | **HIPAA_164_312** | `§164.312(c)(1)` | Data Integrity Controls & Anti-Tampering Mechanisms | ✅ SATISFIED | 12 | Verified proof hashes and digital signatures for all state-mutating transactions. |
 | **HIPAA_164_312** | `§164.312(e)(1)` | Transmission Security & Egress Containment | ✅ SATISFIED | 12 | Validated PII token vault redaction and strict egress domain whitelisting. |
-| **NIST_AI_RMF** | `GOVERN-1.2` | Transparent Invariant Policies & Risk Tolerances | ✅ SATISFIED | 12 | Inspected active policy rulepacks and cryptographic hash commitments. |
-| **NIST_AI_RMF** | `MAP-1.5` | Categorization of System Risks & Threat Surface | ✅ SATISFIED | 12 | Verified taxonomy mapping for SQL injection, SSRF, memory leakage, and indirect prompt injection. |
-| **NIST_AI_RMF** | `MEASURE-2.6` | Continuous Assessment & Real-Time Verification | ✅ SATISFIED | 12 | Sampled latency metrics and verified 100% test coverage on adversarial stress testbed. |
-| **NIST_AI_RMF** | `MANAGE-1.3 / MANAGE-2.4` | Deterministic Fail-Safe Boundaries & Contingency Actions | ✅ SATISFIED | 12 | Injected malformed and corrupted payloads; verified deterministic fail-closed state. |
+| **NIST_AI_RMF** | `GOVERN 1.2` | Characteristics of Trustworthy AI Integrated into Policies, Processes, Procedures & Practices | ✅ SATISFIED | 12 | Inspected active policy rulepacks and cryptographic hash commitments. |
+| **NIST_AI_RMF** | `MAP 2` | Categorization of the AI System is Performed (Threat & Vulnerability Surface Mapping) | ✅ SATISFIED | 12 | Verified taxonomy mapping for SQL injection, SSRF, memory leakage, and indirect prompt injection. |
+| **NIST_AI_RMF** | `MEASURE 2` | AI System Trustworthiness is Evaluated (Continuous Assessment & Real-Time Verification) | ✅ SATISFIED | 12 | Sampled latency metrics and verified 100% test coverage on adversarial stress testbed. |
+| **NIST_AI_RMF** | `MANAGE 1.3` | AI Risk Response Options (Deterministic Fail-Safe Boundaries & Contingency Actions) | ✅ SATISFIED | 12 | Injected malformed and corrupted payloads; verified deterministic fail-closed state. |
 | **EU_AI_ACT** | `Article 50` | Transparency Obligations — AI-Interaction Disclosure & Marking (in force since 2026-08-02) | ✅ SATISFIED | 12 | Sampled agent sessions; confirmed every AI-initiated tool call carries a signed, chain-verified ledger event usable as disclosure evidence. |
 | **EU_AI_ACT** | `Article 12` | Automatic Record-Keeping & Traceability Throughout Lifecycle (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Walked Merkle event hash chain from genesis root to current period leaf. |
 | **EU_AI_ACT** | `Article 14` | Human Oversight & Step-Up Authorization (HITL) (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Simulated high-value escalation; verified a distinct natural person signed the approval, the credential proof verifies against the issuer key, and the decision is tamper-evident. |

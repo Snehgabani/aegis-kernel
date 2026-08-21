@@ -13,9 +13,9 @@ The exporters were verified with four mutually reinforcing techniques. "OODA"
 
 | Layer | What it does | Tooling |
 | :--- | :--- | :--- |
-| **1. Spec cross-reference** | Every output schema is checked against the authoritative standard (OASIS, W3C, AWS, GCP, AICPA, EU). | Web research of primary sources. |
-| **2. Independent re-derivation** | Recompute hashes/signatures/PDFs with tools that do **not** run the project code. | `openssl pkeyutl`, `sha256sum` + `jq`, hand-rolled PDF xref parse. |
-| **3. Reference-vector testing** | Canonicalization is checked against official published test vectors. | RFC 8785 §3.2 JCS vectors. |
+| **1. Spec cross-reference** | Every output schema is checked against the authoritative standard (OASIS, W3C, AWS, GCP, AICPA, NIST, EU). | Web research of primary sources. |
+| **2. Independent re-derivation** | Recompute hashes/signatures/PDFs with tools that do **not** run the project code. | `openssl pkeyutl`, `sha256sum` + `jq`, hand-rolled PDF xref byte-offset parse. |
+| **3. Reference-vector testing** | Canonicalization and encodings are checked against official published test vectors. | RFC 8785 §3.2 JCS vectors; Bitcoin Core base58_tests.cpp vectors. |
 | **4. Property-based fuzzing** | Random inputs verify round-trip and tamper-evidence properties. | `fast-check` (already a repo devDependency). |
 
 ## 2. Findings (defects found, then fixed)
@@ -58,6 +58,20 @@ npm run build -w @aegis-kernel/core
 node scripts/generate-sample-audit-reports.mjs
 bash scripts/verify-sample-audit-reports.sh
 ```
+
+## 3b. Second-pass findings (deeper review)
+
+A second, deeper pass (reference vectors + primary-source crosswalk) found a
+further **six** defects, also fixed:
+
+| # | Defect | Severity | Fix |
+| :--- | :--- | :--- | :--- |
+| 8 | NIST AI RMF subcategory IDs were wrong: `MAP-1.5` was labeled "categorization" (categorization is **MAP 2**; MAP 1.5 is *risk tolerances*), `GOVERN-1.2`/`MEASURE-2.6`/`MANAGE-1.3/2.4` were imprecise. | High | Corrected to **GOVERN 1.2, MAP 2, MEASURE 2, MANAGE 1.3** per NIST AI 100-1 Tables 1–4. |
+| 9 | STIX indicators lacked a producer `identity` SDO and `created_by_ref` (STIX Best Practices §3.4/§3.6; OASIS Interop Test §2.3.4). | High | Emit an `identity` SDO + `created_by_ref` on every indicator; include the identity in the bundle. |
+| 10 | STIX indicators lacked `object_marking_refs` (TLP). | Medium | Reference the canonical **TLP:AMBER** marking-definition (never re-embed, per §3.5). |
+| 11 | `base58btc` encoder/decoder diverged from Bitcoin Core for empty input and leading zero-bytes (encode([]) → "1"; 10 zero bytes decoded to 11). | High | Rewrote to match `EncodeBase58`/`DecodeBase58`; now passes all Bitcoin Core `base58_tests.cpp` vectors. |
+| 12 | WORM `manifestSha256` was computed but **never verified**, so a tampered manifest was undetectable. | Medium | `verifyWormComplianceBundle` now recomputes and checks the manifest self-seal. |
+| 13 | `verifyDossierProof` returned `merkleRootValid=true` in summary mode (a format check only), falsely implying cryptographic verification. | Medium | Summary mode now emits a WARN and `merkleRootValid=false` — honesty over assurance. |
 
 ## 4. Known boundaries (honest limits)
 
