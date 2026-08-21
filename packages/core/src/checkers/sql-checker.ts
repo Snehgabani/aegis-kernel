@@ -160,9 +160,9 @@ export class SqlChecker {
 
       // Check if AST has assign/set or empty statement while query contains DDL tokens
       const hasDdlTokens = DDL_TOKEN_RE.test(cleanedSql);
-      const hasAssignOrEmpty = astList.some((s: any) => !s.type || s.type === 'assign' || s.type === 'set');
-      if (hasDdlTokens && hasAssignOrEmpty) {
-        // Fallback to token inspection for obscure DDL syntax not natively AST-modeled
+      const containsDdlInAst = astList.some((s: any) => s && s.type && DDL_TOKEN_RE.test(s.type));
+      if (hasDdlTokens && !containsDdlInAst && params.block_statements) {
+        // Fallback to token inspection for obscure or stacked DDL syntax not natively AST-modeled
         const fallbackViolations = this.evaluateRegexFallback(ruleId, packId, params, cleanedSql, severity);
         violations.push(...fallbackViolations);
       }
@@ -947,19 +947,20 @@ export class SqlChecker {
       });
     }
 
-    // 3. ALTER TABLE ... DROP
+    // 3. ALTER
     const alterIdx = tokens.indexOf('ALTER');
-    const alterTableIdx = alterIdx !== -1 && tokens[alterIdx + 1] === 'TABLE' ? alterIdx : -1;
-    if (alterTableIdx !== -1) {
-      const remaining = tokens.slice(alterTableIdx + 2);
-      if (remaining.includes('DROP')) {
+    if (alterIdx !== -1) {
+      const remaining = tokens.slice(alterIdx + 1);
+      const isDrop = remaining.includes('DROP');
+      const shouldBlockAlter = Boolean(_params.block_statements && _params.block_statements.includes('ALTER' as any));
+      if (isDrop || shouldBlockAlter) {
         violations.push({
           ruleId,
           packId,
           severity,
-          message: `Destructive ALTER TABLE DROP detected via safety fallback filter.`,
-          suggestedFix: `Destructive schema modifications are blocked.`,
-          context: { fallbackUsed: true, pattern: 'ALTER_DROP' },
+          message: `Destructive ALTER statement detected via safety fallback filter.`,
+          suggestedFix: `ALTER statements are blocked by security policy.`,
+          context: { fallbackUsed: true, pattern: 'ALTER' },
         });
       }
     }

@@ -22,4 +22,5 @@ export * from './ablation.js';
 export * from './adaptive/trajectory-stress.js';
 export * from './benchmarks/owasp-agentic-top10-benchmark.js';
 export * from './benchmarks/jailbreakbench-adapter.js';
+export * from './benchmarks/seclists-adapter.js';
 

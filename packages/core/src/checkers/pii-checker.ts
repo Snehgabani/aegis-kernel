@@ -34,7 +34,8 @@ export const DEFAULT_PII_PATTERNS = {
   INDIAN_PAN: /\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b/,
   // System & Environment Invariants
   SENSITIVE_FILE_PATH: /(?:\/etc\/(?:shadow|passwd|sudoers)|\.ssh\/(?:id_rsa|authorized_keys)|\.env(?:\.[a-zA-Z0-9_-]+)?|\/proc\/self\/environ)/,
-  DESTRUCTIVE_COMMAND: /\b(?:rm\s+-(?:r|f|rf|fr)\s+[\/\*]|mkfs|dd\s+if=|\:(){ \:\|\: & }\;:\b)/i,
+  DESTRUCTIVE_COMMAND: /(?:\brm\s+-(?:r|f|rf|fr)\s+[\/\*]|\bmkfs|\bdd\s+if=|\:(){ \:\|\: & }\;:|\biptables\s+-F|\bnet\s+user\s+\/add|\bcat\s+\/etc\/(?:shadow|passwd|sudoers)|\b(?:curl|wget)\s+[^\s|]+(?:\s*\|\s*sh))/i,
+  CLOUD_METADATA_SSRF: /(?:169\.254\.169\.254|2852039166|0xa9\.0xfe\.0xa9\.0xfe|0251\.0376\.0251\.0376|metadata\.google\.internal|100\.100\.100\.200|instance-data\/latest)/i,
   ZERO_WIDTH_TOOL: /[\u200B-\u200D\uFEFF\u200E\u200F\u2060\u00AD]/,
   DYNAMIC_CODE_EXECUTION: /\b(?:eval\(|Function\(|exec\(|subprocess\.Popen\(|child_process\.exec\()/i,
   K8S_DESTRUCTIVE_COMMAND: /\b(?:kubectl\s+delete\s+(?:all|namespace|ns|nodes|clusterrole)|\bhelm\s+uninstall)\b/i,

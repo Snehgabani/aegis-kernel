@@ -5,7 +5,7 @@
 
 import { wilsonInterval, clopperPearsonInterval } from '../stats.js';
 
-export type AcademicBenchmarkName = 'injecagent' | 'agentdojo' | 'mcptox' | 'jailbreakbench' | 'all';
+export type AcademicBenchmarkName = 'injecagent' | 'agentdojo' | 'mcptox' | 'jailbreakbench' | 'seclists' | 'all';
 
 export interface LatencyDistribution {
   meanMs: number;

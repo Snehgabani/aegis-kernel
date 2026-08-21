@@ -1,18 +1,18 @@
 {
   "version": "2026.1",
-  "generatedAt": "2026-08-21T20:14:19.663Z",
-  "totalCases": 35,
-  "totalMalicious": 24,
-  "totalBlocked": 24,
-  "totalBenign": 11,
-  "totalBenignAllowed": 11,
+  "generatedAt": "2026-08-21T20:20:53.738Z",
+  "totalCases": 50,
+  "totalMalicious": 35,
+  "totalBlocked": 35,
+  "totalBenign": 15,
+  "totalBenignAllowed": 15,
   "aggregateAccuracy": 100,
   "aggregatePrecision": 100,
   "aggregateRecall": 100,
   "benchmarks": {
     "jailbreakbench": {
       "benchmark": "jailbreakbench",
-      "timestamp": "2026-08-21T20:14:19.653Z",
+      "timestamp": "2026-08-21T20:20:53.705Z",
       "datasetSource": "canonical",
       "environment": {
         "nodeVersion": "v22.23.2",
@@ -63,37 +63,37 @@
           "zeroEventNote": "0 bypasses in 5 attacks ⇒ ASR < 60.0% at 95% confidence (rule of three)"
         },
         "latenciesMs": [
-          3.456542000000013,
-          0.8912500000000136,
-          0.20249999999998636,
-          4.7510409999999865,
-          0.2896250000000009,
-          0.12166700000000219,
-          4.360333999999995,
-          0.06233299999999531
+          11.636458000000005,
+          0.7303329999999733,
+          0.254792000000009,
+          5.327499999999986,
+          0.29170900000002575,
+          0.12283300000001418,
+          4.412333999999987,
+          0.06379199999997809
         ],
         "latencyDistribution": {
-          "meanMs": 1.767,
-          "minMs": 0.062,
-          "maxMs": 4.751,
-          "p50Ms": 0.891,
-          "p90Ms": 4.751,
-          "p95Ms": 4.751,
-          "p99Ms": 4.751
+          "meanMs": 2.855,
+          "minMs": 0.064,
+          "maxMs": 11.636,
+          "p50Ms": 0.73,
+          "p90Ms": 11.636,
+          "p95Ms": 11.636,
+          "p99Ms": 11.636
         }
       },
       "attestationProof": {
         "algorithm": "SHA-256",
-        "payloadHash": "6f28b50ffde4679861d5c5a276d8376a0fb93845ede0e9ccee345fb34d3066a4",
+        "payloadHash": "06a727a3f96f861fa2880fa78d591b38d7b0f2423765638b51bb75c8fce46952",
         "datasetSha256": "cb9c78f9a36f4e1363c034515b171cd7f6f0a05f94da9830c1b3ffd1a63443c7",
-        "timestamp": "2026-08-21T20:14:19.653Z",
+        "timestamp": "2026-08-21T20:20:53.705Z",
         "reproducibleSeed": 42,
         "zeroEgressVerified": true
       }
     },
     "injecagent": {
       "benchmark": "InjecAgent (ACL 2024)",
-      "timestamp": "2026-08-21T20:14:19.658Z",
+      "timestamp": "2026-08-21T20:20:53.711Z",
       "datasetSource": "canonical",
       "environment": {
         "nodeVersion": "v22.23.2",
@@ -144,42 +144,42 @@
           "zeroEventNote": "0 bypasses in 10 attacks ⇒ ASR < 30.0% at 95% confidence (rule of three)"
         },
         "latenciesMs": [
-          1.2602080000000058,
-          0.28366599999998243,
-          0.21033300000001987,
-          0.1245839999999987,
-          0.9146250000000009,
-          0.3532079999999951,
-          0.08566599999997493,
-          0.12341700000001765,
-          0.050041999999990594,
-          0.04470799999998576,
-          1.0247499999999832,
-          0.09541699999999764,
-          0.054249999999996135
+          1.4316249999999968,
+          0.364167000000009,
+          0.23083300000001827,
+          0.1442920000000072,
+          0.9926669999999831,
+          0.3871249999999691,
+          0.08133300000002919,
+          0.13570900000001984,
+          0.05587500000001455,
+          0.0508750000000191,
+          1.0860829999999737,
+          0.10895899999997027,
+          0.04670799999996689
         ],
         "latencyDistribution": {
-          "meanMs": 0.356,
-          "minMs": 0.045,
-          "maxMs": 1.26,
-          "p50Ms": 0.125,
-          "p90Ms": 1.025,
-          "p95Ms": 1.26,
-          "p99Ms": 1.26
+          "meanMs": 0.394,
+          "minMs": 0.047,
+          "maxMs": 1.432,
+          "p50Ms": 0.144,
+          "p90Ms": 1.086,
+          "p95Ms": 1.432,
+          "p99Ms": 1.432
         }
       },
       "attestationProof": {
         "algorithm": "SHA-256",
-        "payloadHash": "ec5ad88da6b6fef3998c66d721fb3e8abfb7cebd28909e026c6b171e5b247860",
+        "payloadHash": "5d9c674000a8c33e6ed6508630f6cfe2c57871947d404ece1142ddb5aedca8ad",
         "datasetSha256": "a41c30936a6798adc2054e52d07a75d4e68c6d56003ab2aa1334ac2a83da75fb",
-        "timestamp": "2026-08-21T20:14:19.658Z",
+        "timestamp": "2026-08-21T20:20:53.711Z",
         "reproducibleSeed": 42,
         "zeroEgressVerified": true
       }
     },
     "agentdojo": {
       "benchmark": "AgentDojo (NeurIPS 2024)",
-      "timestamp": "2026-08-21T20:14:19.661Z",
+      "timestamp": "2026-08-21T20:20:53.714Z",
       "datasetSource": "canonical",
       "environment": {
         "nodeVersion": "v22.23.2",
@@ -230,38 +230,38 @@
           "zeroEventNote": "0 bypasses in 5 attacks ⇒ ASR < 60.0% at 95% confidence (rule of three)"
         },
         "latenciesMs": [
-          0.1218330000000094,
-          0.053625000000010914,
-          1.525624999999991,
-          0.06254100000001017,
-          0.0449169999999981,
-          0.03404199999999946,
-          0.05462499999998727,
-          0.034874999999999545,
-          0.048125000000027285
+          0.28854200000000674,
+          0.05320799999998371,
+          1.182834000000014,
+          0.05212499999998954,
+          0.04204199999998082,
+          0.03433300000000372,
+          0.05058400000001484,
+          0.03654199999999719,
+          0.0830829999999878
         ],
         "latencyDistribution": {
-          "meanMs": 0.22,
+          "meanMs": 0.203,
           "minMs": 0.034,
-          "maxMs": 1.526,
-          "p50Ms": 0.054,
-          "p90Ms": 1.526,
-          "p95Ms": 1.526,
-          "p99Ms": 1.526
+          "maxMs": 1.183,
+          "p50Ms": 0.052,
+          "p90Ms": 1.183,
+          "p95Ms": 1.183,
+          "p99Ms": 1.183
         }
       },
       "attestationProof": {
         "algorithm": "SHA-256",
-        "payloadHash": "ba290f47744e9903d1604c187d2c2134b14859790b90b58ea4d8c768f4d89ea6",
+        "payloadHash": "b5ef002a0c25e62fe43c4c35d0fcee6caf548cf1f36b8160195d6f9c5d4fccdc",
         "datasetSha256": "4d23f2cc7cab55386b6a471e6d05e9707ececb1b1b617bc047ba187a35c27b27",
-        "timestamp": "2026-08-21T20:14:19.661Z",
+        "timestamp": "2026-08-21T20:20:53.714Z",
         "reproducibleSeed": 42,
         "zeroEgressVerified": true
       }
     },
     "mcptox": {
       "benchmark": "MCPTox / MCP-Bench (Tool Poisoning)",
-      "timestamp": "2026-08-21T20:14:19.663Z",
+      "timestamp": "2026-08-21T20:20:53.716Z",
       "datasetSource": "canonical",
       "environment": {
         "nodeVersion": "v22.23.2",
@@ -312,27 +312,115 @@
           "zeroEventNote": "0 bypasses in 4 attacks ⇒ ASR < 75.0% at 95% confidence (rule of three)"
         },
         "latenciesMs": [
-          0.7950419999999951,
-          0.3033330000000092,
-          0.23129199999999628,
-          0.012666999999993322,
-          0.03041600000000244
+          0.8608750000000214,
+          0.28054199999996854,
+          0.1698329999999828,
+          0.009375000000034106,
+          0.02841599999999289
         ],
         "latencyDistribution": {
-          "meanMs": 0.275,
-          "minMs": 0.013,
-          "maxMs": 0.795,
-          "p50Ms": 0.231,
-          "p90Ms": 0.795,
-          "p95Ms": 0.795,
-          "p99Ms": 0.795
+          "meanMs": 0.27,
+          "minMs": 0.009,
+          "maxMs": 0.861,
+          "p50Ms": 0.17,
+          "p90Ms": 0.861,
+          "p95Ms": 0.861,
+          "p99Ms": 0.861
         }
       },
       "attestationProof": {
         "algorithm": "SHA-256",
-        "payloadHash": "49c8c31200857f7d02cac656c3a20b997d0815ddedf7ec245272b85861048db6",
+        "payloadHash": "2f8341913ececce464c6e816c6dd846ef6d9b13beb6018be1dfcdd6ae3e53b05",
         "datasetSha256": "cc62089b051aba6aaedacf5696c8176005b3e5ff5061d73fd4468925a3f537db",
-        "timestamp": "2026-08-21T20:14:19.663Z",
+        "timestamp": "2026-08-21T20:20:53.716Z",
+        "reproducibleSeed": 42,
+        "zeroEgressVerified": true
+      }
+    },
+    "seclists": {
+      "benchmark": "seclists-cve",
+      "timestamp": "2026-08-21T20:20:53.738Z",
+      "datasetSource": "canonical",
+      "environment": {
+        "nodeVersion": "v22.23.2",
+        "platform": "darwin",
+        "arch": "arm64",
+        "cpuModel": "Apple M2",
+        "totalMemoryMB": 8192
+      },
+      "metrics": {
+        "totalCases": 15,
+        "maliciousTotal": 11,
+        "maliciousBlocked": 11,
+        "maliciousAllowed": 0,
+        "benignTotal": 4,
+        "benignAllowed": 4,
+        "benignBlocked": 0,
+        "blockedCount": 11,
+        "allowedCount": 4,
+        "accuracy": 100,
+        "precision": 100,
+        "recall": 100,
+        "f1Score": 100,
+        "attackSuccessRate": 0,
+        "defenseRate": 100,
+        "benignUtility": 100,
+        "risk": 0,
+        "confusionMatrix": {
+          "truePositive": 11,
+          "falsePositive": 0,
+          "trueNegative": 4,
+          "falseNegative": 0
+        },
+        "confidenceIntervals": {
+          "level": 0.95,
+          "asrUpperBoundExact": 0.2849,
+          "asr": {
+            "lower": 0,
+            "upper": 0.2588,
+            "point": 0,
+            "method": "wilson"
+          },
+          "benignUtility": {
+            "lower": 0.5101,
+            "upper": 1,
+            "point": 1,
+            "method": "wilson"
+          },
+          "zeroEventNote": "0 bypasses in 11 attacks ⇒ ASR < 27.3% at 95% confidence (rule of three)"
+        },
+        "latenciesMs": [
+          12.156415999999979,
+          4.511832999999967,
+          3.9089590000000385,
+          0.3142920000000231,
+          0.043541000000004715,
+          0.03174999999998818,
+          0.027999999999963165,
+          0.030167000000005828,
+          0.06608399999998937,
+          0.04112500000002228,
+          0.03958299999999326,
+          0.5162090000000035,
+          0.03595899999999119,
+          0.04604100000000244,
+          0.02945799999997689
+        ],
+        "latencyDistribution": {
+          "meanMs": 1.453,
+          "minMs": 0.028,
+          "maxMs": 12.156,
+          "p50Ms": 0.044,
+          "p90Ms": 4.512,
+          "p95Ms": 12.156,
+          "p99Ms": 12.156
+        }
+      },
+      "attestationProof": {
+        "algorithm": "SHA-256",
+        "payloadHash": "92a64f0bb699f438cd970963c6a8e3aa001fef00c4baa84a3462d96f94554457",
+        "datasetSha256": "0607898da9ec990925dd36aa1ea35c1b1e11e5d8f04474b8a98b39bb34aff8a3",
+        "timestamp": "2026-08-21T20:20:53.738Z",
         "reproducibleSeed": 42,
         "zeroEgressVerified": true
       }

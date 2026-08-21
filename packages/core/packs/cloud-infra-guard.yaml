@@ -59,3 +59,15 @@ rules:
         match_action: block
     suggestedFix: Destructive filesystem deletion is prohibited in autonomous agent pipelines.
 
+  - id: CLOUD-006
+    severity: critical
+    description: Block SSRF attempts targeting cloud instance metadata services (AWS IMDS, GCP, Azure, Alibaba)
+    condition:
+      type: regex
+      params:
+        patterns:
+          - CLOUD_METADATA_SSRF
+        match_action: block
+    suggestedFix: Outbound requests to cloud metadata service endpoints (169.254.169.254, metadata.google.internal) are prohibited.
+
+
