@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.4.0...evals@vv1.5.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **evals:** add JailbreakBench NeurIPS 2024 adapter and unbiased multi-benchmark ingestion pipeline ([4d20798](https://github.com/Snehgabani/aegis-kernel/commit/4d207985d9daa63c5ba8228195c465df18b27841))
+
 ## [1.4.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.3.0...evals@vv1.4.0) (2026-08-21)
 
 
