@@ -19,7 +19,7 @@ jobs:
       paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
       - name: Run Google Release-Please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         id: release
         continue-on-error: true
         with:
