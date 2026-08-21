@@ -20,3 +20,5 @@ export * from './adaptive/poisoning-stress.js';
 export * from './stats.js';
 export * from './ablation.js';
 export * from './adaptive/trajectory-stress.js';
+export * from './benchmarks/owasp-agentic-top10-benchmark.js';
+

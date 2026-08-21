@@ -47,3 +47,15 @@ rules:
           - PUBLIC_BUCKET_ACL
         match_action: block
     suggestedFix: Set bucket ACLs to private or enforce Block Public Access.
+
+  - id: CLOUD-005
+    severity: critical
+    description: Block destructive filesystem deletion and fork bomb execution (rm -rf /, mkfs, dd)
+    condition:
+      type: regex
+      params:
+        patterns:
+          - DESTRUCTIVE_COMMAND
+        match_action: block
+    suggestedFix: Destructive filesystem deletion is prohibited in autonomous agent pipelines.
+
