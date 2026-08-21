@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.6.0...core@vv1.7.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **compliance:** add full OWASP Agentic AI Top 10 (ASI01-ASI10) mappings and audit verification to GRC dossier ([3bc5ab0](https://github.com/Snehgabani/aegis-kernel/commit/3bc5ab083aee41b5d42add4c827cc032062115d4))
+
 ## [1.6.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.5.0...core@vv1.6.0) (2026-08-21)
 
 
