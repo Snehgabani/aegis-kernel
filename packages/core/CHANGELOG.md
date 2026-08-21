@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.2.0...core@vv1.2.1) (2026-08-21)
+
+
+### 🐛 Bug Fixes & Invariant Patches
+
+* **security:** resolve CodeQL alerts [#96](https://github.com/Snehgabani/aegis-kernel/issues/96), [#97](https://github.com/Snehgabani/aegis-kernel/issues/97), [#98](https://github.com/Snehgabani/aegis-kernel/issues/98), and [#99](https://github.com/Snehgabani/aegis-kernel/issues/99) ([1bc7ce0](https://github.com/Snehgabani/aegis-kernel/commit/1bc7ce0e261264d467a65d1607e29b1503977145))
+
 ## [1.2.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.1.0...core@vv1.2.0) (2026-08-21)
 
 
