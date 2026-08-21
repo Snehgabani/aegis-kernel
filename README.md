@@ -14,7 +14,7 @@ In-process AST analysis · <0.25ms latency · zero network egress · TypeScript,
 [![GitHub Release](https://img.shields.io/github/v/release/Snehgabani/aegis-kernel?color=6366f1&label=Release&logo=github&logoColor=white&style=flat-square)](https://github.com/Snehgabani/aegis-kernel/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![OpenSSF Best Practices](https://img.shields.io/badge/OpenSSF-Best%20Practices-10b981.svg?logo=openssf&logoColor=white&style=flat-square)](https://www.bestpractices.dev/projects/14173)
-[![Tests Passing](https://img.shields.io/badge/tests-758%20passing-10b981.svg?style=flat-square)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Tests Passing](https://img.shields.io/badge/tests-771%20passing-10b981.svg?style=flat-square)](https://github.com/Snehgabani/aegis-kernel/actions)
 [![Latency](https://img.shields.io/badge/latency-%3C0.25ms-brightgreen.svg?style=flat-square)](https://snehgabani.github.io/aegis-kernel/compare-nemo.html)
 
 [Playground](https://snehgabani.github.io/aegis-kernel/playground/) · [Docs](https://snehgabani.github.io/aegis-kernel/docs/) · [Benchmarks](https://snehgabani.github.io/aegis-kernel/compare-nemo.html) · [White Paper](./WHITE_PAPER.md) · [Sponsor](https://github.com/sponsors/Snehgabani)
