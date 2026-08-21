@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.3.0...core@vv1.4.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **security:** embed Microsoft FIDES dual-lattice IFC and DeepMind CaMeL quarantined execution separation ([0ca8f21](https://github.com/Snehgabani/aegis-kernel/commit/0ca8f217f5bb253289e41ab3416db54d88ac2c7a))
+* **synthesizer:** add OpenAPI 3.0/3.1 synthesis and wire CLI commands with 100% test coverage ([a31bc19](https://github.com/Snehgabani/aegis-kernel/commit/a31bc1965887f849a36dae5090204281e9610c7e))
+
 ## [1.3.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.2.1...core@vv1.3.0) (2026-08-21)
 
 

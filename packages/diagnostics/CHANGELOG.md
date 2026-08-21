@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Snehgabani/aegis-kernel/compare/diagnostics@vv1.1.0...diagnostics@vv1.2.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **diagnostics:** add DAGVisualizer for forensic Mermaid and ASCII graph rendering with FIDES security tags ([b4a6a88](https://github.com/Snehgabani/aegis-kernel/commit/b4a6a88f68d78c2d31e56be8eb51b31c2654421a))
+
 ## [1.1.0](https://github.com/Snehgabani/aegis-kernel/compare/diagnostics@vv1.0.1...diagnostics@vv1.1.0) (2026-08-21)
 
 

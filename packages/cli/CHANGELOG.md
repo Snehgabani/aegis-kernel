@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.2.0...cli@vv1.3.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **synthesizer:** add OpenAPI 3.0/3.1 synthesis and wire CLI commands with 100% test coverage ([a31bc19](https://github.com/Snehgabani/aegis-kernel/commit/a31bc1965887f849a36dae5090204281e9610c7e))
+
 ## [1.2.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.1.0...cli@vv1.2.0) (2026-08-21)
 
 
