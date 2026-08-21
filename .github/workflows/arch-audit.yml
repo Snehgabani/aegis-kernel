@@ -29,13 +29,28 @@ jobs:
         run: |
           echo "Auditing packages/core for unauthorized network dependencies..."
           
-          # Ensure core package has no hard dependencies on node-fetch, axios, or active egress without guards
-          if grep -rn "require('axios')" packages/core/src/ 2>/dev/null; then
-            echo "❌ Violation: axios found in core package"
+          # 1. Ensure core package dependencies contain ZERO networking/HTTP libraries
+          node -e '
+            const fs = require("fs");
+            const pkg = JSON.parse(fs.readFileSync("packages/core/package.json", "utf8"));
+            const deps = Object.keys(pkg.dependencies || {});
+            const forbidden = ["axios", "node-fetch", "got", "superagent", "undici", "request", "urllib", "ws", "socket.io", "http-proxy"];
+            for (const d of deps) {
+              if (forbidden.includes(d)) {
+                console.error(`❌ Zero-Egress Violation: Forbidden network dependency "${d}" in packages/core/package.json`);
+                process.exit(1);
+              }
+            }
+            console.log("✅ Core dependencies verified clean: zero networking libraries.");
+          '
+          
+          # 2. Ensure core evaluation hot-path has zero network primitives
+          if grep -rnE "\b(fetch|http\.request|https\.request|net\.connect|dgram\.createSocket|WebSocket)\b" packages/core/src/checkers/ packages/core/src/engine.ts packages/core/src/sanitizer.ts packages/core/src/policy/ 2>/dev/null; then
+            echo "❌ Violation: Raw network primitive found in packages/core evaluation hot-path"
             exit 1
           fi
           
-          echo "✅ Core package zero-egress architectural boundary verified!"
+          echo "✅ Core evaluation hot-path zero-egress architectural boundary verified!"
 
       - name: Audit Monorepo Package Imports
         run: |

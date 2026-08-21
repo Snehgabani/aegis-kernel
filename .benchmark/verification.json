@@ -1,19 +1,21 @@
 {
-  "generatedAt": "2026-08-19T16:02:19.762Z",
-  "gitSha": "361a828",
+  "generatedAt": "2026-08-21T06:11:20.544Z",
+  "gitSha": "e1a84f3",
   "node": "v22.23.2",
   "platform": "darwin/arm64",
   "sections": {
     "tests": {
       "ok": false,
-      "passed": 513,
-      "failed": 0
+      "passed": 674,
+      "failed": 0,
+      "python": "11 passed",
+      "rust": "10 passed"
     },
     "coverage": {
-      "stmts": 82.66,
-      "branches": 69.12,
-      "funcs": 85.15,
-      "lines": 83.69
+      "stmts": 84.62,
+      "branches": 71.87,
+      "funcs": 87.25,
+      "lines": 85.75
     },
     "corpus": {
       "total": 433,
@@ -21,13 +23,11 @@
       "benign": 133
     },
     "mutation": {
-      "scorePct": 100,
-      "killed": 10,
-      "total": 10
+      "skipped": "quick mode"
     },
     "benchmark": {
       "ok": true,
-      "tail": "825 | 4,128 |\n| sql-simple | 0.155 | 0.103 | 0.195 | 0.323 | 0.873 | 6,441 |\n| sql-complex | 0.444 | 0.149 | 0.551 | 0.905 | 5.657 | 2,249 |\n| sql-malicious | 0.122 | 0.100 | 0.123 | 0.167 | 0.431 | 8,191 |\n| pii-heavy | 0.064 | 0.052 | 0.072 | 0.087 | 0.241 | 15,676 |\n| numeric | 0.248 | 0.204 | 0.314 | 0.403 | 0.841 | 4,036 |\n| full-stack | 0.159 | 0.147 | 0.161 | 0.180 | 0.351 | 6,287 |\n  generatedAt=2026-08-19T16:03:25.144Z git=361a828 node=v22.23.2 platform=darwin/arm64\n\n  Evidence written: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/verification-evidence.json\n  Baseline saved: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/baseline.json\n"
+      "tail": ".329 | 5,435 |\n| sql-simple | 0.106 | 0.103 | 0.114 | 0.119 | 0.154 | 9,391 |\n| sql-complex | 0.143 | 0.138 | 0.147 | 0.154 | 0.252 | 6,981 |\n| sql-malicious | 0.100 | 0.097 | 0.104 | 0.108 | 0.151 | 9,971 |\n| pii-heavy | 0.179 | 0.170 | 0.189 | 0.204 | 0.342 | 5,585 |\n| numeric | 0.180 | 0.174 | 0.245 | 0.255 | 0.359 | 5,543 |\n| full-stack | 0.205 | 0.197 | 0.210 | 0.219 | 0.346 | 4,887 |\n  generatedAt=2026-08-21T06:11:56.552Z git=e1a84f3 node=v22.23.2 platform=darwin/arm64\n\n  Evidence written: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/verification-evidence.json\n  Baseline saved: /Users/snehgabani/.gemini/antigravity/scratch/aegis-kernel/.benchmark/baseline.json\n"
     }
   }
 }
