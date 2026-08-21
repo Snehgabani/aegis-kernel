@@ -50,19 +50,27 @@ resembles — except the measured number is 100.0%, because every vector is an
 attack the engine is designed to block. The published 93.5% was not reproducible
 from any in-repo dataset and has been withdrawn** (see §3).
 
-### 1.3 Real latency evidence (per-checker, measured)
+### 1.3 Real latency evidence (measured, 2026-08-21 hot-path optimization)
 
-From `.benchmark/evidence.json` (benchmark-harness microbenchmarks, Node 22,
-this repository):
+From `.benchmark/evidence.json` (benchmark-harness microbenchmarks, Node
+v22.22.3, Linux x64, `--expose-gc`, warmup + 3 rounds with forced GC between
+rounds, full percentiles). **Before** = pristine base commit `2a416ed`;
+**after** = hot-path optimization branch (see
+`docs/HOTPATH_OPTIMIZATION_REPORT.md` for the full before/after table and
+Mann-Kendall trend validation — 7/7 profiles, p < 0.001, 86–93% P99 reduction):
 
-| Workload | p50 | p95 |
-|---|---|---|
-| benign passthrough | ≈ 0.037 ms | < 0.1 ms |
-| SQL invariant (simple) | ≈ 1.10 ms | — |
-| SQL invariant (complex, multi-checker) | ≈ 1.85 ms | — |
+| Workload | P50 | P95 | P99 | Throughput |
+|---|---:|---:|---:|---:|
+| benign passthrough | 0.017 ms | 0.031 ms | 0.054 ms | ≈ 46.9k evals/s |
+| SQL invariant (simple) | 0.011 ms | 0.019 ms | 0.040 ms | ≈ 72.3k evals/s |
+| SQL invariant (complex) | 0.020 ms | 0.035 ms | 0.054 ms | ≈ 42.4k evals/s |
+| SQL destructive | 0.015 ms | 0.027 ms | 0.048 ms | ≈ 51.3k evals/s |
+| PII/secret scan (heavy) | 0.026 ms | 0.041 ms | 0.062 ms | ≈ 31.8k evals/s |
+| numeric bounds + rate limit | 0.013 ms | 0.021 ms | 0.045 ms | ≈ 62.7k evals/s |
+| full policy stack (9 packs) | 0.019 ms | 0.033 ms | 0.056 ms | ≈ 43.0k evals/s |
 
-The "0.25 ms P50" marketing figure was a blend of these regimes; per-workload
-numbers above are the citable ones.
+All seven profiles now run at **P99 ≤ 62 µs** (majority ≤ 50 µs), down from
+310–944 µs on the base commit. Reproduce with `npm run test:bench`.
 
 ## 2. Canonical dataset status (the right way, in progress)
 

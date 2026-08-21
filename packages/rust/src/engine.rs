@@ -11,9 +11,126 @@ use crate::types::{
 use std::collections::HashMap;
 use std::time::Instant;
 
+/// Rule parameters parsed ONCE at engine construction into typed structs.
+///
+/// The historical implementation re-parsed every rule's
+/// `HashMap<String, serde_json::Value>` params on EVERY evaluate() call,
+/// allocating Strings/Vecs per rule per call. Pre-compilation moves that
+/// work to construction time; the hot path only borrows the typed params.
+struct CompiledRule {
+    id: String,
+    pack_id: String,
+    severity: AegisSeverity,
+    kind: CompiledRuleKind,
+}
+
+enum CompiledRuleKind {
+    Sql(SqlAstConditionParams),
+    Numeric(NumericConditionParams),
+    Regex(RegexConditionParams),
+    State(StateInvariantConditionParams),
+    Other,
+}
+
+fn compile_rules(packs: &[RulePack]) -> Vec<CompiledRule> {
+    let mut out = Vec::new();
+    for pack in packs {
+        for rule in &pack.rules {
+            let kind = match rule.condition.r#type.as_str() {
+                "sql_ast" => {
+                    let params = &rule.condition.params;
+                    let get_strings = |key: &str| {
+                        params
+                            .get(key)
+                            .and_then(|v| v.as_array())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|s| s.as_str().map(|x| x.to_string()))
+                                    .collect()
+                            })
+                            .unwrap_or_default()
+                    };
+                    CompiledRuleKind::Sql(SqlAstConditionParams {
+                        statements: get_strings("statements"),
+                        block_statements: get_strings("block_statements"),
+                        require: params
+                            .get("require")
+                            .and_then(|v| v.as_str().map(|s| s.to_string())),
+                        max_limit: params.get("max_limit").and_then(|v| v.as_i64()),
+                        database_field: params
+                            .get("database_field")
+                            .and_then(|v| v.as_str().map(|s| s.to_string())),
+                    })
+                }
+                "numeric" => {
+                    let params = &rule.condition.params;
+                    CompiledRuleKind::Numeric(NumericConditionParams {
+                        field: params
+                            .get("field")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("amount")
+                            .to_string(),
+                        min: params.get("min").and_then(|v| v.as_f64()),
+                        max: params.get("max").and_then(|v| v.as_f64()),
+                        rate_limit: None,
+                    })
+                }
+                "regex" => {
+                    let params = &rule.condition.params;
+                    CompiledRuleKind::Regex(RegexConditionParams {
+                        patterns: params
+                            .get("patterns")
+                            .and_then(|v| v.as_array())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|s| s.as_str().map(|x| x.to_string()))
+                                    .collect()
+                            })
+                            .unwrap_or_default(),
+                        match_action: params
+                            .get("match_action")
+                            .and_then(|v| v.as_str().map(|s| s.to_string())),
+                    })
+                }
+                "state_invariant" => {
+                    let params = &rule.condition.params;
+                    CompiledRuleKind::State(StateInvariantConditionParams {
+                        target_field: params
+                            .get("target_field")
+                            .and_then(|v| v.as_str().map(|s| s.to_string())),
+                        tenant_field: params
+                            .get("tenant_field")
+                            .and_then(|v| v.as_str().map(|s| s.to_string())),
+                        require_state: params
+                            .get("require_state")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                        precondition: params
+                            .get("precondition")
+                            .and_then(|v| v.as_str().map(|s| s.to_string())),
+                        assertion: params
+                            .get("assertion")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("true")
+                            .to_string(),
+                    })
+                }
+                _ => CompiledRuleKind::Other,
+            };
+            out.push(CompiledRule {
+                id: rule.id.clone(),
+                pack_id: pack.id.clone(),
+                severity: rule.severity.clone(),
+                kind,
+            });
+        }
+    }
+    out
+}
+
 pub struct AegisEngine {
     config: Config,
-    rule_packs: Vec<RulePack>,
+    compiled_rules: Vec<CompiledRule>,
     sql_checker: SqlChecker,
     numeric_checker: NumericChecker,
     pii_checker: PiiChecker,
@@ -66,10 +183,11 @@ impl AegisEngine {
         }
 
         let policy_commitment_hash = Self::compute_policy_commitment(&rule_packs);
+        let compiled_rules = compile_rules(&rule_packs);
 
         Self {
             config,
-            rule_packs,
+            compiled_rules,
             sql_checker: SqlChecker::new(),
             numeric_checker: NumericChecker::new(),
             pii_checker: PiiChecker::new(),
@@ -294,178 +412,40 @@ impl AegisEngine {
         let start = Instant::now();
         let mut structured_violations: Vec<AegisViolation> = Vec::new();
 
-        for pack in &self.rule_packs {
-            for rule in &pack.rules {
-                match rule.condition.r#type.as_str() {
-                    "sql_ast" => {
-                        let statements = rule
-                            .condition
-                            .params
-                            .get("statements")
-                            .and_then(|v| v.as_array())
-                            .map(|arr| {
-                                arr.iter()
-                                    .filter_map(|s| s.as_str().map(|str_s| str_s.to_string()))
-                                    .collect()
-                            })
-                            .unwrap_or_default();
-
-                        let block_statements = rule
-                            .condition
-                            .params
-                            .get("block_statements")
-                            .and_then(|v| v.as_array())
-                            .map(|arr| {
-                                arr.iter()
-                                    .filter_map(|s| s.as_str().map(|str_s| str_s.to_string()))
-                                    .collect()
-                            })
-                            .unwrap_or_default();
-
-                        let require = rule
-                            .condition
-                            .params
-                            .get("require")
-                            .and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let max_limit = rule
-                            .condition
-                            .params
-                            .get("max_limit")
-                            .and_then(|v| v.as_i64());
-                        let database_field = rule
-                            .condition
-                            .params
-                            .get("database_field")
-                            .and_then(|v| v.as_str().map(|s| s.to_string()));
-
-                        let sql_params = SqlAstConditionParams {
-                            statements,
-                            block_statements,
-                            require,
-                            max_limit,
-                            database_field,
-                        };
-
-                        let v_list = self.sql_checker.evaluate(
-                            &rule.id,
-                            &pack.id,
-                            &sql_params,
-                            call,
-                            rule.severity.clone(),
-                        );
-                        structured_violations.extend(v_list);
-                    }
-                    "numeric" => {
-                        let field = rule
-                            .condition
-                            .params
-                            .get("field")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("amount")
-                            .to_string();
-                        let min = rule.condition.params.get("min").and_then(|v| v.as_f64());
-                        let max = rule.condition.params.get("max").and_then(|v| v.as_f64());
-
-                        let num_params = NumericConditionParams {
-                            field,
-                            min,
-                            max,
-                            rate_limit: None,
-                        };
-
-                        let v_list = self.numeric_checker.evaluate(
-                            &rule.id,
-                            &pack.id,
-                            &num_params,
-                            call,
-                            rule.severity.clone(),
-                        );
-                        structured_violations.extend(v_list);
-                    }
-                    "regex" => {
-                        let patterns = rule
-                            .condition
-                            .params
-                            .get("patterns")
-                            .and_then(|v| v.as_array())
-                            .map(|arr| {
-                                arr.iter()
-                                    .filter_map(|s| s.as_str().map(|str_s| str_s.to_string()))
-                                    .collect()
-                            })
-                            .unwrap_or_default();
-
-                        let match_action = rule
-                            .condition
-                            .params
-                            .get("match_action")
-                            .and_then(|v| v.as_str().map(|s| s.to_string()));
-
-                        let regex_params = RegexConditionParams {
-                            patterns,
-                            match_action,
-                        };
-
-                        let v_list = self.pii_checker.evaluate(
-                            &rule.id,
-                            &pack.id,
-                            &regex_params,
-                            call,
-                            rule.severity.clone(),
-                        );
-                        structured_violations.extend(v_list);
-                    }
-                    "state_invariant" => {
-                        let target_field = rule
-                            .condition
-                            .params
-                            .get("target_field")
-                            .and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let tenant_field = rule
-                            .condition
-                            .params
-                            .get("tenant_field")
-                            .and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let require_state = rule
-                            .condition
-                            .params
-                            .get("require_state")
-                            .and_then(|v| v.as_bool())
-                            .unwrap_or(false);
-                        let precondition = rule
-                            .condition
-                            .params
-                            .get("precondition")
-                            .and_then(|v| v.as_str().map(|s| s.to_string()));
-                        let assertion = rule
-                            .condition
-                            .params
-                            .get("assertion")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("true")
-                            .to_string();
-
-                        let state_params = StateInvariantConditionParams {
-                            target_field,
-                            tenant_field,
-                            require_state,
-                            precondition,
-                            assertion,
-                        };
-
-                        let v_list = self.state_checker.evaluate(
-                            &rule.id,
-                            &pack.id,
-                            &state_params,
-                            call,
-                            state_context,
-                            rule.severity.clone(),
-                        );
-                        structured_violations.extend(v_list);
-                    }
-                    _ => {}
-                }
-            }
+        for rule in &self.compiled_rules {
+            let v_list = match &rule.kind {
+                CompiledRuleKind::Sql(sql_params) => self.sql_checker.evaluate(
+                    &rule.id,
+                    &rule.pack_id,
+                    sql_params,
+                    call,
+                    rule.severity.clone(),
+                ),
+                CompiledRuleKind::Numeric(num_params) => self.numeric_checker.evaluate(
+                    &rule.id,
+                    &rule.pack_id,
+                    num_params,
+                    call,
+                    rule.severity.clone(),
+                ),
+                CompiledRuleKind::Regex(regex_params) => self.pii_checker.evaluate(
+                    &rule.id,
+                    &rule.pack_id,
+                    regex_params,
+                    call,
+                    rule.severity.clone(),
+                ),
+                CompiledRuleKind::State(state_params) => self.state_checker.evaluate(
+                    &rule.id,
+                    &rule.pack_id,
+                    state_params,
+                    call,
+                    state_context,
+                    rule.severity.clone(),
+                ),
+                CompiledRuleKind::Other => Vec::new(),
+            };
+            structured_violations.extend(v_list);
         }
 
         let has_critical = structured_violations
