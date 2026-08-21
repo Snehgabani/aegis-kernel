@@ -1,14 +1,14 @@
 {
-  "packages/core": "1.0.1",
-  "packages/cli": "1.0.1",
-  "packages/mcp": "1.0.1",
-  "packages/langchain": "1.0.1",
-  "packages/openai": "1.0.1",
-  "packages/anthropic": "1.0.1",
-  "packages/vercel-ai": "1.0.1",
-  "packages/diagnostics": "1.0.1",
-  "packages/evals": "1.0.1",
-  "packages/rust": "1.0.1",
-  "packages/python": "1.0.1",
-  "packages/go": "1.0.1"
+  "packages/core": "1.1.0",
+  "packages/cli": "1.1.0",
+  "packages/mcp": "1.1.0",
+  "packages/langchain": "1.1.0",
+  "packages/openai": "1.1.0",
+  "packages/anthropic": "1.1.0",
+  "packages/vercel-ai": "1.1.0",
+  "packages/diagnostics": "1.1.0",
+  "packages/evals": "1.1.0",
+  "packages/rust": "1.1.0",
+  "packages/python": "1.1.0",
+  "packages/go": "1.1.0"
 }
