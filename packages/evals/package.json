@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/evals",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "type": "module",
   "description": "Deterministic adversarial evaluation harness for academic benchmarks (InjecAgent, AgentDojo, MCP-Bench) and the tricky-100 testbed.",
   "license": "MIT",

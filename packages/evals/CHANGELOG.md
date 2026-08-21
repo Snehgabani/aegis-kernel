@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.5.0...evals@vv1.6.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **cli:** add jailbreakbench and seclists subcommands to aegis eval and update public evaluation harness ([b28e9f9](https://github.com/Snehgabani/aegis-kernel/commit/b28e9f9e742713018a228dd302bb1dcffb755504))
+* **evals:** add SecLists / Exploit-DB real-world CVE evaluation adapter and cloud SSRF invariants ([46b9e02](https://github.com/Snehgabani/aegis-kernel/commit/46b9e027714d404e838b1270aca135a7c81cdda4))
+
 ## [1.5.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.4.0...evals@vv1.5.0) (2026-08-21)
 
 
