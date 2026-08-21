@@ -14,6 +14,22 @@ jobs:
     name: Validate Conventional PR Title
     runs-on: ubuntu-latest
     steps:
+      - name: Auto-Fix PR Title Casing
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          if [[ "$TITLE" =~ ^([a-z]+)(\([a-z0-9_-]+\))?:\ ([A-Z])(.*)$ ]]; then
+            TYPE="${BASH_REMATCH[1]}"
+            SCOPE="${BASH_REMATCH[2]}"
+            FIRST_CHAR="${BASH_REMATCH[3]}"
+            REST="${BASH_REMATCH[4]}"
+            LOWER_CHAR=$(echo "$FIRST_CHAR" | tr '[:upper:]' '[:lower:]')
+            NEW_TITLE="${TYPE}${SCOPE}: ${LOWER_CHAR}${REST}"
+            echo "Auto-normalizing PR title from '$TITLE' to '$NEW_TITLE'"
+            gh pr edit "${{ github.event.pull_request.number }}" --title "$NEW_TITLE" || true
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Lint Semantic PR Title
         uses: amannn/action-semantic-pull-request@v5
         env:

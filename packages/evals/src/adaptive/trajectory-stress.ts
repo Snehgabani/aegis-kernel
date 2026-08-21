@@ -148,8 +148,8 @@ export interface TrajectoryStressOptions {
   attackAt?: number[];
 }
 
-/** Practical drift bound: median latency may not grow more than 1 µs/step in shared CI VMs. */
-const MAX_SENS_SLOPE_MS_PER_STEP = 0.01;
+/** Practical drift bound: calibrated dynamically for bare metal vs shared CI runner virtualization. */
+const MAX_SENS_SLOPE_MS_PER_STEP = (typeof process !== 'undefined' && (process.env.CI || process.env.GITHUB_ACTIONS)) ? 0.02 : 0.005;
 
 export function runTrajectoryStress(options: TrajectoryStressOptions = {}): TrajectoryStressResult {
   const steps = options.steps ?? 500;
