@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.3.0...cli@vv1.4.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **security:** add cryptographic policy commitment CLI and autonomous branch hygiene launchd daemon ([7674b00](https://github.com/Snehgabani/aegis-kernel/commit/7674b00a4afee90c3a6138b5ab816b8d45fd3bc1))
+
 ## [1.3.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.2.0...cli@vv1.3.0) (2026-08-21)
 
 
