@@ -74,7 +74,10 @@
       <a href="#python" class="nav-link">Python SDK</a>
       <a href="#mcp" class="nav-link">Model Context Protocol</a>
       <a href="#langchain" class="nav-link">LangChain & CrewAI</a>
+      <a href="#frameworks" class="nav-link">CrewAI · AutoGen · SK</a>
+      <a href="#browser-guard" class="nav-link">Browser-Use / OpenManus</a>
       <a href="#openai" class="nav-link">OpenAI & Claude</a>
+
     </div>
 
     <div class="nav-group">
@@ -100,15 +103,13 @@
     </div>
 
     <h2 id="quickstart">Quickstart</h2>
-    <p><strong>Note:</strong> registry publication (npm/PyPI) is pending — install from source for now:</p>
-    <pre><code>git clone https://github.com/Snehgabani/aegis-kernel.git
-cd aegis-kernel &amp;&amp; npm install &amp;&amp; npm run build</code></pre>
-    <h3>1. Node.js &amp; TypeScript (once published)</h3>
+    <h3>1. Node.js &amp; TypeScript</h3>
     <pre><code>npm install @aegis-kernel/core
 npx aegis init</code></pre>
 
-    <h3>2. Python 3.9+ (once published)</h3>
+    <h3>2. Python 3.9+ (zero dependencies)</h3>
     <pre><code>pip install aegis-kernel</code></pre>
+
     <pre><code>from aegis_kernel import aegis_guard
 
 @aegis_guard(tool_name="database_exec")
@@ -133,7 +134,45 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   return executeTool(request);
 });</code></pre>
 
+    <h2 id="frameworks">Framework Middleware: CrewAI, AutoGen &amp; Semantic Kernel</h2>
+    <p>Turn-key, drop-in middleware packages — duck-typed against each framework's public contract, so none of them pin the framework as a dependency. Blocked calls return structured <code>AEGIS_BLOCKED</code> feedback the agent self-corrects against.</p>
+
+    <h3>CrewAI — <code>pip install aegis-kernel-crewai</code></h3>
+    <pre><code>from aegis_kernel_crewai import guard_crew
+
+crew = Crew(agents=[analyst, dba], tasks=[task])
+guard_crew(crew)   # every tool of every agent is now Aegis-guarded
+crew.kickoff()</code></pre>
+    <p>Also available: <code>guard_tool</code>, <code>guard_agent</code>, and the <code>@aegis_crewai_tool</code> decorator for function tools.</p>
+
+    <h3>AutoGen / AG2 — <code>pip install aegis-kernel-autogen</code></h3>
+    <pre><code>from aegis_kernel_autogen import guard_function
+
+agent = AssistantAgent(name="dba", model_client=client,
+                       tools=[guard_function(execute_sql)])</code></pre>
+    <p>Legacy two-agent pattern: <code>guard_function_map(user_proxy)</code>. Modern <code>FunctionTool</code> objects: <code>guard_tool(tool)</code>.</p>
+
+    <h3>Microsoft Semantic Kernel</h3>
+    <pre><code>from aegis_kernel_autogen import add_aegis_filter
+
+kernel = Kernel()
+add_aegis_filter(kernel)   # deterministic clearance on every function invocation</code></pre>
+
+    <h2 id="browser-guard">Browser Guard: Browser-Use &amp; OpenManus</h2>
+    <p><code>pip install aegis-kernel-browser-guard</code> — deterministic clearance for the three riskiest browser-agent surfaces: navigation (dangerous schemes, IP literals, punycode homographs, zero-width URL smuggling, domain allow/deny lists), typed input (API keys, credit cards, SSNs), and file transfer (executable downloads, sensitive-path uploads).</p>
+    <pre><code>from aegis_kernel_browser_guard import (
+    guard_browser_use_controller, AegisBrowserGuard, BrowserPolicy
+)
+
+controller = Controller()
+guard_browser_use_controller(controller, AegisBrowserGuard(
+    BrowserPolicy(allowed_domains=["wikipedia.org", "arxiv.org"])
+))
+agent = Agent(task="Research AST parsers", llm=llm, controller=controller)</code></pre>
+    <p>OpenManus: <code>guard_openmanus_tool(BrowserUseTool())</code>. Staged rollout: <code>AegisBrowserGuard(mode="monitor")</code> records violations without blocking.</p>
+
     <h2 id="packs">Enterprise Compliance Rule Packs</h2>
+
     <table>
       <thead>
         <tr>

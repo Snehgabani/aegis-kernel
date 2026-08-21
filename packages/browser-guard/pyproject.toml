@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-kernel-browser-guard"
+version = "1.1.0"
+description = "Turn-key Browser-Use / OpenManus middleware for the Aegis Invariant Kernel: deterministic navigation, input, and download safety clearance for browser agents"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Sneh Gabani", email = "sneh.gabani1999@gmail.com" }]
+keywords = ["browser-use", "openmanus", "browser-agent", "ai-safety", "agentic-ai", "guardrails", "security", "invariants", "aegis"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = ["aegis-kernel>=1.1.0"]
+
+[project.urls]
+Homepage = "https://snehgabani.github.io/aegis-kernel/"
+Documentation = "https://snehgabani.github.io/aegis-kernel/docs/"
+Repository = "https://github.com/Snehgabani/aegis-kernel"
+Issues = "https://github.com/Snehgabani/aegis-kernel/issues"
+Changelog = "https://github.com/Snehgabani/aegis-kernel/releases"
+
+[tool.setuptools.packages.find]
+include = ["aegis_kernel_browser_guard*"]

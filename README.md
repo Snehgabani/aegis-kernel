@@ -73,6 +73,18 @@ const guard = new AegisLangChainGuard();
 const protectedTool = guard.wrap(myExistingTool);
 ```
 
+**CrewAI / AutoGen / Semantic Kernel / Browser-Use** — one line each:
+```python
+from aegis_kernel_crewai import guard_crew          # pip install aegis-kernel-crewai
+from aegis_kernel_autogen import add_aegis_filter   # pip install aegis-kernel-autogen
+from aegis_kernel_browser_guard import guard_browser_use_controller  # pip install aegis-kernel-browser-guard
+
+guard_crew(crew)                          # CrewAI: every agent tool guarded
+add_aegis_filter(kernel)                  # Semantic Kernel: invocation filter
+guard_browser_use_controller(controller)  # Browser-Use: navigation/input/download guards
+```
+
+
 ---
 
 ## How it works
@@ -222,6 +234,23 @@ Aegis is designed to run as the second stage in a defense-in-depth pipeline:
 | **Rust (≥1.75)** | Native crate | Zero-allocation SQL invariant checker, tautology folding, HMAC token vault, policy commitment circuit |
 
 > Go and Rust SDKs cover a subset of checks and are not full ports of the TypeScript engine. See each package's README for exact scope.
+
+### Framework middleware
+
+Turn-key, drop-in guards for every major agent framework — all duck-typed, none pin the framework as a dependency:
+
+| Framework | Package | One-liner |
+|:---|:---|:---|
+| MCP (Claude Desktop, Cursor, Windsurf) | [`@aegis-kernel/mcp`](./packages/mcp) | `middleware.wrapToolHandler(name, handler)` |
+| LangChain / LangGraph | [`@aegis-kernel/langchain`](./packages/langchain) | `guard.wrap(tool)` |
+| OpenAI Function Calling | [`@aegis-kernel/openai`](./packages/openai) | `guard.handleToolCall(call, executor)` |
+| Anthropic tool_use | [`@aegis-kernel/anthropic`](./packages/anthropic) | `guard.evaluate(toolUseBlock)` |
+| Vercel AI SDK | [`@aegis-kernel/vercel-ai`](./packages/vercel-ai) | middleware + tool wrapper |
+| **CrewAI** | [`aegis-kernel-crewai`](./packages/crewai) | `guard_crew(crew)` |
+| **AutoGen / AG2** | [`aegis-kernel-autogen`](./packages/autogen) | `guard_function(f)` · `guard_agent(agent)` |
+| **Microsoft Semantic Kernel** | [`aegis-kernel-autogen`](./packages/autogen) | `add_aegis_filter(kernel)` |
+| **Browser-Use / OpenManus** | [`aegis-kernel-browser-guard`](./packages/browser-guard) | `guard_browser_use_controller(controller)` |
+
 
 ### Build from source
 
