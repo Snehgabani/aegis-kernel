@@ -212,8 +212,30 @@ evalCmd
   });
 
 evalCmd
+  .command('jailbreakbench')
+  .description('Run JailbreakBench (NeurIPS 2024 / Stanford-Berkeley-CMU) standardized red-team benchmark')
+  .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .action(async (options) => {
+    process.exitCode = await runPublicEval({
+      benchmark: 'jailbreakbench',
+      outputPath: options.output,
+    });
+  });
+
+evalCmd
+  .command('seclists')
+  .description('Run SecLists & Exploit-DB real-world historic CVE penetration benchmark (SQLi, CMDi, SSRF)')
+  .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
+  .action(async (options) => {
+    process.exitCode = await runPublicEval({
+      benchmark: 'seclists',
+      outputPath: options.output,
+    });
+  });
+
+evalCmd
   .command('all', { isDefault: true })
-  .description('Run all standardized academic benchmarks (InjecAgent, AgentDojo, MCPTox) with aggregate attestation')
+  .description('Run all standardized academic & industry benchmarks (InjecAgent, AgentDojo, MCPTox, JailbreakBench, SecLists)')
   .option('-o, --output <path>', 'Save cryptographically signed benchmark evidence JSON')
   .option('--blinded', 'Execute cryptographic double-blind evaluation with sealed oracle and Merkle trace')
   .option('--adaptive', 'Run dynamic Tree-of-Attacks (TAP) automated red-teaming fuzzer')

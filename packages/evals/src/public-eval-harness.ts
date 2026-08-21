@@ -25,11 +25,19 @@ import {
   MCPToxAdapter,
   MCPToxDownloader,
 } from './benchmarks/mcptox-adapter.js';
+import {
+  JailbreakBenchEvaluator,
+  CANONICAL_JAILBREAKBENCH_SAMPLES,
+} from './benchmarks/jailbreakbench-adapter.js';
+import {
+  SecListsEvaluator,
+  CANONICAL_SECLISTS_SAMPLES,
+} from './benchmarks/seclists-adapter.js';
 import { INJECAGENT_BENCHMARK_CORPUS } from './benchmarks/injecagent-dataset.js';
 import { AGENTDOJO_BENCHMARK_CORPUS } from './benchmarks/agentdojo-adapter.js';
 import { MCP_BENCH_CORPUS } from './benchmarks/mcp-bench-suite.js';
 
-export type EvalDatasetName = 'injecagent' | 'agentdojo' | 'mcptox' | 'mcp' | 'all';
+export type EvalDatasetName = 'injecagent' | 'agentdojo' | 'mcptox' | 'mcp' | 'jailbreakbench' | 'seclists' | 'all';
 
 export interface DatasetEvalResult {
   dataset: string;
@@ -79,7 +87,7 @@ export class PublicEvaluationHarness {
     const rawTarget = (options?.benchmark || 'all').toLowerCase();
     const benchmark = (
       rawTarget === 'mcp' ? 'mcptox' : rawTarget
-    ) as 'injecagent' | 'agentdojo' | 'mcptox' | 'all';
+    ) as 'injecagent' | 'agentdojo' | 'mcptox' | 'jailbreakbench' | 'seclists' | 'all';
 
     const engine = new AegisEngine({
       failPolicy: 'fail-closed',
@@ -87,6 +95,7 @@ export class PublicEvaluationHarness {
         '@aegis/sql-guard',
         '@aegis/finance-guard',
         '@aegis/data-guard',
+        '@aegis/cloud-infra-guard',
         '@aegis/soc2-guard',
         '@aegis/hipaa-guard',
         '@aegis/pci-dss-guard',
@@ -137,39 +146,49 @@ export class PublicEvaluationHarness {
       return report;
     }
 
-    // Benchmark: 'all' -> Run InjecAgent, AgentDojo, MCPTox and combine
+    if (benchmark === 'jailbreakbench') {
+      return JailbreakBenchEvaluator.evaluateCases(CANONICAL_JAILBREAKBENCH_SAMPLES, engine);
+    }
+
+    if (benchmark === 'seclists') {
+      return SecListsEvaluator.evaluateCases(CANONICAL_SECLISTS_SAMPLES, engine);
+    }
+
+    // Benchmark: 'all' -> Run InjecAgent, AgentDojo, MCPTox, JailbreakBench, SecLists and combine
     const injecReport = new InjecAgentAdapter(engine).evaluate(INJECAGENT_BENCHMARK_CORPUS);
     const dojoReport = new AgentDojoAdapter(engine).evaluate(AGENTDOJO_BENCHMARK_CORPUS);
     const scanner = new MCPToolPoisoningScanner();
     const mcptoxReport = new MCPToxAdapter(scanner).evaluate(MCP_BENCH_CORPUS);
+    const jbbReport = JailbreakBenchEvaluator.evaluateCases(CANONICAL_JAILBREAKBENCH_SAMPLES, engine);
+    const seclistsReport = SecListsEvaluator.evaluateCases(CANONICAL_SECLISTS_SAMPLES, engine);
 
     const subReports = [
       { benchmark: 'InjecAgent (ACL 2024)', metrics: injecReport.metrics },
       { benchmark: 'AgentDojo (NeurIPS 2024)', metrics: dojoReport.metrics },
       { benchmark: 'MCPTox / MCP-Bench (Tool Poisoning)', metrics: mcptoxReport.metrics },
+      { benchmark: 'JailbreakBench (NeurIPS 2024)', metrics: jbbReport.metrics },
+      { benchmark: 'SecLists & Exploit-DB (Historic CVEs)', metrics: seclistsReport.metrics },
     ];
 
     const allLatencies = [
       ...injecReport.metrics.latenciesMs,
       ...dojoReport.metrics.latenciesMs,
       ...mcptoxReport.metrics.latenciesMs,
+      ...jbbReport.metrics.latenciesMs,
+      ...seclistsReport.metrics.latenciesMs,
     ];
 
-    const totalCases = injecReport.metrics.totalCases + dojoReport.metrics.totalCases + mcptoxReport.metrics.totalCases;
-    const maliciousTotal = injecReport.metrics.maliciousTotal + dojoReport.metrics.maliciousTotal + mcptoxReport.metrics.maliciousTotal;
-    const maliciousBlocked = injecReport.metrics.maliciousBlocked + dojoReport.metrics.maliciousBlocked + mcptoxReport.metrics.maliciousBlocked;
-    const benignTotal = injecReport.metrics.benignTotal + dojoReport.metrics.benignTotal + mcptoxReport.metrics.benignTotal;
-    const benignAllowed = injecReport.metrics.benignAllowed + dojoReport.metrics.benignAllowed + mcptoxReport.metrics.benignAllowed;
-    const blockedCount = injecReport.metrics.blockedCount + dojoReport.metrics.blockedCount + mcptoxReport.metrics.blockedCount;
-    const allowedCount = injecReport.metrics.allowedCount + dojoReport.metrics.allowedCount + mcptoxReport.metrics.allowedCount;
+    const totalCases = injecReport.metrics.totalCases + dojoReport.metrics.totalCases + mcptoxReport.metrics.totalCases + jbbReport.metrics.totalCases + seclistsReport.metrics.totalCases;
+    const maliciousTotal = injecReport.metrics.maliciousTotal + dojoReport.metrics.maliciousTotal + mcptoxReport.metrics.maliciousTotal + jbbReport.metrics.maliciousTotal + seclistsReport.metrics.maliciousTotal;
+    const maliciousBlocked = injecReport.metrics.maliciousBlocked + dojoReport.metrics.maliciousBlocked + mcptoxReport.metrics.maliciousBlocked + jbbReport.metrics.maliciousBlocked + seclistsReport.metrics.maliciousBlocked;
+    const benignTotal = injecReport.metrics.benignTotal + dojoReport.metrics.benignTotal + mcptoxReport.metrics.benignTotal + jbbReport.metrics.benignTotal + seclistsReport.metrics.benignTotal;
+    const benignAllowed = injecReport.metrics.benignAllowed + dojoReport.metrics.benignAllowed + mcptoxReport.metrics.benignAllowed + jbbReport.metrics.benignAllowed + seclistsReport.metrics.benignAllowed;
+    const blockedCount = injecReport.metrics.blockedCount + dojoReport.metrics.blockedCount + mcptoxReport.metrics.blockedCount + jbbReport.metrics.blockedCount + seclistsReport.metrics.blockedCount;
+    const allowedCount = injecReport.metrics.allowedCount + dojoReport.metrics.allowedCount + mcptoxReport.metrics.allowedCount + jbbReport.metrics.allowedCount + seclistsReport.metrics.allowedCount;
 
     const maliciousAllowed = maliciousTotal - maliciousBlocked;
     const benignBlocked = benignTotal - benignAllowed;
 
-    // Rebuild per-case rows (label counts from sub-reports; latency bag preserved
-    // via round-robin assignment — calculateMetrics treats latencies as an
-    // unordered bag, so percentiles are exact) and delegate to calculateMetrics
-    // so combined reports carry the same field-standard metrics as sub-reports.
     const rows: Array<{ isMalicious: boolean; isBlocked: boolean; latencyMs: number }> = [];
     const latencyAt = (i: number) => allLatencies[i % Math.max(allLatencies.length, 1)] ?? 0;
     let cursor = 0;
@@ -187,7 +206,7 @@ export class PublicEvaluationHarness {
 
     const timestamp = new Date().toISOString();
     const reportBase = {
-      benchmark: 'All Standardized Academic Benchmarks',
+      benchmark: 'All Standardized Academic & Industry Benchmarks',
       timestamp,
       datasetSource: 'canonical' as const,
       environment: env,
@@ -200,6 +219,8 @@ export class PublicEvaluationHarness {
         injec: injecReport.attestationProof.datasetSha256,
         dojo: dojoReport.attestationProof.datasetSha256,
         mcptox: mcptoxReport.attestationProof.datasetSha256,
+        jailbreakbench: jbbReport.attestationProof.datasetSha256,
+        seclists: seclistsReport.attestationProof.datasetSha256,
       }))
       .digest('hex');
 

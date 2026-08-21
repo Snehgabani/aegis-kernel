@@ -163,6 +163,48 @@ describe('Aegis CLI Academic Evaluation Suite (aegis eval)', () => {
     consoleSpy.mockRestore();
   });
 
+  it('should run `aegis eval jailbreakbench` and write structured report to --output', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const reportPath = path.join(tempDir, 'jailbreakbench-report.json');
+
+    const exitCode = await runEvalCommand({
+      benchmark: 'jailbreakbench',
+      outputPath: reportPath,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(fs.existsSync(reportPath)).toBe(true);
+
+    const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    expect(report.benchmark).toBe('jailbreakbench');
+    expect(report.metrics.totalCases).toBe(8);
+    expect(report.metrics.f1Score).toBe(100.0);
+    expect(report.attestationProof.algorithm).toBe('SHA-256');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should run `aegis eval seclists` and write structured report to --output', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const reportPath = path.join(tempDir, 'seclists-report.json');
+
+    const exitCode = await runEvalCommand({
+      benchmark: 'seclists',
+      outputPath: reportPath,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(fs.existsSync(reportPath)).toBe(true);
+
+    const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    expect(report.benchmark).toBe('seclists-cve');
+    expect(report.metrics.totalCases).toBe(15);
+    expect(report.metrics.f1Score).toBe(100.0);
+    expect(report.attestationProof.algorithm).toBe('SHA-256');
+
+    consoleSpy.mockRestore();
+  });
+
   it('should run `aegis eval all` and aggregate all benchmarks with cryptographic attestation', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const reportPath = path.join(tempDir, 'all-benchmarks-report.json');
@@ -176,13 +218,14 @@ describe('Aegis CLI Academic Evaluation Suite (aegis eval)', () => {
     expect(fs.existsSync(reportPath)).toBe(true);
 
     const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-    expect(report.benchmark).toBe('All Standardized Academic Benchmarks');
-    expect(report.subReports).toHaveLength(3);
-    expect(report.metrics.totalCases).toBeGreaterThan(20);
-    expect(report.metrics.f1Score).toBeGreaterThanOrEqual(90.0);
+    expect(report.benchmark).toContain('All Standardized Academic');
+    expect(report.subReports).toHaveLength(5);
+    expect(report.metrics.totalCases).toBe(50);
+    expect(report.metrics.f1Score).toBe(100.0);
     expect(report.attestationProof.algorithm).toBe('SHA-256');
     expect(report.attestationProof.payloadHash).toHaveLength(64);
 
     consoleSpy.mockRestore();
   });
 });
+
