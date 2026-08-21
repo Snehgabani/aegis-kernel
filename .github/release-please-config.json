@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "separate-pull-requests": false,
+  "include-component-in-tag": true,
+  "tag-separator": "@v",
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "changelog-sections": [
+    { "type": "feat", "section": "🚀 Features & Verification Engines", "hidden": false },
+    { "type": "fix", "section": "🐛 Bug Fixes & Invariant Patches", "hidden": false },
+    { "type": "perf", "section": "⚡ Performance & AST Optimizations", "hidden": false },
+    { "type": "refactor", "section": "♻️ Code Refactoring & Security Hardening", "hidden": false },
+    { "type": "docs", "section": "📚 Documentation & Compliance", "hidden": false },
+    { "type": "test", "section": "🧪 Invariant Tests & Fuzzing", "hidden": false },
+    { "type": "ci", "section": "🔧 CI/CD & Infrastructure", "hidden": false },
+    { "type": "chore", "section": "🧹 Miscellaneous Chores", "hidden": true }
+  ],
+  "packages": {
+    "packages/core": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/core"
+    },
+    "packages/cli": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/cli"
+    },
+    "packages/mcp": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/mcp"
+    },
+    "packages/langchain": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/langchain"
+    },
+    "packages/openai": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/openai"
+    },
+    "packages/anthropic": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/anthropic"
+    },
+    "packages/vercel-ai": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/vercel-ai"
+    },
+    "packages/diagnostics": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/diagnostics"
+    },
+    "packages/evals": {
+      "release-type": "node",
+      "package-name": "@aegis-kernel/evals"
+    },
+    "packages/rust": {
+      "release-type": "rust",
+      "package-name": "aegis-kernel"
+    },
+    "packages/python": {
+      "release-type": "python",
+      "package-name": "aegis-kernel"
+    },
+    "packages/go": {
+      "release-type": "go",
+      "package-name": "aegis-kernel-go"
+    }
+  }
+}
