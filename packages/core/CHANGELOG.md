@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.9.0...core@vv1.10.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **security:** implement frontier swarm immunity with dangerous SQL built-in barriers, atomic CAS state invariants, and attenuated delegation tokens ([469fa38](https://github.com/Snehgabani/aegis-kernel/commit/469fa388c6628752b089bab74fa5e7d6eddf98b3))
+
 ## [1.9.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.8.0...core@vv1.9.0) (2026-08-21)
 
 
