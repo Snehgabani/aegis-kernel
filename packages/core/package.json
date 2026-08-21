@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/core",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "type": "module",
   "description": "Core deterministic invariant clearance engine for AI agent tool execution",
   "license": "MIT",
