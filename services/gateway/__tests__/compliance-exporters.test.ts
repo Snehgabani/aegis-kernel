@@ -421,5 +421,13 @@ describe('End-to-end compliance dossier pipeline for Big 4 auditors', () => {
     expect(renderComplianceHTML(dossier)).toContain('<!DOCTYPE html>');
     expect(renderCompliancePDF(dossier).length).toBeGreaterThan(100);
     expect(renderCompliancePDF(dossier).subarray(0, 8).toString()).toBe('%PDF-1.4');
+
+    // Confirms full OWASP Agentic AI Top 10 (ASI01 to ASI10) mappings present
+    const owaspMappings = dossier.frameworkMappings.filter(m => m.framework === 'OWASP_AGENTIC_ASI_2026');
+    expect(owaspMappings.length).toBe(10);
+    expect(owaspMappings.map(m => m.clauseId)).toEqual([
+      'ASI01', 'ASI02', 'ASI03', 'ASI04', 'ASI05',
+      'ASI06', 'ASI07', 'ASI08', 'ASI09', 'ASI10'
+    ]);
   });
 });

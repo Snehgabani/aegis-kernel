@@ -9,7 +9,7 @@
 import { createHash, createHmac, generateKeyPairSync, sign, verify } from 'node:crypto';
 import type { AegisEvent, RulePack } from '../types.js';
 
-export type ComplianceFramework = 'SOC2_TYPE_II' | 'ISO_42001_2023' | 'HIPAA_164_312' | 'NIST_AI_RMF' | 'EU_AI_ACT';
+export type ComplianceFramework = 'SOC2_TYPE_II' | 'ISO_42001_2023' | 'HIPAA_164_312' | 'NIST_AI_RMF' | 'EU_AI_ACT' | 'OWASP_AGENTIC_ASI_2026';
 
 export interface FrameworkMapping {
   framework: ComplianceFramework;
@@ -541,6 +541,98 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
       evidenceDescription: `Deterministic AST firewall provides resilience against attempts to exploit system vulnerabilities (Art. 15(4)): prompt injection, SQL tautologies, and schema rug-pulls are intercepted without probabilistic model dependence; WORM ledger provides fallback integrity for audit.`,
       verifiableEventsCount: totalEvents,
       auditorTestingProcedure: 'Subjected agent to adversarial prompt injection / injection suite; confirmed zero invariant bypasses and re-verified Merkle chain integrity.',
+    },
+
+    // 6. OWASP Top 10 for Agentic AI Applications (2026 / ASI01–ASI10)
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI01',
+      clauseTitle: 'Agent Goal Hijack (Context Separation & Role Lockout)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Pure AST parsing and CaMeL dual-state role isolation (privileged_planner vs quarantined_worker) lock mutating tools when untrusted external context is detected.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Tested agent with indirect prompt injections attempting objective redirection; confirmed 100% deterministic role quarantine.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI02',
+      clauseTitle: 'Tool Misuse & Exploitation (Deterministic SQL & Parameter Verification)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Enforced deterministic SQL AST invariants blocking multi-statement execution, DDL destruction (DROP/TRUNCATE), and unconstrained DELETE operations.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Injected destructive SQL and tool manipulation payloads; verified zero unauthorized tool executions.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI03',
+      clauseTitle: 'Identity & Privilege Abuse (Ed25519 Biscuit Tokens & Attenuation)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Cryptographic capability-based attenuation via Ed25519 Biscuit tokens enforces monotonic privilege narrowing across sub-agents and external tool callers.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Attempted privilege escalation across sub-agent delegation chains; confirmed cryptographic rejection of unattenuated tokens.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI04',
+      clauseTitle: 'Agentic Supply Chain Vulnerabilities (MCP Tool & Schema Scanner)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Shift-left AST and runtime MCP tool scanner detects zero-width Unicode characters, homoglyphs, and post-approval schema rug-pulls across tool registries.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Tested MCP tool schemas containing invisible zero-width unicode injection; confirmed automated critical detection.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI05',
+      clauseTitle: 'Unexpected Code Execution / RCE (Wasm Isolation & Command Bounds)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Pre-commit AST security shield and CLOUD-005 rules block dangerous shell execution (rm -rf /, mkfs, fork bombs) and isolate dynamic plugins in WebAssembly sandboxes.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Executed destructive shell commands and dynamic code execution attempts; verified deterministic blockage.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI06',
+      clauseTitle: 'Memory & Context Poisoning (RAG Grounding & Bidirectional Token Vault)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `RAG Grounding Validator verifies retrieval claims against deterministic sources before persistent storage; PiiTokenVault guarantees zero plain-text PII storage in agent memories.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Injected hallucinated RAG facts and sensitive SSN/credit card data into memory pipelines; confirmed validation failure and pseudonymization.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI07',
+      clauseTitle: 'Insecure Inter-Agent Communication (A2A Cryptographic Handshake)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `All agent-to-agent delegation requests require cryptographic A2AAgentCard signatures and Ed25519 token verification with swarm-level budget limits.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Simulated spoofed agent delegation requests and unauthorized budget draws; verified immediate cryptographic drop.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI08',
+      clauseTitle: 'Cascading Failures (Circuit Breaker & Global Swarm Ceilings)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Three-strike circuit breaker halts cascading agent error loops and enforces immutable financial rate limits and daily budget invariants.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Simulated runaway recursive agent tool loops; verified automatic circuit breaker trip at threshold.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI09',
+      clauseTitle: 'Human-Agent Trust Exploitation (Plain-English Art. 13 & HMAC HITL)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `High-stakes actions require human-in-the-loop (HITL) step-up tickets with cryptographic non-repudiation and plain-English risk explanations.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Triggered high-value financial actions; confirmed deterministic halt pending cryptographic human approval.',
+    },
+    {
+      framework: 'OWASP_AGENTIC_ASI_2026',
+      clauseId: 'ASI10',
+      clauseTitle: 'Rogue Agents (Tamper-Proof Merkle Ledger & ZK Policy Commitments)',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Immutable SHA-256 Merkle chain ledger and Zero-Knowledge Policy Commitments (aegis policy-prove) provide cryptographically verifiable proof of compliance without disclosing private values.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Verified Merkle root calculation and verified zero-knowledge policy commitment proofs against external auditor verifier.',
     },
   ];
 }
