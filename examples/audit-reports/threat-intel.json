@@ -1,0 +1,75 @@
+{
+  "stixBundle": {
+    "type": "bundle",
+    "id": "bundle--evt-000",
+    "objects": [
+      {
+        "type": "indicator",
+        "spec_version": "2.1",
+        "id": "indicator--evt-000-0",
+        "created": "2026-08-21T06:52:01.090Z",
+        "modified": "2026-08-21T06:52:01.090Z",
+        "name": "Adversarial AI Agent Tool Misuse: SQL-NO-DROP",
+        "description": "Aegis Invariant Kernel intercepted an unauthorized agent tool invocation on 'execute_sql'. Violation: DROP TABLE statement prohibited by invariant policy",
+        "indicator_types": [
+          "anomalous-activity",
+          "malicious-activity"
+        ],
+        "pattern": "[process:name = 'execute_sql' AND file:hashes.'SHA-256' = '7b3d6b557fb033ea7a9e7253d875892b36b39f8c19e89551ae479ec0998b1491']",
+        "pattern_type": "stix",
+        "valid_from": "2026-08-01T00:00:00.000Z",
+        "confidence": 95,
+        "external_references": [
+          {
+            "source_name": "mitre-atlas",
+            "external_id": "AML.T0053",
+            "url": "https://atlas.mitre.org/techniques/AML.T0053"
+          },
+          {
+            "source_name": "owasp-agentic",
+            "external_id": "ASI02",
+            "url": "https://genai.owasp.org"
+          }
+        ]
+      }
+    ]
+  },
+  "openDxlMessage": {
+    "topic": "/aegis/event/threat-intel/agent-tool-misuse",
+    "sourceClientId": "aegis-kernel-44ce4e8f-0459-430a-901e-2c8b1a2c217f",
+    "sourceTenantGuid": "aegis-enterprise",
+    "messageId": "dxl-msg-e5cb335f-bb9e-49bd-9633-939e52f96b2e",
+    "payloadType": "threat-intel",
+    "publishedAt": "2026-08-21T06:52:01.091Z",
+    "payload": {
+      "kind": "aegis-agent-threat",
+      "specVersion": "1.0",
+      "id": "dxl-ce8b421a-2fe0-4ec3-a34c-14e796b39f50",
+      "indicatorId": "indicator--evt-000-0",
+      "eventId": "evt-000",
+      "toolName": "execute_sql",
+      "verdict": "BLOCKED",
+      "ruleIds": [
+        "SQL-NO-DROP"
+      ],
+      "severity": "critical",
+      "message": "DROP TABLE statement prohibited by invariant policy",
+      "proofHash": "7b3d6b557fb033ea7a9e7253d875892b36b39f8c19e89551ae479ec0998b1491",
+      "policyCommitmentHash": "3c716d712ebfed09fd892c86cf4e7a2d4b862d1777adfd86e2e988fc0cc6fd63",
+      "occurredAt": "2026-08-01T00:00:00.000Z",
+      "tlp": "amber",
+      "externalReferences": [
+        {
+          "sourceName": "mitre-atlas",
+          "externalId": "AML.T0053",
+          "url": "https://atlas.mitre.org/techniques/AML.T0053"
+        },
+        {
+          "sourceName": "owasp-agentic",
+          "externalId": "ASI02",
+          "url": "https://genai.owasp.org"
+        }
+      ]
+    }
+  }
+}

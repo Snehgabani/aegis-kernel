@@ -1,0 +1,86 @@
+{
+  "dossierVerification": {
+    "valid": true,
+    "dossierId": "grc-dossier-1787295121069-469b7526",
+    "merkleRootHash": "d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd",
+    "merkleRootValid": true,
+    "signatureValid": true,
+    "signatureAlgorithm": "ED25519",
+    "controlCrosswalkValid": true,
+    "controlCoverage": {
+      "total": 19,
+      "satisfied": 19,
+      "frameworks": {
+        "SOC2_TYPE_II": 4,
+        "ISO_42001_2023": 3,
+        "HIPAA_164_312": 4,
+        "NIST_AI_RMF": 4,
+        "EU_AI_ACT": 4
+      }
+    },
+    "auditorAttestationValid": true,
+    "opinionType": "UNQUALIFIED_CLEAN_OPINION",
+    "eventsAudited": 12,
+    "blockedViolations": 3,
+    "allowedEvaluations": 9,
+    "policyCommitmentsCount": 1,
+    "findings": [
+      {
+        "category": "MERKLE_TREE",
+        "status": "PASS",
+        "message": "Merkle Root Hash successfully recomputed across 12 event leaves: d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd"
+      },
+      {
+        "category": "DIGITAL_SIGNATURE",
+        "status": "PASS",
+        "message": "Ed25519 digital signature verified against provided public key."
+      },
+      {
+        "category": "CONTROL_MAPPING",
+        "status": "PASS",
+        "message": "All core regulatory frameworks verified: SOC 2 Type II (CC6.1, CC6.6, CC6.8), ISO 42001, HIPAA §164.312, NIST AI RMF, EU AI Act (19/19 satisfied)."
+      },
+      {
+        "category": "ATTESTATION",
+        "status": "PASS",
+        "message": "CPA Auditor Attestation confirmed: UNQUALIFIED_CLEAN_OPINION by Apex Compliance & Assurance LLP"
+      },
+      {
+        "category": "POLICY_HASH",
+        "status": "PASS",
+        "message": "1 active policy commitment hashes bound to ledger."
+      }
+    ]
+  },
+  "wormVerification": {
+    "valid": true,
+    "bundleId": "aegis-worm-e58d7ba2-8e33-4c15-b7c4-3abd54718d9d",
+    "findings": [
+      {
+        "category": "MANIFEST",
+        "status": "PASS",
+        "message": "Manifest schema and file table valid."
+      },
+      {
+        "category": "MERKLE_ROOT",
+        "status": "PASS",
+        "message": "Merkle root present: d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd"
+      },
+      {
+        "category": "RETENTION",
+        "status": "PASS",
+        "message": "Retention COMPLIANCE until 2033-08-01T00:00:00.000Z."
+      },
+      {
+        "category": "FILE_INTEGRITY",
+        "status": "PASS",
+        "message": "All 3 files re-hashed successfully."
+      },
+      {
+        "category": "CHAIN_OF_CUSTODY",
+        "status": "PASS",
+        "message": "Chain-of-custody hashes recomputed successfully."
+      }
+    ]
+  }
+}
