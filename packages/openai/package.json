@@ -1,6 +1,6 @@
 {
   "name": "@aegis-kernel/openai",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "description": "OpenAI Function Calling and Assistant Tools safety guard",
   "license": "MIT",
