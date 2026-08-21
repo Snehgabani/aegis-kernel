@@ -10,7 +10,7 @@ const RULE_PACK_SCHEMA = {
   type: 'object',
   required: ['id', 'name', 'version', 'rules'],
   properties: {
-    id: { type: 'string', pattern: '^[a-zA-Z0-9_-]+$' },
+    id: { type: 'string', pattern: '^[a-zA-Z0-9_/@.-]+$' },
     name: { type: 'string' },
     version: { type: 'string' },
     description: { type: 'string' },

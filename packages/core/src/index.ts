@@ -51,3 +51,4 @@ export * from './mcp/scanner.js';
 export * from './adapters/hybrid-guardrail-bridge.js';
 export * from './diagnostics/forensic-trace.js';
 export * from './checkers/z3-symbolic-checker.js';
+export * from './synthesizer/schema-invariant-synthesizer.js';
