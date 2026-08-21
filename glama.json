@@ -4,8 +4,8 @@
   "description": "In-process deterministic safety firewall and schema pinning gateway for MCP servers with <0.25ms AST validation and tamper-evident SHA-256 Merkle audit logging.",
   "category": "security",
   "repository": "https://github.com/Snehgabani/aegis-kernel",
-  "website": "https://snehgabani.github.io/aegis-kernel/playground.html",
-  "license": "Apache-2.0",
+  "website": "https://snehgabani.github.io/aegis-kernel/",
+  "license": "MIT",
   "author": {
     "name": "Sneh Gabani",
     "email": "sneh.gabani1999@gmail.com"
