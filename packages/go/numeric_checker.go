@@ -283,22 +283,33 @@ func (nc *NumericChecker) Evaluate(
 	if params.RateLimit != nil && params.RateLimit.MaxPerMinute > 0 {
 		now := time.Now().UnixMilli()
 		windowMs := int64(60 * 1000)
+		max := params.RateLimit.MaxPerMinute
 		key := fmt.Sprintf("%s:%s:%s", packID, ruleID, call.GetToolName())
 
 		nc.mu.Lock()
+		// Bounded sliding window: retain at most `max` timestamps so per-call
+		// work is O(max) regardless of call volume (the historical
+		// implementation kept EVERY timestamp in the window, degrading to
+		// O(total calls) per evaluate).
 		timestamps := nc.rateLimitWindows[key]
-		var activeTimestamps []int64
-		for _, t := range timestamps {
-			if now-t < windowMs {
-				activeTimestamps = append(activeTimestamps, t)
-			}
+		firstLive := 0
+		for firstLive < len(timestamps) && now-timestamps[firstLive] >= windowMs {
+			firstLive++
 		}
-		activeTimestamps = append(activeTimestamps, now)
-		nc.rateLimitWindows[key] = activeTimestamps
-		count := len(activeTimestamps)
+		if firstLive > 0 {
+			timestamps = timestamps[firstLive:]
+		}
+		// Already at capacity before this call ⇒ the call exceeds the ceiling.
+		exceeded := len(timestamps) >= max
+		timestamps = append(timestamps, now)
+		if len(timestamps) > max {
+			timestamps = timestamps[len(timestamps)-max:]
+		}
+		nc.rateLimitWindows[key] = timestamps
+		count := len(timestamps)
 		nc.mu.Unlock()
 
-		if count > params.RateLimit.MaxPerMinute {
+		if exceeded {
 			violations = append(violations, AegisViolation{
 				RuleID:       ruleID,
 				PackID:       packID,

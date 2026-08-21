@@ -6,6 +6,7 @@ import type {
   AegisVerdict,
   AegisViolation,
   EvaluateOptions,
+  EvaluationScratch,
   GranularFailPolicy,
   Rule,
   RulePack,
@@ -37,6 +38,21 @@ import {
   type FailureCategory,
   type RootCauseAnalysis,
 } from './diagnostics/forensic-trace.js';
+
+/** Per-evaluate scratch instance (see types.ts for the interface rationale). */
+export function createEvaluationScratch(): EvaluationScratch {
+  return {
+    numericFields: new WeakMap(),
+    piiCollected: new WeakMap(),
+    stateProbed: new WeakMap(),
+    sqlExtracted: new WeakMap(),
+  };
+}
+
+/** Evaluated options resolved once per evaluate() call and shared by every rule. */
+export interface RuleEvaluationOptions extends EvaluateOptions {
+  state?: Record<string, unknown>;
+}
 
 export class AegisEngine {
   private mode: AegisMode;
@@ -143,17 +159,37 @@ export class AegisEngine {
   public evaluate(toolCall: ToolCall, options?: EvaluateOptions): AegisVerdict {
     const startTime = performance.now();
     const timestamp = new Date().toISOString();
-    const safeToolCall: ToolCall = {
-      tool: typeof toolCall?.tool === 'string' ? toolCall.tool : 'unknown_tool',
-      params:
-        toolCall?.params && typeof toolCall.params === 'object' && !Array.isArray(toolCall.params)
-          ? toolCall.params
-          : {},
-    };
+    // Hot-path fast lane: when the caller already supplies a well-formed
+    // toolCall (string tool + plain-object params), reuse it directly instead
+    // of allocating a normalized copy on every evaluation.
+    const safeToolCall: ToolCall =
+      toolCall &&
+      typeof toolCall.tool === 'string' &&
+      toolCall.params !== null &&
+      typeof toolCall.params === 'object' &&
+      !Array.isArray(toolCall.params)
+        ? (toolCall as ToolCall)
+        : {
+            tool: toolCall?.tool && typeof toolCall.tool === 'string' ? toolCall.tool : 'unknown_tool',
+            params:
+              toolCall?.params && typeof toolCall.params === 'object' && !Array.isArray(toolCall.params)
+                ? toolCall.params
+                : {},
+          };
     const violations: AegisViolation[] = [];
     let rulesEvaluated = 0;
     let toolCallFingerprint = '';
     const tracer = options?.enableDiagnostics ? new StepDiagnosticCollector() : null;
+    const scratch = createEvaluationScratch();
+    // Shared rule options: computed ONCE per evaluate (state resolution) and
+    // passed to every rule — avoids the previous per-rule `{ ...options }`
+    // spread (16+ transient objects per benign evaluation).
+    let ruleOptions: RuleEvaluationOptions | undefined;
+    if (options) {
+      ruleOptions = { ...options, state: options.state };
+    } else {
+      ruleOptions = { state: undefined };
+    }
 
     try {
       tracer?.startStage('NORMALIZATION');
@@ -165,19 +201,21 @@ export class AegisEngine {
 
       tracer?.startStage('SCHEMA_VALIDATION');
       // Resolve state: explicit option state or synchronous provider result
-      let stateContext = options?.state;
-      if (!stateContext && options?.stateProvider) {
-        const result = options.stateProvider(safeToolCall);
-        if (!(result instanceof Promise)) {
-          stateContext = result;
-        }
-      } else if (!stateContext && this.defaultStateProvider) {
-        const result = this.defaultStateProvider(safeToolCall);
-        if (!(result instanceof Promise)) {
-          stateContext = result;
+      // (truthiness matches the historical `!stateContext` semantics exactly)
+      if (!ruleOptions.state) {
+        if (options?.stateProvider) {
+          const result = options.stateProvider(safeToolCall);
+          if (!(result instanceof Promise)) {
+            ruleOptions.state = result;
+          }
+        } else if (this.defaultStateProvider) {
+          const result = this.defaultStateProvider(safeToolCall);
+          if (!(result instanceof Promise)) {
+            ruleOptions.state = result;
+          }
         }
       }
-      tracer?.endStage('SCHEMA_VALIDATION', 'PASSED', { stateResolved: stateContext != null });
+      tracer?.endStage('SCHEMA_VALIDATION', 'PASSED', { stateResolved: ruleOptions.state != null });
 
       tracer?.startStage('INVARIANT_EVALUATION');
       // Agent Identity RBAC Check
@@ -208,10 +246,7 @@ export class AegisEngine {
         for (const pack of this.packs) {
           for (const rule of pack.rules) {
             rulesEvaluated++;
-            const ruleViolations = this.evaluateRule(rule, pack.id, safeToolCall, {
-              ...options,
-              state: stateContext,
-            });
+            const ruleViolations = this.evaluateRule(rule, pack.id, safeToolCall, ruleOptions, scratch);
             if (ruleViolations.length > 0) {
               violations.push(...ruleViolations);
             }
@@ -289,6 +324,7 @@ export class AegisEngine {
         latencyMs,
         proofHash: verdict.proofHash,
         policyCommitmentHash: this.policyCommitmentHash,
+        timestamp,
       });
 
       this.ledger.recordEvent(event);
@@ -353,19 +389,20 @@ export class AegisEngine {
     rule: Rule,
     packId: string,
     toolCall: ToolCall,
-    options?: EvaluateOptions
+    options?: RuleEvaluationOptions,
+    scratch?: EvaluationScratch
   ): AegisViolation[] {
     const { condition, id: ruleId } = rule;
 
     switch (condition.type) {
       case 'sql_ast':
-        return this.sqlChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
+        return this.sqlChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity, scratch);
       case 'json_schema':
         return this.schemaChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'regex':
-        return this.piiChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
+        return this.piiChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity, scratch);
       case 'numeric':
-        return this.numericChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
+        return this.numericChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity, scratch);
       case 'custom':
         return this.customChecker.evaluate(ruleId, packId, condition.params, toolCall, rule.severity);
       case 'state_invariant':
@@ -375,7 +412,8 @@ export class AegisEngine {
           condition.params,
           toolCall,
           options?.state,
-          rule.severity
+          rule.severity,
+          scratch
         );
       default:
         return [];

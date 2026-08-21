@@ -1,11 +1,37 @@
 import NodeSqlParser from 'node-sql-parser';
-import type { AegisSeverity, AegisViolation, SqlAstConditionParams, ToolCall } from '../types.js';
+import type { AegisSeverity, AegisViolation, EvaluationScratch, SqlAstConditionParams, ToolCall } from '../types.js';
 
 // Clean ESM/CJS interop for node-sql-parser
 const ParserClass: any =
   (NodeSqlParser as any).Parser ??
   (NodeSqlParser as any).default?.Parser ??
   NodeSqlParser;
+
+// Module-level compiled patterns — never recompile on the hot path.
+const DDL_TOKEN_RE = /\b(DROP|TRUNCATE|ALTER|GRANT|REVOKE)\b/i;
+const BASE64_WRAP_RE = /(?:BASE64_DATA:)?\s*([A-Za-z0-9+/=]{24,})\s*$/;
+const BASE64_DATA_RE = /BASE64_DATA:/i;
+const BASE64_LITERAL_RE = /^[A-Za-z0-9+/=]{24,}\s*$/;
+const SQL_STATEMENT_START_RE =
+  /^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE)\b/i;
+
+// Keyword reconstitution (DEL/**/ETE -> DELETE, D R O P -> DROP) — the 35
+// `new RegExp(...)` invocations previously ran on EVERY stripSqlComments call.
+// Precompiled once at module load.
+const KEYWORDS_TO_RECONSTITUTE = [
+  'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE',
+  'EXECUTE', 'EXEC', 'GRANT', 'REVOKE', 'WITH', 'MERGE', 'CALL', 'REPLACE',
+  'BEGIN', 'COMMIT', 'ROLLBACK',
+  'FROM', 'WHERE', 'SET', 'TABLE', 'DATABASE', 'SCHEMA', 'VIEW', 'INDEX',
+  'PROCEDURE', 'FUNCTION', 'TRIGGER', 'USER', 'ROLE', 'EXTENSION',
+  'MATERIALIZED', 'COLUMN', 'CONSTRAINT',
+] as const;
+
+const RECONSTITUTE_PATTERNS: ReadonlyArray<{ re: RegExp; kw: string }> =
+  KEYWORDS_TO_RECONSTITUTE.map((kw) => ({
+    re: new RegExp('\\b' + kw.split('').join('[\\s/]*') + '\\b', 'gi'),
+    kw,
+  }));
 
 export const HOMOGLYPH_DECODE_MAP: Record<string, string> = {
   // Cyrillic Lowercase
@@ -59,26 +85,48 @@ export class SqlChecker {
     this.parser = new ParserClass();
   }
 
+  /** Cross-call prep memo keyed by the immutable raw SQL string. */
+  private sqlPrepCache = new Map<string, { normalized: string; cleaned: string }>();
+  private static readonly SQL_PREP_CACHE_CAP = 2048;
+
+  /**
+   * Normalize + comment-strip, memoized per raw SQL string. Pure function of
+   * an immutable string, so the cache is safe across calls; the historical
+   * implementation repeated this (incl. 35 regex passes) for EVERY sql rule.
+   */
+  private getPrep(sql: string): { normalized: string; cleaned: string } {
+    const cached = this.sqlPrepCache.get(sql);
+    if (cached) return cached;
+    // SECURITY: normalize BEFORE comment stripping / parsing / fallback.
+    // Without this, zero-width, bidi and fullwidth-unicode characters inside
+    // SQL keywords (D<ZW>ELETE, ＤＥＬＥＴＥ) defeat BOTH the AST parser and
+    // the regex fallback, turning destructive SQL into an ALLOWED verdict.
+    const normalized = SqlChecker.normalizeUnicode(sql);
+    const cleaned = SqlChecker.stripSqlComments(normalized);
+    if (this.sqlPrepCache.size >= SqlChecker.SQL_PREP_CACHE_CAP) {
+      const first = this.sqlPrepCache.keys().next().value;
+      if (first !== undefined) this.sqlPrepCache.delete(first);
+    }
+    this.sqlPrepCache.set(sql, { normalized, cleaned });
+    return { normalized, cleaned };
+  }
+
   public evaluate(
     ruleId: string,
     packId: string,
     params: SqlAstConditionParams,
     toolCall: ToolCall
-  , severity: AegisSeverity = 'critical'
+  , severity: AegisSeverity = 'critical',
+    scratch?: EvaluationScratch
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
-    const sql = this.extractSqlString(toolCall, params.database_field);
+    const sql = this.extractSqlString(toolCall, params.database_field, scratch);
 
     if (!sql || typeof sql !== 'string' || !sql.trim()) {
       return violations;
     }
 
-    // SECURITY: normalize BEFORE comment stripping / parsing / fallback.
-    // Without this, zero-width, bidi and fullwidth-unicode characters inside
-    // SQL keywords (D<ZW>ELETE, ＤＥＬＥＴＥ) defeat BOTH the AST parser and
-    // the regex fallback, turning destructive SQL into an ALLOWED verdict.
-    const normalizedSql = SqlChecker.normalizeUnicode(sql);
-    let cleanedSql = SqlChecker.stripSqlComments(normalizedSql);
+    let cleanedSql = this.getPrep(sql).cleaned;
 
     // SECURITY (2026-08-21, M4 property finding): evasion-wrapped SQL. A query
     // delivered as "BASE64_DATA: <b64>" (possibly double-wrapped) is not valid
@@ -86,18 +134,14 @@ export class SqlChecker {
     // accept a decode that yields a real SQL statement keyword (no false
     // positives on long hash-like literals).
     for (let depth = 0; depth < 3; depth++) {
-      const wrapMatch = cleanedSql.match(/(?:BASE64_DATA:)?\s*([A-Za-z0-9+/=]{24,})\s*$/);
+      const wrapMatch = cleanedSql.match(BASE64_WRAP_RE);
       if (!wrapMatch) break;
       try {
         const decoded = Buffer.from(wrapMatch[1], 'base64').toString('utf8');
         const mostlyPrintable =
           decoded.replace(/[^\x20-\x7E\n\r\t]/g, '').length / Math.max(decoded.length, 1) > 0.8;
-        const isSqlStatement =
-          /^(?:SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|EXECUTE|GRANT|REVOKE|WITH|MERGE|CALL|REPLACE)\b/i.test(
-            decoded.trim()
-          );
-        const isFurtherWrapped =
-          /BASE64_DATA:/i.test(decoded) || /^[A-Za-z0-9+/=]{24,}\s*$/.test(decoded.trim());
+        const isSqlStatement = SQL_STATEMENT_START_RE.test(decoded.trim());
+        const isFurtherWrapped = BASE64_DATA_RE.test(decoded) || BASE64_LITERAL_RE.test(decoded.trim());
         if (mostlyPrintable && (isSqlStatement || isFurtherWrapped)) {
           cleanedSql = SqlChecker.stripSqlComments(SqlChecker.normalizeUnicode(decoded));
         } else {
@@ -115,7 +159,7 @@ export class SqlChecker {
       const astList = rawAstList.map((s: any) => (s && s.stmt ? s.stmt : s)).filter(Boolean);
 
       // Check if AST has assign/set or empty statement while query contains DDL tokens
-      const hasDdlTokens = /\b(DROP|TRUNCATE|ALTER|GRANT|REVOKE)\b/i.test(cleanedSql);
+      const hasDdlTokens = DDL_TOKEN_RE.test(cleanedSql);
       const hasAssignOrEmpty = astList.some((s: any) => !s.type || s.type === 'assign' || s.type === 'set');
       if (hasDdlTokens && hasAssignOrEmpty) {
         // Fallback to token inspection for obscure DDL syntax not natively AST-modeled
@@ -596,7 +640,11 @@ export class SqlChecker {
     return SqlChecker.SEARCH_TOOL_NAMES.has(t);
   }
 
-  private extractSqlString(toolCall: ToolCall, databaseField?: string): string | null {
+  private extractSqlString(
+    toolCall: ToolCall,
+    databaseField?: string,
+    scratch?: EvaluationScratch
+  ): string | null {
     if (!toolCall.params || typeof toolCall.params !== 'object') {
       return null;
     }
@@ -609,7 +657,16 @@ export class SqlChecker {
       return params[databaseField] as string;
     }
 
-    // 2. Comprehensive Fail-Closed SQL Extraction across all tools
+    // 2. Comprehensive Fail-Closed SQL Extraction across all tools.
+    // The params tree walk is memoized per evaluate() call: several sql rules
+    // (SQL-001..004, SOC2-002/003, ISO-004) all probe the same params object.
+    if (scratch) {
+      const cached = scratch.sqlExtracted.get(params);
+      if (cached !== undefined) return cached;
+      const result = this.findSqlInParams(params, tool);
+      scratch.sqlExtracted.set(params, result);
+      return result;
+    }
     return this.findSqlInParams(params, tool);
   }
 
@@ -794,18 +851,10 @@ export class SqlChecker {
     let cleaned = result.replace(/\s+/g, ' ').trim();
     
     // Normalize comment-injected keyword splits (e.g. DEL/**/ETE -> DELETE, D R O P -> DROP)
-    const KEYWORDS_TO_RECONSTITUTE = [
-      'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE',
-      'EXECUTE', 'EXEC', 'GRANT', 'REVOKE', 'WITH', 'MERGE', 'CALL', 'REPLACE',
-      'BEGIN', 'COMMIT', 'ROLLBACK',
-      'FROM', 'WHERE', 'SET', 'TABLE', 'DATABASE', 'SCHEMA', 'VIEW', 'INDEX',
-      'PROCEDURE', 'FUNCTION', 'TRIGGER', 'USER', 'ROLE', 'EXTENSION',
-      'MATERIALIZED', 'COLUMN', 'CONSTRAINT'
-    ];
-
-    for (const kw of KEYWORDS_TO_RECONSTITUTE) {
-      const pattern = '\\b' + kw.split('').join('[\\s/]*') + '\\b';
-      cleaned = cleaned.replace(new RegExp(pattern, 'gi'), kw);
+    // Patterns are precompiled once at module load (previously 35 `new RegExp`
+    // invocations ran on EVERY call — a dominant hot-path cost on SQL traffic).
+    for (const { re, kw } of RECONSTITUTE_PATTERNS) {
+      cleaned = cleaned.replace(re, kw);
     }
 
     return cleaned;

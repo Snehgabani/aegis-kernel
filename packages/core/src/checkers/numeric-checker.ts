@@ -1,11 +1,44 @@
-import type { AegisViolation, NumericConditionParams, ToolCall } from '../types.js';
+import type { AegisViolation, EvaluationScratch, NumericConditionParams, ToolCall } from '../types.js';
 import { HOMOGLYPH_DECODE_MAP } from './sql-checker.js';
+
+// Module-level constants — no per-call array allocations on the hot path.
+const FINANCIAL_NAME_HINTS = [
+  'amount', 'price', 'cost', 'payment', 'payout', 'transfer',
+  'balance', 'credit', 'debit', 'total', 'value', 'sum', 'fee', 'charge', 'limit',
+] as const;
+
+const FINANCIAL_ALIASES = [
+  'amount', 'total', 'value', 'sum', 'price', 'cost', 'payout', 'payment', 'transfer',
+  'fee', 'charge', 'subtotal', 'debit', 'credit', 'balance', 'limit',
+] as const;
+
+const INVISIBLE_EVASION_RE =
+  /[\u00AD\u061C\u180E\u2000-\u200F\u202A-\u202E\u202F\u205F\u2060-\u2064\u2066-\u206F\u3000\uFEFF]/g;
+
+const CURRENCY_SYMBOL_RE = /[$€£¥₹]/g;
+const CURRENCY_CODE_RE = /\b(USD|EUR|GBP|CAD|AUD|INR)\b/gi;
+const BASE64_DATA_RE = /BASE64_DATA:/gi;
+
+type NumericExtractionResult =
+  | { status: 'valid'; value: number }
+  | { status: 'invalid'; rawValue: unknown }
+  | { status: 'absent' };
+
+const ABSENT: NumericExtractionResult = { status: 'absent' };
 
 export class NumericChecker {
   private rateLimitWindows: Map<string, number[]>;
 
+  /**
+   * Pure-function memo for string→number parsing. KEYED BY IMMUTABLE STRINGS
+   * only, so it is safe across calls (a string cannot be mutated under us).
+   * Bounded to prevent unbounded growth on adversarial input variety.
+   */
+  private parseMemo: Map<string, number | null>;
+
   constructor() {
     this.rateLimitWindows = new Map();
+    this.parseMemo = new Map();
   }
 
   public resetRateLimits(): void {
@@ -17,10 +50,11 @@ export class NumericChecker {
     packId: string,
     params: NumericConditionParams,
     toolCall: ToolCall,
-    severity: import("../types.js").AegisSeverity = "critical"
+    severity: import("../types.js").AegisSeverity = "critical",
+    scratch?: EvaluationScratch
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
-    const extraction = this.extractNestedNumber(toolCall.params, params.field);
+    const extraction = this.extractNestedNumber(toolCall.params, params.field, scratch);
 
     // If the field is not present at all on this tool call, this rule does not apply
     if (extraction.status === 'absent') {
@@ -45,11 +79,7 @@ export class NumericChecker {
     let effectiveMin = params.min;
     if (effectiveMin === undefined) {
       const lowerField = params.field.toLowerCase();
-      const financialNames = [
-        'amount', 'price', 'cost', 'payment', 'payout', 'transfer',
-        'balance', 'credit', 'debit', 'total', 'value', 'sum', 'fee', 'charge', 'limit'
-      ];
-      if (financialNames.some(name => lowerField.includes(name))) {
+      if (FINANCIAL_NAME_HINTS.some((name) => lowerField.includes(name))) {
         effectiveMin = 0;
       }
     }
@@ -80,14 +110,32 @@ export class NumericChecker {
     if (params.rate_limit) {
       const now = Date.now();
       const windowMs = 60 * 1000;
+      const max = params.rate_limit.max_per_minute;
       const key = `${packId}:${ruleId}:${toolCall.tool}`;
 
-      let timestamps = this.rateLimitWindows.get(key) || [];
-      timestamps = timestamps.filter((t) => now - t < windowMs);
+      let timestamps = this.rateLimitWindows.get(key);
+      if (!timestamps) {
+        timestamps = [];
+        this.rateLimitWindows.set(key, timestamps);
+      }
+      // Bounded sliding window: prune expired entries, then cap retained
+      // history at max_per_minute. The historical implementation kept EVERY
+      // timestamp within the window, making each evaluate() O(calls) — a
+      // 20k-call benchmark meant a ~20k-element filter + realloc per call.
+      // With the cap, per-call work is O(max_per_minute) regardless of volume.
+      let firstLive = 0;
+      while (firstLive < timestamps.length && now - timestamps[firstLive]! >= windowMs) {
+        firstLive++;
+      }
+      if (firstLive > 0) timestamps.splice(0, firstLive);
+      // Already at capacity before this call ⇒ the call exceeds the ceiling.
+      const exceeded = timestamps.length >= max;
       timestamps.push(now);
-      this.rateLimitWindows.set(key, timestamps);
+      if (timestamps.length > max) {
+        timestamps.splice(0, timestamps.length - max);
+      }
 
-      if (timestamps.length > params.rate_limit.max_per_minute) {
+      if (exceeded) {
         violations.push({
           ruleId,
           packId,
@@ -120,35 +168,47 @@ export class NumericChecker {
       return Number(val);
     }
 
-    // 3. Formatted currency / numeric string parsing ($5,000.00, €10,000, 1,000.50 USD)
+    // 3+4. Formatted currency / encoded strings — pure function of the string,
+    // memoized (bounded) because several rules re-parse the same value.
     if (typeof val === 'string') {
-      const trimmed = val.trim();
-      if (!trimmed || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'infinity') {
-        return null;
+      const cached = this.parseMemo.get(val);
+      if (cached !== undefined) return cached;
+      const parsed = this.parseNumericString(val);
+      if (this.parseMemo.size >= 2048) {
+        const first = this.parseMemo.keys().next().value;
+        if (first !== undefined) this.parseMemo.delete(first);
       }
-
-      const parsed = this.tryParseNumberString(trimmed);
-      if (parsed !== null) {
-        return parsed;
-      }
-
-      // 4. (2026-08-21, M4 property finding) Encoded-numeric evasion: an
-      // amount delivered as "BASE64_DATA: OTk5...", zero-width-spaced digits,
-      // or percent/hex-encoded text previously parsed to null and skipped the
-      // bound check entirely. Decode (bounded) before parsing.
-      return this.decodeEncodedNumeric(trimmed);
+      this.parseMemo.set(val, parsed);
+      return parsed;
     }
 
     return null;
   }
 
+  private parseNumericString(trimmed: string): number | null {
+    if (!trimmed || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'infinity') {
+      return null;
+    }
+
+    const parsed = this.tryParseNumberString(trimmed);
+    if (parsed !== null) {
+      return parsed;
+    }
+
+    // 4. (2026-08-21, M4 property finding) Encoded-numeric evasion: an
+    // amount delivered as "BASE64_DATA: OTk5...", zero-width-spaced digits,
+    // or percent/hex-encoded text previously parsed to null and skipped the
+    // bound check entirely. Decode (bounded) before parsing.
+    return this.decodeEncodedNumeric(trimmed);
+  }
+
   private tryParseNumberString(raw: string): number | null {
     // Strip currency codes, symbols, and commas
     const normalized = raw
-      .replace(/[$€£¥₹]/g, '')
-      .replace(/\b(USD|EUR|GBP|CAD|AUD|INR)\b/gi, '')
+      .replace(CURRENCY_SYMBOL_RE, '')
+      .replace(CURRENCY_CODE_RE, '')
       .replace(/,/g, '')
-      .replace(/BASE64_DATA:/gi, '')
+      .replace(BASE64_DATA_RE, '')
       .trim();
 
     const parsed = Number(normalized);
@@ -162,10 +222,7 @@ export class NumericChecker {
    */
   private decodeEncodedNumeric(raw: string): number | null {
     if (raw.length > 512) return null;
-    const stripped = raw.replace(
-      /[\u00AD\u061C\u180E\u2000-\u200F\u202A-\u202E\u202F\u205F\u2060-\u2064\u2066-\u206F\u3000\uFEFF]/g,
-      ''
-    );
+    const stripped = raw.replace(INVISIBLE_EVASION_RE, '');
     const folded = Array.from(stripped)
       .map((ch) => HOMOGLYPH_DECODE_MAP[ch] ?? ch)
       .join('');
@@ -211,15 +268,55 @@ export class NumericChecker {
     return null;
   }
 
+  /**
+   * Single-pass field walk shared across all numeric rules of one evaluate().
+   *
+   * Builds (once per params object, per evaluate) a map of lowercased field
+   * name → first-seen raw value. Subsequent rules probing the same or alias
+   * fields hit the memo instead of re-walking the tree (the historical
+   * implementation performed up to 17 separate DFS walks per numeric rule).
+   */
+  private collectFieldMap(
+    params: Record<string, unknown>,
+    scratch?: EvaluationScratch
+  ): Map<string, unknown> {
+    if (scratch) {
+      const cached = scratch.numericFields.get(params);
+      if (cached) return cached;
+    }
+    const map = new Map<string, unknown>();
+    const visited = new Set<object>();
+    const walk = (node: unknown): void => {
+      if (!node || typeof node !== 'object' || visited.has(node)) return;
+      visited.add(node);
+      const record = node as Record<string, unknown>;
+      // Entries-first ordering: record every key at this level BEFORE
+      // recursing into children (matches historical findNestedNumber order).
+      for (const key of Object.keys(record)) {
+        const lower = key.toLowerCase();
+        if (!map.has(lower)) map.set(lower, record[key]);
+      }
+      for (const key of Object.keys(record)) {
+        const val = record[key];
+        if (val && typeof val === 'object') walk(val);
+      }
+    };
+    walk(params);
+    if (scratch) scratch.numericFields.set(params, map);
+    return map;
+  }
+
   private extractNestedNumber(
     params: Record<string, unknown>,
-    pathStr: string
-  ): { status: 'valid'; value: number } | { status: 'invalid'; rawValue: unknown } | { status: 'absent' } {
-    if (!params || typeof params !== 'object') return { status: 'absent' };
+    pathStr: string,
+    scratch?: EvaluationScratch
+  ): NumericExtractionResult {
+    if (!params || typeof params !== 'object') return ABSENT;
     const cleanPath = pathStr.replace(/^params\./, '');
     const parts = cleanPath.split('.');
-    let current: any = params;
 
+    // 1. Direct dotted path (params.amount, params.a.b)
+    let current: any = params;
     let directFound = true;
     for (const part of parts) {
       if (current === null || current === undefined || typeof current !== 'object' || !(part in current)) {
@@ -237,57 +334,34 @@ export class NumericChecker {
       return { status: 'invalid', rawValue: current };
     }
 
-    // Fallback: search recursively for target field name in nested objects
-    const targetField = parts[parts.length - 1];
-    const recursiveResult = this.findNestedNumber(params, targetField);
-    if (recursiveResult.status !== 'absent') {
-      return recursiveResult;
+    // 2. Recursive case-insensitive field search — one shared walk per call.
+    const fieldMap = this.collectFieldMap(params, scratch);
+    const targetField = parts[parts.length - 1].toLowerCase();
+
+    if (fieldMap.has(targetField)) {
+      const raw = fieldMap.get(targetField);
+      const parsed = this.parseNumericValue(raw);
+      if (parsed !== null) {
+        return { status: 'valid', value: parsed };
+      }
+      return { status: 'invalid', rawValue: raw };
     }
 
-    // Semantic alias search for financial fields (e.g. amount -> total, value, sum, price, payout)
-    const lowerTarget = targetField.toLowerCase();
-    const financialAliases = ['amount', 'total', 'value', 'sum', 'price', 'cost', 'payout', 'payment', 'transfer', 'fee', 'charge', 'subtotal', 'debit', 'credit', 'balance', 'limit'];
-    if (financialAliases.includes(lowerTarget)) {
-      for (const alias of financialAliases) {
-        if (alias === lowerTarget) continue;
-        const aliasResult = this.findNestedNumber(params, alias);
-        if (aliasResult.status !== 'absent') {
-          return aliasResult;
+    // 3. Semantic alias search for financial fields (amount -> total, value, sum, price, payout)
+    if ((FINANCIAL_ALIASES as readonly string[]).includes(targetField)) {
+      for (const alias of FINANCIAL_ALIASES) {
+        if (alias === targetField) continue;
+        if (fieldMap.has(alias)) {
+          const raw = fieldMap.get(alias);
+          const parsed = this.parseNumericValue(raw);
+          if (parsed !== null) {
+            return { status: 'valid', value: parsed };
+          }
+          return { status: 'invalid', rawValue: raw };
         }
       }
     }
 
-    return { status: 'absent' };
-  }
-
-  private findNestedNumber(
-    obj: unknown,
-    fieldName: string,
-    visited: Set<unknown> = new Set()
-  ): { status: 'valid'; value: number } | { status: 'invalid'; rawValue: unknown } | { status: 'absent' } {
-    if (!obj || typeof obj !== 'object' || visited.has(obj)) return { status: 'absent' };
-    visited.add(obj);
-    const record = obj as Record<string, unknown>;
-
-    // Case-insensitive property lookup
-    const lowerTarget = fieldName.toLowerCase();
-    for (const [key, raw] of Object.entries(record)) {
-      if (key.toLowerCase() === lowerTarget) {
-        const parsed = this.parseNumericValue(raw);
-        if (parsed !== null) {
-          return { status: 'valid', value: parsed };
-        }
-        return { status: 'invalid', rawValue: raw };
-      }
-    }
-
-    for (const val of Object.values(record)) {
-      if (val && typeof val === 'object') {
-        const found = this.findNestedNumber(val, fieldName, visited);
-        if (found.status !== 'absent') return found;
-      }
-    }
-
-    return { status: 'absent' };
+    return ABSENT;
   }
 }

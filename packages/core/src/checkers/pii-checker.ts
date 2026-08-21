@@ -1,4 +1,4 @@
-import type { AegisSeverity, AegisViolation, RegexConditionParams, ToolCall } from '../types.js';
+import type { AegisSeverity, AegisViolation, EvaluationScratch, RegexConditionParams, ToolCall } from '../types.js';
 import { HOMOGLYPH_MAP } from '../normalizers/homoglyphs.generated.js';
 
 // Pre-compiled high-recall regex patterns for PII, Secrets, and Compliance Invariants
@@ -49,11 +49,43 @@ export const DEFAULT_PII_PATTERNS = {
   CANARY_TOKEN: /\b(?:CANARY-[A-Za-z0-9_-]{12,}|FLAG\{[A-Za-z0-9_-]{8,}\})\b/,
 };
 
+const INVISIBLE_EVASION_RE =
+  /[\u00AD\u061C\u180E\u2000-\u200F\u202A-\u202E\u202F\u205F\u2060-\u2064\u2066-\u206F\u3000\uFEFF]/g;
+const PCT_RUN_RE = /(?:%[0-9A-Fa-f]{2}){3,}/;
+const HEX_RUN_RE = /(?:\\x[0-9A-Fa-f]{2}){3,}/;
+const B64_RUN_RE = /[A-Za-z0-9+/=_-]{16,}/g;
+const NON_ASCII_RE = /[^\x00-\x7F]/;
+
+/** Bounded string-keyed memo helpers — strings are immutable, so cross-call caching is safe. */
+function memoGet<T>(cache: Map<string, T>, key: string): T | undefined {
+  return cache.get(key);
+}
+function memoSet<T>(cache: Map<string, T>, key: string, value: T, cap: number): void {
+  if (cache.size >= cap) {
+    const first = cache.keys().next().value;
+    if (first !== undefined) cache.delete(first);
+  }
+  cache.set(key, value);
+}
+
 export class PiiChecker {
   private compiledPatterns: Map<string, RegExp>;
+  /** normalizeString results, keyed by immutable input string (bounded, cross-call safe). */
+  private normalizeMemo: Map<string, string>;
+  /** foldHomoglyphs results (bounded, cross-call safe). */
+  private foldMemo: Map<string, string>;
+  /** decodeEvasions results (bounded, cross-call safe — pure function of the string). */
+  private decodeMemo: Map<string, string[]>;
+
+  private static readonly NORMALIZE_MEMO_CAP = 4096;
+  private static readonly FOLD_MEMO_CAP = 4096;
+  private static readonly DECODE_MEMO_CAP = 2048;
 
   constructor() {
     this.compiledPatterns = new Map();
+    this.normalizeMemo = new Map();
+    this.foldMemo = new Map();
+    this.decodeMemo = new Map();
   }
 
   public evaluate(
@@ -61,12 +93,13 @@ export class PiiChecker {
     packId: string,
     params: RegexConditionParams,
     toolCall: ToolCall,
-    severity: AegisSeverity = 'critical'
+    severity: AegisSeverity = 'critical',
+    scratch?: EvaluationScratch
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
     const textValues = params.field
       ? (typeof (toolCall.params as any)?.[params.field] === 'string' ? [(toolCall.params as any)[params.field]] : [])
-      : this.collectStringValues(toolCall.params);
+      : this.collectStringValuesCached(toolCall.params, scratch);
 
     for (const patternStr of params.patterns) {
       let regex = this.compiledPatterns.get(patternStr);
@@ -107,17 +140,43 @@ export class PiiChecker {
     return violations;
   }
 
+  /**
+   * Per-evaluate memoization of the parameter tree walk: 8 regex rules visit
+   * the same params object within one evaluate(); the collection (including
+   * normalization, confusable folding and evasion decode variants) is computed
+   * once per call instead of 8×.
+   */
+  private collectStringValuesCached(
+    params: Record<string, unknown>,
+    scratch?: EvaluationScratch
+  ): string[] {
+    if (scratch && params && typeof params === 'object') {
+      const cached = scratch.piiCollected.get(params);
+      if (cached) return cached;
+      const collected = this.collectStringValues(params);
+      scratch.piiCollected.set(params, collected);
+      return collected;
+    }
+    return this.collectStringValues(params);
+  }
+
   private normalizeString(text: string): string {
+    // Fast lane: pure ASCII input contains no zero-width/bidi/fullwidth
+    // evasion characters and needs no NFKD decomposition or stripping.
+    if (!NON_ASCII_RE.test(text)) {
+      return text;
+    }
+    const cached = memoGet(this.normalizeMemo, text);
+    if (cached !== undefined) return cached;
     // Strip zero-width, bidi-override/-isolate, space-separator, and invisible
     // control characters used for regex evasion. Red-team hardened 2026-08-20:
     // the original narrow set was bypassable with EN-SPACES between digits and
     // bidi isolates (see red-team harness, TAP PII exfiltration tree).
-    const stripped = text.replace(
-      /[\u00AD\u061C\u180E\u2000-\u200F\u202A-\u202E\u202F\u205F\u2060-\u2064\u2066-\u206F\u3000\uFEFF]/g,
-      ''
-    );
+    const stripped = text.replace(INVISIBLE_EVASION_RE, '');
     // Normalize unicode forms (NFKD)
-    return stripped.normalize('NFKD');
+    const result = stripped.normalize('NFKD');
+    memoSet(this.normalizeMemo, text, result, PiiChecker.NORMALIZE_MEMO_CAP);
+    return result;
   }
 
   /**
@@ -127,9 +186,17 @@ export class PiiChecker {
    * must fold before decoding to see the same payload.
    */
   private foldHomoglyphs(text: string): string {
-    return Array.from(text)
+    // Fast lane: the homoglyph map only contains non-ASCII code points.
+    if (!NON_ASCII_RE.test(text)) {
+      return text;
+    }
+    const cached = memoGet(this.foldMemo, text);
+    if (cached !== undefined) return cached;
+    const result = Array.from(text)
       .map((ch) => HOMOGLYPH_MAP[ch] ?? ch)
       .join('');
+    memoSet(this.foldMemo, text, result, PiiChecker.FOLD_MEMO_CAP);
+    return result;
   }
 
   private static readonly MAX_DECODE_DEPTH = 3;
@@ -143,6 +210,13 @@ export class PiiChecker {
    * depth ≤ 3, ≤16 variants, ≤4KB per run — hot-path safe.
    */
   private decodeEvasions(text: string): string[] {
+    // Fast lane: no encoding markers and no run long enough to be base64.
+    if (text.length < 16 && text.indexOf('%') === -1 && text.indexOf('\\') === -1) {
+      return [];
+    }
+    const cached = memoGet(this.decodeMemo, text);
+    if (cached !== undefined) return cached;
+
     const out: string[] = [];
     const seen = new Set<string>();
 
@@ -163,7 +237,7 @@ export class PiiChecker {
       tryPush(clean);
 
       // Percent-encoding (%41%42…): 3+ consecutive sequences
-      const pctMatch = clean.match(/(?:%[0-9A-Fa-f]{2}){3,}/);
+      const pctMatch = clean.match(PCT_RUN_RE);
       if (pctMatch) {
         try {
           cascade(decodeURIComponent(pctMatch[0]), depth + 1);
@@ -173,7 +247,7 @@ export class PiiChecker {
       }
 
       // Hex escapes (\x41\x42…)
-      const hexMatch = clean.match(/(?:\\x[0-9A-Fa-f]{2}){3,}/);
+      const hexMatch = clean.match(HEX_RUN_RE);
       if (hexMatch) {
         cascade(
           hexMatch[0].replace(/\\x([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))),
@@ -182,7 +256,7 @@ export class PiiChecker {
       }
 
       // Base64 runs (≥16 chars, standard or URL-safe)
-      const b64Runs = clean.match(/[A-Za-z0-9+/=_-]{16,}/g) ?? [];
+      const b64Runs = clean.match(B64_RUN_RE) ?? [];
       for (const run of b64Runs.slice(0, 4)) {
         if (run.length > 4096) continue;
         const normalizedB64 = run.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
@@ -199,6 +273,7 @@ export class PiiChecker {
     };
 
     cascade(text, 0);
+    memoSet(this.decodeMemo, text, out, PiiChecker.DECODE_MEMO_CAP);
     return out;
   }
 

@@ -77,6 +77,31 @@ export interface ToolCall {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Per-call scratch state passed to checkers during one `evaluate()` invocation.
+ *
+ * Hot-path discipline: the SAME toolCall params object is visited by many rules
+ * within a single evaluation (e.g. FIN-001 and FIN-002 both probe `amount`;
+ * 8 regex rules each collect string values). Memoizing on the params object
+ * within one call removes duplicated tree walks while remaining STRICTLY
+ * correct across calls — the memo is per-evaluate, so callers that mutate a
+ * params object between evaluations can never observe stale results (a hard
+ * security invariant for a deterministic safety kernel).
+ *
+ * Pure string-keyed memoization (SQL normalization, PII folding) lives on the
+ * checkers themselves keyed by immutable strings and is safe across calls.
+ */
+export interface EvaluationScratch {
+  /** numeric-checker: params object → lowercased field → first-seen raw value (single tree walk) */
+  numericFields: WeakMap<object, Map<string, unknown>>;
+  /** pii-checker: params object → collected string values (once per evaluate) */
+  piiCollected: WeakMap<object, string[]>;
+  /** state-checker: params object → Set of field names already probed (absent short-circuit) */
+  stateProbed: WeakMap<object, Set<string>>;
+  /** sql-checker: params object → extracted raw SQL string or null (once per evaluate) */
+  sqlExtracted: WeakMap<object, string | null>;
+}
+
 export interface EvaluateOptions {
   framework?: AegisFramework;
   state?: Record<string, unknown>; // Explicit developer-supplied trusted state
