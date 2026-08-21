@@ -43,7 +43,7 @@ jobs:
       - name: Typecheck & Lint All Packages
         run: npm run lint
 
-      - name: Run Full Vitest Test Matrix (74 suites, 532 tests)
+      - name: Run Full Vitest Test Matrix (90 suites, 674 tests)
         run: npm run test
 
       - name: Run Diagnostics Integrity Check

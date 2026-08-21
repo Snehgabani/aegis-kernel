@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout Code
@@ -34,6 +36,14 @@ jobs:
           path: '.'
           format: 'cyclonedx-json'
           output-file: 'aegis-cyclonedx-sbom.json'
+
+      - name: Attest Cryptographic SBOM Provenance
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-sbom@v4
+        continue-on-error: true
+        with:
+          subject-path: 'package.json'
+          sbom-path: 'aegis-spdx-sbom.json'
 
       - name: Scan SBOM with Anchore Grype
         uses: anchore/scan-action@v7

@@ -9,6 +9,10 @@ on:
     - cron: '17 3 * * *' # nightly deep run
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 permissions: read-all
 
 jobs:
@@ -26,6 +30,14 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22.x
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install Dependencies
         run: npm install --no-audit --no-fund
