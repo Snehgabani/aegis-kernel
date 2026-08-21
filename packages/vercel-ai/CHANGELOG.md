@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Snehgabani/aegis-kernel/compare/vercel-ai@vv1.1.0...vercel-ai@vv1.1.1) (2026-08-21)
+
+
+### 🐛 Bug Fixes & Invariant Patches
+
+* **release:** add repository provenance metadata across all packages and fix CI Python test paths ([6d41f24](https://github.com/Snehgabani/aegis-kernel/commit/6d41f24ec5a43c311fef98c4d2bb6f4962974295))
+
 ## [1.1.0](https://github.com/Snehgabani/aegis-kernel/compare/vercel-ai@vv1.0.1...vercel-ai@vv1.1.0) (2026-08-21)
 
 
