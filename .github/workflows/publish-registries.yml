@@ -42,9 +42,11 @@ jobs:
         run: |
           PACKAGES=(
             "packages/core"
-            "packages/langchain"
+            "packages/diagnostics"
+            "packages/evals"
             "packages/mcp"
             "packages/cli"
+            "packages/langchain"
             "packages/vercel-ai"
             "packages/openai"
             "packages/anthropic"
@@ -82,15 +84,18 @@ jobs:
         run: |
           pytest packages/python/tests/
 
-      - name: Build Python Sdist & Wheel
-        run: |
-          cd packages/python
-          python -m build
-
-      - name: Publish to PyPI
+      - name: Build & Publish All 4 Python Packages to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          cd packages/python
-          twine upload --skip-existing --non-interactive dist/*
+          PY_PKGS=("packages/python" "packages/crewai" "packages/autogen" "packages/browser-guard")
+          for PKG in "${PY_PKGS[@]}"; do
+            echo "📦 Building & Uploading $PKG to PyPI..."
+            (
+              cd "$PKG"
+              rm -rf dist build
+              python -m build
+              twine upload --skip-existing --non-interactive dist/*
+            )
+          done
