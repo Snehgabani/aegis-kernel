@@ -157,12 +157,62 @@ export class SchemaInvariantSynthesizer {
    */
   public synthesizePack(toolDef: ToolSchemaDefinition, version = '1.0.0'): RulePack {
     const rules = this.synthesizeRules(toolDef);
+    const cleanName = toolDef.name.replace(/[^a-zA-Z0-9_-]/g, '_');
     return {
-      id: `@aegis/synthesized-${toolDef.name}`,
+      id: `synthesized_${cleanName}`,
       name: `Synthesized Guard for ${toolDef.name}`,
       version,
       description: `Auto-generated deterministic invariant pack from tool schema '${toolDef.name}'`,
       rules,
     };
+  }
+
+  public static synthesizePack(toolDef: ToolSchemaDefinition, options?: SynthesisOptions, version = '1.0.0'): RulePack {
+    const synthesizer = new SchemaInvariantSynthesizer(options);
+    return synthesizer.synthesizePack(toolDef, version);
+  }
+
+  public static synthesizeRules(toolDef: ToolSchemaDefinition, options?: SynthesisOptions): Rule[] {
+    const synthesizer = new SchemaInvariantSynthesizer(options);
+    return synthesizer.synthesizeRules(toolDef);
+  }
+
+  /**
+   * Synthesize a RulePack from an OpenAPI 3.0/3.1 schema specification.
+   */
+  public synthesizeFromOpenAPI(openApiDoc: any, version = '1.0.0'): RulePack {
+    const allRules: Rule[] = [];
+    const title = openApiDoc.info?.title || 'openapi_service';
+    const cleanTitle = title.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    if (openApiDoc.paths) {
+      for (const [pathKey, methods] of Object.entries(openApiDoc.paths as Record<string, any>)) {
+        for (const [method, operation] of Object.entries(methods as Record<string, any>)) {
+          if (typeof operation !== 'object' || !operation) continue;
+          const opId = operation.operationId || `${method}_${pathKey.replace(/[^a-zA-Z0-9]/g, '_')}`;
+          const schema = operation.requestBody?.content?.['application/json']?.schema || {};
+          const toolDef: ToolSchemaDefinition = {
+            name: opId,
+            description: operation.summary || operation.description,
+            parameters: schema,
+          };
+          const rules = this.synthesizeRules(toolDef);
+          allRules.push(...rules);
+        }
+      }
+    }
+
+    return {
+      id: `synthesized_${cleanTitle}`,
+      name: `Synthesized Guard for ${title}`,
+      version,
+      description: `Auto-generated deterministic invariant pack from OpenAPI spec '${title}'`,
+      rules: allRules,
+    };
+  }
+
+  public static synthesizeFromOpenAPI(openApiDoc: any, options?: SynthesisOptions, version = '1.0.0'): RulePack {
+    const synthesizer = new SchemaInvariantSynthesizer(options);
+    return synthesizer.synthesizeFromOpenAPI(openApiDoc, version);
   }
 }

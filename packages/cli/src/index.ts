@@ -21,6 +21,8 @@ import { runAuditReport } from './audit-report-cli.js';
 import { runTelemetry } from './telemetry-cmd.js';
 import { runToolCoverage } from './tools-coverage-cmd.js';
 import { runDiagnose } from './diagnose-cmd.js';
+import { runSynthesize } from './synthesize-cli.js';
+import { runDagTrace } from './dag-trace-cli.js';
 
 const program = new Command();
 
@@ -28,6 +30,23 @@ program
   .name('aegis')
   .description('Aegis Invariant Kernel: Deterministic Tool-Call Safety Clearance Gateway for AI Agents')
   .version('1.0.1');
+
+program
+  .command('synthesize <schemaPath>')
+  .description('Synthesize deterministic RulePacks from OpenAPI 3.0/3.1 or MCP JSON schemas')
+  .option('-o, --output <path>', 'Output JSON file path for generated RulePack')
+  .action((schemaPath: string, opts: { output?: string }) => {
+    runSynthesize(schemaPath, opts);
+  });
+
+program
+  .command('dag-trace <dagPath>')
+  .description('Render forensic Mermaid flowchart or ASCII trace of an Execution DAG with FIDES security tags')
+  .option('-f, --format <format>', 'Output format: mermaid (default) or ascii', 'mermaid')
+  .option('-o, --output <path>', 'Output file path')
+  .action((dagPath: string, opts: { format?: 'mermaid' | 'ascii'; output?: string }) => {
+    runDagTrace(dagPath, opts);
+  });
 
 program
   .command('scan [path]')

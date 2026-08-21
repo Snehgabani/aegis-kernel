@@ -40,7 +40,7 @@ describe('SchemaInvariantSynthesizer (Dynamic OpenAPI / MCP Rule Generation)', (
 
   it('should synthesize self-contained RulePack and integrate into AegisEngine', () => {
     const pack = synthesizer.synthesizePack(wireTransferTool);
-    expect(pack.id).toBe('@aegis/synthesized-wire_transfer');
+    expect(pack.id).toBe('synthesized_wire_transfer');
 
     const engine = new AegisEngine({
       mode: 'enforce',
