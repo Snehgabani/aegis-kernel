@@ -3,16 +3,19 @@
 # Aegis Invariant Kernel
 
 **Deterministic safety verification for AI agent tool calls.**<br>
-In-process AST analysis · <1.5ms latency · zero network egress · TypeScript & Python
+In-process AST analysis · <0.25ms latency · zero network egress · TypeScript, Python, Go & Rust
 
 <br>
 
-[![CI](https://github.com/Snehgabani/aegis-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14173/badge)](https://www.bestpractices.dev/projects/14173)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-674%20passing-brightgreen.svg)](https://github.com/Snehgabani/aegis-kernel/actions)
-[![npm](https://img.shields.io/badge/npm-@aegis--kernel%2Fcore-10b981.svg?logo=npm)](https://www.npmjs.com/package/@aegis-kernel/core)
-[![PyPI](https://img.shields.io/badge/PyPI-aegis--kernel-10b981.svg?logo=pypi)](https://pypi.org/project/aegis-kernel/)
+[![CI](https://img.shields.io/github/actions/workflow/status/Snehgabani/aegis-kernel/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white&style=flat-square)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![npm version](https://img.shields.io/npm/v/@aegis-kernel/core?color=10b981&label=npm&logo=npm&logoColor=white&style=flat-square)](https://www.npmjs.com/package/@aegis-kernel/core)
+[![PyPI version](https://img.shields.io/pypi/v/aegis-kernel?color=3776ab&label=PyPI&logo=pypi&logoColor=white&style=flat-square)](https://pypi.org/project/aegis-kernel/)
+[![Crates.io version](https://img.shields.io/crates/v/aegis-kernel?color=dea584&label=crates.io&logo=rust&logoColor=white&style=flat-square)](https://crates.io/crates/aegis-kernel)
+[![GitHub Release](https://img.shields.io/github/v/release/Snehgabani/aegis-kernel?color=6366f1&label=Release&logo=github&logoColor=white&style=flat-square)](https://github.com/Snehgabani/aegis-kernel/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![OpenSSF Best Practices](https://img.shields.io/badge/OpenSSF-Best%20Practices-10b981.svg?logo=openssf&logoColor=white&style=flat-square)](https://www.bestpractices.dev/projects/14173)
+[![Tests Passing](https://img.shields.io/badge/tests-674%20passing-10b981.svg?style=flat-square)](https://github.com/Snehgabani/aegis-kernel/actions)
+[![Latency](https://img.shields.io/badge/latency-%3C0.25ms-brightgreen.svg?style=flat-square)](https://snehgabani.github.io/aegis-kernel/compare-nemo.html)
 
 [Playground](https://snehgabani.github.io/aegis-kernel/playground/) · [Docs](https://snehgabani.github.io/aegis-kernel/docs/) · [Benchmarks](https://snehgabani.github.io/aegis-kernel/compare-nemo.html) · [White Paper](./WHITE_PAPER.md) · [Sponsor](https://github.com/sponsors/Snehgabani)
 
