@@ -71,7 +71,7 @@ const AUTH_HEADER_PATTERN = /^(authorization|api-key|apikey|x-api-key|x-auth-tok
 /** Package-manager runners whose args should carry a pinned version. */
 const RUNNER_COMMANDS = new Set(['npx', 'pnpx', 'uvx', 'bunx', 'deno run', 'pipx']);
 
-export function parseMcpInventory(filePath: string, content: string): McpServerEntry[] {
+export function parseMcpInventory(_filePath: string, content: string): McpServerEntry[] {
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);

@@ -170,6 +170,13 @@ export function runTrajectoryStress(options: TrajectoryStressOptions = {}): Traj
   let maxLatencyMs = 0;
   const attackSet = new Set(attackAt);
 
+  // Warm up V8 JIT and regex compilation before measurement
+  for (let w = 0; w < 15; w++) {
+    const tpl = BENIGN_TEMPLATES[w % BENIGN_TEMPLATES.length];
+    engine.evaluate(tpl(rng));
+  }
+  engine.resetState();
+
   for (let step = 1; step <= steps; step++) {
     engine.resetState();
     if (attackSet.has(step)) {

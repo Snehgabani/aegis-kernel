@@ -16,7 +16,7 @@ import type { RulePack } from '@aegis-kernel/core';
 
 function loadPackFile(filePath: string): RulePack | null {
   const content = fs.readFileSync(path.resolve(filePath), 'utf8');
-  const parsed = filePath.endsWith('.json') ? JSON.parse(content) : yaml.parse(content);
+  const parsed = filePath.endsWith('.json') ? JSON.parse(content) : yaml.load(content);
   if (!RulePackLoader.validatePack(parsed)) return null;
   return parsed as RulePack;
 }
