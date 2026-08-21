@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.3.0...evals@vv1.4.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **evals:** add scale N=1,000 canonical OWASP Agentic AI benchmark and CLOUD-005 filesystem destruction defense ([fc00eff](https://github.com/Snehgabani/aegis-kernel/commit/fc00eff75663ba4fb38c7c1a6af18cf0ce1a8f1c))
+
 ## [1.3.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.2.0...evals@vv1.3.0) (2026-08-21)
 
 
