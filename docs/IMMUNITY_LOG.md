@@ -13,6 +13,8 @@
 | **03** | 2026-08-21 | **Knowledge Gap / Optional WASM Solver Dependency** | High (4) | Missing `z3-solver` WASM declaration caused build failure in zero-egress CI runners | In-memory `DiscreteSymbolicContext` zero-dependency solver fallback in `@aegis-kernel/core` |
 | **04** | 2026-08-21 | **Security Amnesia / Approval Deadlock** | High (4) | GitHub Actions required manual UI approval for bot PR workflow runs | Autonomous macOS `launchd` LaunchAgent daemon (`com.sneh.aegis-autopilot`) + `bot-autopilot.yml` |
 | **05** | 2026-08-21 | **Data Integrity Gap / STIX 2.1 CTI Header Schema** | Low (2) | Test asserted STIX observable array without accounting for `producerIdentity` header object | Updated CTI bundle validator to inspect `.some(o => o.type === 'indicator')` |
+| **06** | 2026-08-21 | **Security Amnesia / ReDoS in SMT Binary Expression Parser** | High (4) | Greedy wildcard regexes (`^(.+)\+(.+)$`) caused polynomial algorithmic complexity backtracking (CodeQL #96, #97) | Replaced regex parsing with $O(n)$ deterministic linear string slicing using `lastIndexOf` |
+| **07** | 2026-08-21 | **Edge Case Blindness / Incomplete String & URL Sanitization** | High (4) | Escaped quotes without backslashes and used `.includes(url)` substring checks (CodeQL #98, #99) | Enforced two-pass `\\` -> `\'` string escaping and exact canonical URL equality (`url === canonical`) |
 
 ---
 
@@ -95,4 +97,37 @@
   - *Why 5 (Root Cause)*: Testing by array index rather than semantic entity type matching.
 - **Prevention Rule**: Always validate collection objects using semantic predicate matching (`objects.some(o => o.type === target)`).
 - **Automated Shield**: Updated `scripts/live-e2e-proof.mjs` line 231 to use `.some(o => o.type === 'indicator')`.
+
+---
+
+### ⚠️ MISTAKE RECORD #006
+- **Date**: 2026-08-21
+- **Category**: Security Amnesia / Algorithmic Complexity Vulnerability (ReDoS)
+- **Severity**: 4 / 5
+- **What Happened**: CodeQL alerts #96 and #97 detected polynomial regular expression backtracking on uncontrolled inputs in `z3-symbolic-checker.ts`.
+- **5 Whys Analysis**:
+  - *Why 1*: Static code analysis failed with High-severity ReDoS warnings.
+  - *Why 2*: The expression parser used `^(.+)\s*\+\s*(.+)$` and `^(.+)\s*-\s*(.+)$`.
+  - *Why 3*: Greedy wildcards on both sides of an optional whitespace group cause $O(2^n)$ / $O(n^2)$ catastrophic backtracking on unparenthesized complex expressions.
+  - *Why 4*: Regex was used for binary expression parsing rather than a deterministic linear lexer or string index search.
+  - *Why 5 (Root Cause)*: Using backtracking regular expressions to parse mathematical grammar instead of $O(n)$ index slicing.
+- **Prevention Rule**: Never use greedy regular expressions to parse binary expressions or uncontrolled input strings.
+- **Automated Shield**: Replaced all regex parsing in `z3-symbolic-checker.ts` with deterministic linear string slicing using `lastIndexOf('+')` and `lastIndexOf('-')`.
+
+---
+
+### ⚠️ MISTAKE RECORD #007
+- **Date**: 2026-08-21
+- **Category**: Edge Case Blindness / Incomplete Sanitization
+- **Severity**: 4 / 5
+- **What Happened**: CodeQL alerts #98 and #99 detected incomplete string escaping in STIX patterning (`siem.ts:222`) and substring checking in Verifiable Credential context (`jsonld-verifiable-credential.ts:351`).
+- **5 Whys Analysis**:
+  - *Why 1*: CodeQL flagged incomplete sanitization in telemetry and compliance modules.
+  - *Why 2*: In STIX string literals, `event.toolName.replace(/'/g, "\\'")` escaped quotes but left backslashes unescaped, allowing trailing backslashes to neutralize the escaped quote. In VC verification, `.includes(url)` checked substring containment rather than exact canonical URI equality.
+  - *Why 3*: Sanitization was written ad-hoc without formal multi-pass escaping.
+  - *Why 4*: URL checking used substring search on array elements without type and equality verification.
+  - *Why 5 (Root Cause)*: Lack of two-pass backslash-then-quote escaping and lack of strict canonical URI equality predicates.
+- **Prevention Rule**: Always escape backslashes before single quotes (`.replace(/\\/g, '\\\\').replace(/'/g, "\\'")`) and validate URLs using strict equality (`===`).
+- **Automated Shield**: Applied two-pass escaping in `siem.ts` and exact `.some(ctx => ctx === canonical)` checking in `jsonld-verifiable-credential.ts`.
+
 
