@@ -28,11 +28,13 @@ import {
   renderCompliancePDF,
   verifyDossierProof,
   buildWormComplianceBundle,
+  buildGcsBucketRetentionPolicy,
   verifyWormComplianceBundle,
   issueHitlVerifiableCredential,
   buildHitlCredentialSubject,
   formatStixTaxiiIndicator,
   formatOpenDxlThreatMessage,
+  validateStixBundle,
 } from '@aegis-kernel/core';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -89,6 +91,7 @@ const dossier = generateComplianceDossier(events, [], '0'.repeat(64), {
   includeEvents: true,
   signKey: privateKey,
   signAlgorithm: 'ed25519',
+  publicKeyPem: publicKey,
   auditorFirm: 'Apex Compliance & Assurance LLP',
   leadAuditor: 'Marcus Vance, CPA, CISA, CISSP',
   systemName: 'Aegis Invariant Kernel — Enterprise Agent Safety Architecture',
@@ -105,6 +108,7 @@ const wormBundle = buildWormComplianceBundle(
   { provider: 'aws-s3', bucket: 'aegis-compliance-lock', retention }
 );
 const wormVerification = verifyWormComplianceBundle(wormBundle);
+const gcsBucketPolicy = buildGcsBucketRetentionPolicy(retention);
 
 // 5. HITL JSON-LD Verifiable Credential (EU AI Act Art. 14).
 const subject = buildHitlCredentialSubject(
@@ -130,17 +134,31 @@ const vc = issueHitlVerifiableCredential(subject, {
 const blocked = events.filter((e) => e.verdict === 'BLOCKED');
 const stixBundle = formatStixTaxiiIndicator(blocked[0]);
 const dxlMessage = formatOpenDxlThreatMessage(blocked[0]);
+const stixConformance = validateStixBundle(stixBundle);
 
+// Clean the output directory first so a re-run cannot leave stale artifacts
+// (dossierId is timestamp-derived, so filenames differ between runs).
+fs.rmSync(OUT_DIR, { recursive: true, force: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const write = (name, content) => fs.writeFileSync(path.join(OUT_DIR, name), content, 'utf8');
 
 write('dossier.json', JSON.stringify(dossier, null, 2));
 write('dossier.md', renderComplianceMarkdown(dossier));
 write('dossier.html', renderComplianceHTML(dossier));
-write('dossier.pdf', renderCompliancePDF(dossier)); // binary — write as utf8 buffer
 fs.writeFileSync(path.join(OUT_DIR, 'dossier.pdf'), renderCompliancePDF(dossier));
-write('verification-report.json', JSON.stringify({ dossierVerification, wormVerification }, null, 2));
+
+// Write the WORM objects under their manifest keys so `sha256sum` (below) can
+// be checked 1:1 against worm-manifest.json's chain-of-custody.
+const WORM_DIR = path.join(OUT_DIR, 'worm-objects');
+fs.mkdirSync(WORM_DIR, { recursive: true });
+for (const f of wormBundle.files) {
+  const rel = path.relative('aegis-compliance/', f.key); // strip the key prefix
+  fs.writeFileSync(path.join(WORM_DIR, rel), f.content);
+}
+
+write('verification-report.json', JSON.stringify({ dossierVerification, wormVerification, stixConformance }, null, 2));
 write('worm-manifest.json', JSON.stringify(wormBundle.manifest, null, 2));
+write('gcs-bucket-retention-policy.json', JSON.stringify(gcsBucketPolicy, null, 2));
 write('hitl-verifiable-credential.json', JSON.stringify(vc, null, 2));
 write(
   'threat-intel.json',
@@ -164,8 +182,10 @@ force 2026-08-02; Articles 12/14/15 high-risk package applicable 2027-12-02).
 | \`dossier.md\` | Executive Markdown report for CISO / audit committee. |
 | \`dossier.html\` | Print-ready HTML report. |
 | \`dossier.pdf\` | Printable PDF report. |
-| \`verification-report.json\` | Independent re-verification findings (dossier + WORM integrity). |
+| \`verification-report.json\` | Independent re-verification findings (dossier + WORM integrity + STIX conformance). |
 | \`worm-manifest.json\` | WORM chain-of-custody manifest for S3 Object Lock / GCS retention. |
+| \`worm-objects/\` | The WORM bundle's actual objects, stored under their manifest keys. |
+| \`gcs-bucket-retention-policy.json\` | GCS bucket-level retention policy (Object-Lock analog). |
 | \`hitl-verifiable-credential.json\` | W3C JSON-LD Verifiable Credential (EU AI Act Art. 14 HITL). |
 | \`threat-intel.json\` | STIX 2.1 bundle + OpenDXL message for SIEM/SOC ingestion. |
 
@@ -173,18 +193,24 @@ force 2026-08-02; Articles 12/14/15 high-risk package applicable 2027-12-02).
 
 \`\`\`sh
 npm run build -w @aegis-kernel/core
-node scripts/generate-sample-audit-reports.mjs   # regenerates deterministically
+node scripts/generate-sample-audit-reports.mjs   # regenerates the bundle
+bash scripts/verify-sample-audit-reports.sh      # independent re-hash + chain walk
 \`\`\`
 
-Then recompute:
+The verification script re-hashes every object in \`worm-objects/\` against the
+SHA-256 digests recorded in \`worm-manifest.json\` and recomputes the
+chain-of-custody link hashes. Any post-hoc modification of any artifact is
+cryptographically detectable.
 
-\`\`\`sh
-sha256sum dossier.pdf  # must match dossier.json -> tamperProofSummary integrity
-\`\`\`
-
-Every artifact's SHA-256 is recorded in \`worm-manifest.json\`'s chain-of-custody;
-any post-hoc modification is cryptographically detectable.
+> **Note on the HITL credential:** the proof is an Ed25519 signature over the
+> JSON Canonicalization Scheme (JCS, RFC 8785) serialization of the credential
+> (sans \`proof\`). This is deliberately dependency-free and independently
+> recomputable, but it is *not* the URDNA2015 canonicalization used by the W3C
+> Data Integrity \`Ed25519Signature2020\` suite. For strict W3C DI conformance,
+> integrate a URDNA2015 processor and re-sign.
 `;
+
+write('README.md', readme);
 
 write('README.md', readme);
 

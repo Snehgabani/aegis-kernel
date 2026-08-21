@@ -56,6 +56,12 @@ export interface OpenDxlOptions {
 /**
  * Formats a blocked Aegis event into an OpenDXL (Open Data Exchange Layer)
  * publish/subscribe threat-intelligence message.
+ *
+ * NOTE: this returns the *application-layer* message — the routing topic plus
+ * the JSON threat payload — which a DXL client publishes via
+ * `client.send_event(Event(topic, payload))`. It is not the raw DXL wire
+ * message (whose headers — source_client_id, broker_ids, client_ids,
+ * message_type — are populated by the dxlclient runtime on the fabric).
  */
 export function formatOpenDxlThreatMessage(
   event: AegisEvent,

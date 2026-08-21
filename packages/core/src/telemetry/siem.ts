@@ -5,7 +5,33 @@
  * for Datadog, Splunk, Microsoft Sentinel, IBM QRadar, and CISA JCDC threat sharing.
  */
 
+import { createHash } from 'node:crypto';
 import type { AegisEvent } from '../types.js';
+
+/**
+ * RFC 4122 UUIDv5 generator (SHA-1 over a namespace UUID + name).
+ *
+ * STIX 2.1 (§2.9) requires object identifiers of the form `[type]--[UUID]`.
+ * SDOs "SHOULD" use UUIDv4; UUIDv5 is explicitly permitted where a producer
+ * needs deterministic, reproducible identifiers (here: auditable, re-runnable
+ * threat-intel exports). Using a UUIDv5 derived from the event identity avoids
+ * collisions and keeps the CTI feed byte-reproducible for compliance replay.
+ */
+export function uuidv5(
+  name: string,
+  namespace: string = 'a3b0c1d2-0000-4000-8000-000000000000'
+): string {
+  const nsHex = namespace.replace(/-/g, '');
+  if (!/^[0-9a-f]{32}$/i.test(nsHex)) {
+    throw new Error('uuidv5 namespace must be a valid RFC 4122 UUID');
+  }
+  const nsBytes = Buffer.from(nsHex, 'hex');
+  const hash = createHash('sha1').update(Buffer.concat([nsBytes, Buffer.from(name, 'utf8')])).digest();
+  hash[6] = (hash[6] & 0x0f) | 0x50; // set version 5
+  hash[8] = (hash[8] & 0x3f) | 0x80; // set variant 10xx
+  const hex = hash.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
 
 export interface SplunkHecEvent {
   time: number;
@@ -137,11 +163,17 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
     return null;
   }
 
-  const bundleId = `bundle--${event.id}`;
+  // RFC 4122 UUIDv5-derived identifiers (STIX 2.1 §2.9 requires [type]--[UUID]).
+  const bundleId = `bundle--${uuidv5(`aegis:event:${event.id}`)}`;
   const nowIso = new Date().toISOString();
 
   const indicators: StixDomainObject[] = event.rulesFired.map((violation, idx) => {
-    const indicatorId = `indicator--${event.id.slice(0, 30)}-${idx}`;
+    const indicatorId = `indicator--${uuidv5(`aegis:event:${event.id}:rule:${idx}:${violation.ruleId}`)}`;
+    // STIX patterning grammar (§9): a single observation expression `[...]`
+    // must not mix multiple SCO types. The observable that signals the misuse
+    // is the invoked tool (process); the Merkle proof hash is carried as an
+    // external reference rather than a fabricated `file:hashes` entry.
+    const pattern = `[process:name = '${event.toolName.replace(/'/g, "\\'")}']`;
     return {
       type: 'indicator',
       spec_version: '2.1',
@@ -151,8 +183,9 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
       name: `Adversarial AI Agent Tool Misuse: ${violation.ruleId}`,
       description: `Aegis Invariant Kernel intercepted an unauthorized agent tool invocation on '${event.toolName}'. Violation: ${violation.message}`,
       indicator_types: ['anomalous-activity', 'malicious-activity'],
-      pattern: `[process:name = '${event.toolName}' AND file:hashes.'SHA-256' = '${event.proofHash}']`,
+      pattern,
       pattern_type: 'stix',
+      pattern_version: '2.1',
       valid_from: event.timestamp,
       confidence: 95,
       external_references: [
@@ -166,6 +199,10 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
           external_id: 'ASI02',
           url: 'https://genai.owasp.org',
         },
+        {
+          source_name: 'aegis-kernel',
+          external_id: `proof:${event.proofHash}`,
+        },
       ],
     };
   });
@@ -175,4 +212,37 @@ export function formatStixTaxiiIndicator(event: AegisEvent): StixBundle | null {
     id: bundleId,
     objects: indicators,
   };
+}
+
+/**
+ * Structural conformance check for a STIX 2.1 bundle: identifier format,
+ * required indicator fields, and pattern_type. Useful as a pre-publish
+ * gate for TAXII / CISA JCDC submission.
+ */
+export function validateStixBundle(bundle: StixBundle): { valid: boolean; findings: string[] } {
+  const findings: string[] = [];
+
+  if (bundle.type !== 'bundle') findings.push('bundle.type must be "bundle".');
+  if (!/^bundle--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bundle.id)) {
+    findings.push('bundle.id must be bundle--<RFC4122 UUID>.');
+  }
+  if (!Array.isArray(bundle.objects) || bundle.objects.length === 0) {
+    findings.push('bundle.objects must be a non-empty array.');
+  }
+
+  for (const obj of bundle.objects) {
+    if (!/^[a-z0-9-]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(obj.id)) {
+      findings.push(`${obj.type} id must be <type>--<RFC4122 UUID>.`);
+    }
+    if (obj.spec_version !== '2.1') findings.push(`${obj.id} spec_version must be "2.1".`);
+    if (obj.type === 'indicator') {
+      if (obj.pattern_type !== 'stix') findings.push(`${obj.id} pattern_type must be "stix".`);
+      if (typeof obj.pattern !== 'string' || !obj.pattern.startsWith('[')) {
+        findings.push(`${obj.id} pattern must be a bracketed STIX pattern expression.`);
+      }
+      if (typeof obj.valid_from !== 'string') findings.push(`${obj.id} missing valid_from.`);
+    }
+  }
+
+  return { valid: findings.length === 0, findings };
 }

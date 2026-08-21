@@ -1,11 +1,11 @@
 {
-  "manifestId": "aegis-worm-e58d7ba2-8e33-4c15-b7c4-3abd54718d9d",
+  "manifestId": "aegis-worm-c571ee0f-87c8-454c-9b7d-70b7379ed8d5",
   "schema": "aegis-worm-bundle/1.0",
   "provider": "aws-s3",
-  "dossierId": "grc-dossier-1787295121069-469b7526",
+  "dossierId": "grc-dossier-1787296104372-1b12d21f",
   "merkleRootHash": "d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd",
   "previousRootHash": "0000000000000000000000000000000000000000000000000000000000000000",
-  "generatedAt": "2026-08-21T06:52:01.072Z",
+  "generatedAt": "2026-08-21T07:08:24.374Z",
   "retention": {
     "mode": "COMPLIANCE",
     "retainUntil": "2033-08-01T00:00:00.000Z",
@@ -14,45 +14,45 @@
   "bucket": "aegis-compliance-lock",
   "files": [
     {
-      "key": "aegis-compliance/grc-dossier-1787295121069-469b7526.json",
+      "key": "aegis-compliance/grc-dossier-1787296104372-1b12d21f.json",
       "contentType": "application/json",
-      "sha256": "e6f02399c64b58264bbe87e6930ab3d04e18109937fca5e770d6f5398b08e112",
-      "sizeBytes": 31653
+      "sha256": "7ae693b03b2a9585eb405e44bd71aa9865e02d4d735e8e5e12ce9fcc6116c20f",
+      "sizeBytes": 34235
     },
     {
-      "key": "aegis-compliance/grc-dossier-1787295121069-469b7526.html",
+      "key": "aegis-compliance/grc-dossier-1787296104372-1b12d21f.html",
       "contentType": "text/html; charset=utf-8",
-      "sha256": "255ca1947c564b83f9494106ae8db7a9568b99cc440e56c9adcf99b736e27bed",
-      "sizeBytes": 12951
+      "sha256": "a208236d23096375525d878a7392ff7c9a14f86a2c477ab5b413718846bd0b85",
+      "sizeBytes": 13287
     },
     {
-      "key": "aegis-compliance/grc-dossier-1787295121069-469b7526.pdf",
+      "key": "aegis-compliance/grc-dossier-1787296104372-1b12d21f.pdf",
       "contentType": "application/pdf",
-      "sha256": "a12e8573401c3673cde4201f164d42e9d3875fc8ca6d73c5be5eabdf46a72d18",
-      "sizeBytes": 3317
+      "sha256": "2fa5bfd9772a3e63c79435ea8cb3e37201cd650e33cfe422406722cb5d7956f4",
+      "sizeBytes": 3332
     }
   ],
   "chainOfCustody": [
     {
       "sequence": 0,
-      "fileKey": "aegis-compliance/grc-dossier-1787295121069-469b7526.json",
-      "sha256": "e6f02399c64b58264bbe87e6930ab3d04e18109937fca5e770d6f5398b08e112",
+      "fileKey": "aegis-compliance/grc-dossier-1787296104372-1b12d21f.json",
+      "sha256": "7ae693b03b2a9585eb405e44bd71aa9865e02d4d735e8e5e12ce9fcc6116c20f",
       "previousEntryHash": "0000000000000000000000000000000000000000000000000000000000000000",
-      "entryHash": "ea31d03681138b0ad4c17ba169673182facd704680f1d37bf1215f6e502786e4"
+      "entryHash": "a52eee8c6386ffe7b002b98928bbc8481fd44d3bff9268f80159e83f268fcc8e"
     },
     {
       "sequence": 1,
-      "fileKey": "aegis-compliance/grc-dossier-1787295121069-469b7526.html",
-      "sha256": "255ca1947c564b83f9494106ae8db7a9568b99cc440e56c9adcf99b736e27bed",
-      "previousEntryHash": "ea31d03681138b0ad4c17ba169673182facd704680f1d37bf1215f6e502786e4",
-      "entryHash": "36046ec998ffe1fddfaeb0d8d33e4d2794ae1f51651afe18bf85d34bf81b97d6"
+      "fileKey": "aegis-compliance/grc-dossier-1787296104372-1b12d21f.html",
+      "sha256": "a208236d23096375525d878a7392ff7c9a14f86a2c477ab5b413718846bd0b85",
+      "previousEntryHash": "a52eee8c6386ffe7b002b98928bbc8481fd44d3bff9268f80159e83f268fcc8e",
+      "entryHash": "a762c955022a1f2e4a56991562df785e31ebd0b189fde51b1cadcc32c1864f36"
     },
     {
       "sequence": 2,
-      "fileKey": "aegis-compliance/grc-dossier-1787295121069-469b7526.pdf",
-      "sha256": "a12e8573401c3673cde4201f164d42e9d3875fc8ca6d73c5be5eabdf46a72d18",
-      "previousEntryHash": "36046ec998ffe1fddfaeb0d8d33e4d2794ae1f51651afe18bf85d34bf81b97d6",
-      "entryHash": "a11bbecfda1f938cd88201cd088718f17b25c33863ed7b5da393ec0fa79c8dc4"
+      "fileKey": "aegis-compliance/grc-dossier-1787296104372-1b12d21f.pdf",
+      "sha256": "2fa5bfd9772a3e63c79435ea8cb3e37201cd650e33cfe422406722cb5d7956f4",
+      "previousEntryHash": "a762c955022a1f2e4a56991562df785e31ebd0b189fde51b1cadcc32c1864f36",
+      "entryHash": "81f1760ec01fa00591bbb84ceb583c5217d8054aefdf256d2a56a0e8d87b97b9"
     }
   ]
 }

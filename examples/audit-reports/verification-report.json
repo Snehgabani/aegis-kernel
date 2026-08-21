@@ -1,17 +1,17 @@
 {
   "dossierVerification": {
     "valid": true,
-    "dossierId": "grc-dossier-1787295121069-469b7526",
+    "dossierId": "grc-dossier-1787296104372-1b12d21f",
     "merkleRootHash": "d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd",
     "merkleRootValid": true,
     "signatureValid": true,
     "signatureAlgorithm": "ED25519",
     "controlCrosswalkValid": true,
     "controlCoverage": {
-      "total": 19,
-      "satisfied": 19,
+      "total": 20,
+      "satisfied": 20,
       "frameworks": {
-        "SOC2_TYPE_II": 4,
+        "SOC2_TYPE_II": 5,
         "ISO_42001_2023": 3,
         "HIPAA_164_312": 4,
         "NIST_AI_RMF": 4,
@@ -38,7 +38,7 @@
       {
         "category": "CONTROL_MAPPING",
         "status": "PASS",
-        "message": "All core regulatory frameworks verified: SOC 2 Type II (CC6.1, CC6.6, CC6.8), ISO 42001, HIPAA §164.312, NIST AI RMF, EU AI Act (19/19 satisfied)."
+        "message": "All core regulatory frameworks verified: SOC 2 Type II (CC6.1, CC6.6, CC6.8), ISO 42001, HIPAA §164.312, NIST AI RMF, EU AI Act (20/20 satisfied)."
       },
       {
         "category": "ATTESTATION",
@@ -54,7 +54,7 @@
   },
   "wormVerification": {
     "valid": true,
-    "bundleId": "aegis-worm-e58d7ba2-8e33-4c15-b7c4-3abd54718d9d",
+    "bundleId": "aegis-worm-c571ee0f-87c8-454c-9b7d-70b7379ed8d5",
     "findings": [
       {
         "category": "MANIFEST",
@@ -82,5 +82,9 @@
         "message": "Chain-of-custody hashes recomputed successfully."
       }
     ]
+  },
+  "stixConformance": {
+    "valid": true,
+    "findings": []
   }
 }

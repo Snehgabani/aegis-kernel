@@ -1,10 +1,10 @@
 # 🛡️ Aegis Invariant Kernel — Executive GRC Compliance Dossier
-**Dossier ID:** `grc-dossier-1787295121069-469b7526`  
-**Generated At:** 2026-08-21T06:52:01.070Z  
+**Dossier ID:** `grc-dossier-1787296104372-1b12d21f`  
+**Generated At:** 2026-08-21T07:08:24.372Z  
 **Audit Period:** 2026-08-01T00:00:00.000Z → 2026-08-01T11:00:00.000Z  
 **Previous Root Hash:** `0000000000000000000000000000000000000000000000000000000000000000`  
 **Merkle Root Integrity Hash:** `d7339d81304874414249839213c0bb52723f4b008ec207b7db33b7c16da245cd`  
-**Digital Signature (ED25519):** `xmvEDiTBfQpyYOQz6pXDiJn1coc4gScv...`  
+**Digital Signature (ED25519):** `kjltixcebICdNk1kYdi9ZB4V0LW38qr6...`  
 
 
 ---
@@ -53,7 +53,8 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **SOC2_TYPE_II** | `CC6.1` | Logical Access Security & Identity Boundaries for AI Tools | ✅ SATISFIED | 12 | Inspected AST security firewall rules and confirmed zero unauthorized tool egress across all audited event traces. |
 | **SOC2_TYPE_II** | `CC6.6` | Boundary Protection & External Egress Prevention | ✅ SATISFIED | 12 | Sampled outbound network parameters; verified zero-egress containment and IP blocklist enforcement. |
-| **SOC2_TYPE_II** | `CC6.8` | Change Management & Invariant Policy Versioning | ✅ SATISFIED | 12 | Re-evaluated policy commitment hashes against version-controlled RulePack manifests in secure storage. |
+| **SOC2_TYPE_II** | `CC6.8` | Detection & Mitigation of Unauthorized Software (Anti-Malware) | ✅ SATISFIED | 12 | Sampled blocked tool calls; verified deterministic interception and threat-intel indicator emission (STIX pattern, indicator UUID conformance). |
+| **SOC2_TYPE_II** | `CC8.1` | Change Management — Authorized Changes to Infrastructure, Data & Software | ✅ SATISFIED | 12 | Re-evaluated policy commitment hashes against version-controlled RulePack manifests in secure storage. |
 | **SOC2_TYPE_II** | `PI1.1 / PI1.2` | Processing Integrity & Anti-Tautology Guarantees | ✅ SATISFIED | 12 | Tested AST parser with SQL injection and tautological payloads; verified 100% deterministic interception rate. |
 | **ISO_42001_2023** | `Annex A.6.2.7` | Operational Controls & Safety Boundaries for AI Systems | ✅ SATISFIED | 12 | Verified runtime execution sandbox and deterministic tool firewall clearance thresholds. |
 | **ISO_42001_2023** | `Annex A.8.2 / A.8.4` | AI Risk Assessment & System Impact Governance | ✅ SATISFIED | 12 | Audited automated severity classifications (CRITICAL, WARNING, INFO) across recorded violations. |
@@ -68,8 +69,8 @@
 | **NIST_AI_RMF** | `MANAGE-1.3 / MANAGE-2.4` | Deterministic Fail-Safe Boundaries & Contingency Actions | ✅ SATISFIED | 12 | Injected malformed and corrupted payloads; verified deterministic fail-closed state. |
 | **EU_AI_ACT** | `Article 50` | Transparency Obligations — AI-Interaction Disclosure & Marking (in force since 2026-08-02) | ✅ SATISFIED | 12 | Sampled agent sessions; confirmed every AI-initiated tool call carries a signed, chain-verified ledger event usable as disclosure evidence. |
 | **EU_AI_ACT** | `Article 12` | Automatic Record-Keeping & Traceability Throughout Lifecycle (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Walked Merkle event hash chain from genesis root to current period leaf. |
-| **EU_AI_ACT** | `Article 14` | Human Oversight & Step-Up Authorization (HITL) (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Simulated high-value transaction escalation; verified cryptographic clearance token validation. |
-| **EU_AI_ACT** | `Article 15` | Cybersecurity, Robustness & Prompt Injection Resilience (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Subjected agent to adversarial prompt injection suite; confirmed zero invariant bypasses. |
+| **EU_AI_ACT** | `Article 14` | Human Oversight & Step-Up Authorization (HITL) (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Simulated high-value escalation; verified a distinct natural person signed the approval, the credential proof verifies against the issuer key, and the decision is tamper-evident. |
+| **EU_AI_ACT** | `Article 15` | Accuracy, Robustness & Cybersecurity (high-risk package, applicable 2027-12-02) | ✅ SATISFIED | 12 | Subjected agent to adversarial prompt injection / injection suite; confirmed zero invariant bypasses and re-verified Merkle chain integrity. |
 
 ---
 

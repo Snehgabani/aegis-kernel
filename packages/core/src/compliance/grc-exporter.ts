@@ -84,6 +84,13 @@ export interface DossierOptions {
   systemName?: string;
   signKey?: string;
   signAlgorithm?: 'ed25519' | 'hmac-sha256';
+  /**
+   * When signing with Ed25519, the issuer's public key (PEM/SPKI). Embedded in
+   * the dossier so an auditor can independently verify the root signature from
+   * the artifact alone. For non-repudiation this key MUST also be pinned
+   * out-of-band (the embedded copy is for discoverability, not trust).
+   */
+  publicKeyPem?: string;
 }
 
 export interface DossierVerificationFinding {
@@ -360,9 +367,18 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
     {
       framework: 'SOC2_TYPE_II',
       clauseId: 'CC6.8',
-      clauseTitle: 'Change Management & Invariant Policy Versioning',
+      clauseTitle: 'Detection & Mitigation of Unauthorized Software (Anti-Malware)',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `Maintained immutable cryptographic policy commitment hashes for all active rule packs and deterministic safety policies.`,
+      evidenceDescription: `Deterministic AST firewall and real-time STIX 2.1 / OpenDXL threat-intelligence feeds detect and block unauthorized (malicious agentic) tool invocations in-process with zero network egress.`,
+      verifiableEventsCount: totalEvents,
+      auditorTestingProcedure: 'Sampled blocked tool calls; verified deterministic interception and threat-intel indicator emission (STIX pattern, indicator UUID conformance).',
+    },
+    {
+      framework: 'SOC2_TYPE_II',
+      clauseId: 'CC8.1',
+      clauseTitle: 'Change Management — Authorized Changes to Infrastructure, Data & Software',
+      satisfactionStatus: 'SATISFIED',
+      evidenceDescription: `Maintained immutable cryptographic policy commitment hashes for all active rule packs and deterministic safety policies, binding each ledger event to the exact policy version in force.`,
       verifiableEventsCount: totalEvents,
       auditorTestingProcedure: 'Re-evaluated policy commitment hashes against version-controlled RulePack manifests in secure storage.',
     },
@@ -508,18 +524,18 @@ export function generateControlCrosswalk(totalEvents: number, blockedCount: numb
       clauseId: 'Article 14',
       clauseTitle: 'Human Oversight & Step-Up Authorization (HITL) (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `High-risk actions gated by HMAC-SHA256 human interactive clearance tickets.`,
+      evidenceDescription: `High-risk actions gated by signed HITL tickets and W3C JSON-LD Verifiable Credentials (Ed25519) recording a named human approver, enabling the Art. 14(4) capabilities: monitor (a), interpret output (c), and disregard/override/reverse or halt via a fail-closed stop path (d)/(e).`,
       verifiableEventsCount: totalEvents,
-      auditorTestingProcedure: 'Simulated high-value transaction escalation; verified cryptographic clearance token validation.',
+      auditorTestingProcedure: 'Simulated high-value escalation; verified a distinct natural person signed the approval, the credential proof verifies against the issuer key, and the decision is tamper-evident.',
     },
     {
       framework: 'EU_AI_ACT',
       clauseId: 'Article 15',
-      clauseTitle: 'Cybersecurity, Robustness & Prompt Injection Resilience (high-risk package, applicable 2027-12-02)',
+      clauseTitle: 'Accuracy, Robustness & Cybersecurity (high-risk package, applicable 2027-12-02)',
       satisfactionStatus: 'SATISFIED',
-      evidenceDescription: `Deterministic AST firewall intercepted injection attacks without probabilistic model vulnerabilities.`,
+      evidenceDescription: `Deterministic AST firewall provides resilience against attempts to exploit system vulnerabilities (Art. 15(4)): prompt injection, SQL tautologies, and schema rug-pulls are intercepted without probabilistic model dependence; WORM ledger provides fallback integrity for audit.`,
       verifiableEventsCount: totalEvents,
-      auditorTestingProcedure: 'Subjected agent to adversarial prompt injection suite; confirmed zero invariant bypasses.',
+      auditorTestingProcedure: 'Subjected agent to adversarial prompt injection / injection suite; confirmed zero invariant bypasses and re-verified Merkle chain integrity.',
     },
   ];
 }
@@ -630,7 +646,11 @@ export function generateComplianceDossier(
   };
 
   if (options.signKey) {
-    return signComplianceDossier(dossier, options.signKey, options.signAlgorithm);
+    const signed = signComplianceDossier(dossier, options.signKey, options.signAlgorithm);
+    if (signed.signatureType === 'ED25519' && options.publicKeyPem) {
+      signed.publicKeyPem = options.publicKeyPem;
+    }
+    return signed;
   }
 
   return dossier;

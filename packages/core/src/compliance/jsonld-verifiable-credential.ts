@@ -29,7 +29,17 @@ import type { AegisEvent } from '../types.js';
 
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
-function toBase58(bytes: Uint8Array): string {
+/**
+ * Multicodec prefix for an Ed25519 public key (per the EdDSA Cryptosuite:
+ * `publicKeyMultibase` MUST be the multicodec encoding `0xed01` + 32-byte key,
+ * formatted as multibase base58btc `z...`).
+ */
+export const ED25519_MULTICODEC_PREFIX = Buffer.from([0xed, 0x01]);
+
+/**
+ * Base58btc encode (exported so auditors can independently decode proof values).
+ */
+export function toBase58(bytes: Uint8Array): string {
   const digits = [0];
   for (const byte of bytes) {
     let carry = byte;
@@ -53,7 +63,10 @@ function toBase58(bytes: Uint8Array): string {
   return encoded;
 }
 
-function fromBase58(input: string): Buffer {
+/**
+ * Base58btc decode (exported so auditors can independently verify proof values).
+ */
+export function fromBase58(input: string): Buffer {
   if (!/^[1-9A-HJ-NP-Za-km-z]+$/.test(input)) {
     throw new Error('Invalid base58btc string');
   }
@@ -182,9 +195,18 @@ export interface IssueHitlCredentialOptions {
   verificationMethod?: string;
   /** PEM-encoded Ed25519 (SPKI) public key, used to embed `publicKeyMultibase`. */
   publicKeyPem?: string;
-  /** Credential lifetime in seconds (default 300 — mirrors HITL ticket TTL). */
+  /**
+   * Credential lifetime in seconds. Default 10 years (~315,576,000s): the
+   * credential is *audit evidence* attesting that an approval happened, so it
+   * must remain verifiable across the regulatory retention horizon. (The HITL
+   * authorization *ticket* itself — in hitl/escalation.ts — carries its own
+   * short TTL; that is a different, time-boxed object.)
+   */
   ttlSeconds?: number;
 }
+
+/** Default credential lifetime: 10 years of evidence retention. */
+export const DEFAULT_HITL_CREDENTIAL_TTL_SECONDS = 315_576_000;
 
 export interface VcVerificationResult {
   valid: boolean;
@@ -235,7 +257,7 @@ export function issueHitlVerifiableCredential(
   options: IssueHitlCredentialOptions
 ): HitlVerifiableCredential {
   const nowIso = new Date().toISOString();
-  const ttlSeconds = options.ttlSeconds ?? 300;
+  const ttlSeconds = options.ttlSeconds ?? DEFAULT_HITL_CREDENTIAL_TTL_SECONDS;
   const expirationDate = new Date(Date.now() + ttlSeconds * 1000).toISOString();
 
   const unsigned: Omit<HitlVerifiableCredential, 'proof'> = {
@@ -279,7 +301,10 @@ export function issueHitlVerifiableCredential(
   };
 
   if (options.publicKeyPem) {
-    proof.publicKeyMultibase = `z${toBase58(ed25519PublicKeyRawFromPem(options.publicKeyPem))}`;
+    // multicodec 0xed01 prefix + 32-byte key, multibase `z` (base58btc) — per
+    // the EdDSA Cryptosuite's publicKeyMultibase requirement.
+    const raw = ed25519PublicKeyRawFromPem(options.publicKeyPem);
+    proof.publicKeyMultibase = `z${toBase58(Buffer.concat([ED25519_MULTICODEC_PREFIX, raw]))}`;
   }
 
   return { ...unsigned, proof };
@@ -358,12 +383,19 @@ export function buildHitlCredentialSubject(
   decision: 'APPROVED' | 'REJECTED',
   approver: string,
   approverRole: string,
-  options: { ticketId?: string; reason?: string; merkleRootHash?: string; regulatoryBasis?: string[] } = {}
+  options: {
+    ticketId?: string;
+    reason?: string;
+    merkleRootHash?: string;
+    regulatoryBasis?: string[];
+    /** Identity of the agent that requested the high-risk action. */
+    agentId?: string;
+  } = {}
 ): HitlApprovalCredentialSubject {
   return {
     id: `urn:aegis:approval:${event.id}`,
     ticketId: options.ticketId ?? `hitl-${event.id}`,
-    agentId: event.id,
+    agentId: options.agentId ?? `urn:aegis:agent:call:${event.toolCallFingerprint}`,
     toolName: event.toolName,
     paramsHash: event.toolCallFingerprint,
     decision,

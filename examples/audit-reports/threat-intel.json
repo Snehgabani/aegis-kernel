@@ -1,22 +1,23 @@
 {
   "stixBundle": {
     "type": "bundle",
-    "id": "bundle--evt-000",
+    "id": "bundle--64c53b49-ec9d-5515-b987-84f37b6995ce",
     "objects": [
       {
         "type": "indicator",
         "spec_version": "2.1",
-        "id": "indicator--evt-000-0",
-        "created": "2026-08-21T06:52:01.090Z",
-        "modified": "2026-08-21T06:52:01.090Z",
+        "id": "indicator--d5f617d2-47e1-543a-a30c-727e89cb8071",
+        "created": "2026-08-21T07:08:24.390Z",
+        "modified": "2026-08-21T07:08:24.390Z",
         "name": "Adversarial AI Agent Tool Misuse: SQL-NO-DROP",
         "description": "Aegis Invariant Kernel intercepted an unauthorized agent tool invocation on 'execute_sql'. Violation: DROP TABLE statement prohibited by invariant policy",
         "indicator_types": [
           "anomalous-activity",
           "malicious-activity"
         ],
-        "pattern": "[process:name = 'execute_sql' AND file:hashes.'SHA-256' = '7b3d6b557fb033ea7a9e7253d875892b36b39f8c19e89551ae479ec0998b1491']",
+        "pattern": "[process:name = 'execute_sql']",
         "pattern_type": "stix",
+        "pattern_version": "2.1",
         "valid_from": "2026-08-01T00:00:00.000Z",
         "confidence": 95,
         "external_references": [
@@ -29,6 +30,10 @@
             "source_name": "owasp-agentic",
             "external_id": "ASI02",
             "url": "https://genai.owasp.org"
+          },
+          {
+            "source_name": "aegis-kernel",
+            "external_id": "proof:7b3d6b557fb033ea7a9e7253d875892b36b39f8c19e89551ae479ec0998b1491"
           }
         ]
       }
@@ -36,16 +41,16 @@
   },
   "openDxlMessage": {
     "topic": "/aegis/event/threat-intel/agent-tool-misuse",
-    "sourceClientId": "aegis-kernel-44ce4e8f-0459-430a-901e-2c8b1a2c217f",
+    "sourceClientId": "aegis-kernel-6de88db6-e56c-494e-a74d-dc2d28148789",
     "sourceTenantGuid": "aegis-enterprise",
-    "messageId": "dxl-msg-e5cb335f-bb9e-49bd-9633-939e52f96b2e",
+    "messageId": "dxl-msg-b75c91cd-474f-4461-8e06-f553520f2432",
     "payloadType": "threat-intel",
-    "publishedAt": "2026-08-21T06:52:01.091Z",
+    "publishedAt": "2026-08-21T07:08:24.390Z",
     "payload": {
       "kind": "aegis-agent-threat",
       "specVersion": "1.0",
-      "id": "dxl-ce8b421a-2fe0-4ec3-a34c-14e796b39f50",
-      "indicatorId": "indicator--evt-000-0",
+      "id": "dxl-24fb8f01-b5bf-43bb-9c96-2028a34c9175",
+      "indicatorId": "indicator--d5f617d2-47e1-543a-a30c-727e89cb8071",
       "eventId": "evt-000",
       "toolName": "execute_sql",
       "verdict": "BLOCKED",

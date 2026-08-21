@@ -4,10 +4,13 @@ import {
   // Threat-intel feeds
   formatOpenDxlThreatMessage,
   RealTimeThreatIntelFeed,
+  formatStixTaxiiIndicator,
+  validateStixBundle,
   // WORM bundle exporter
   buildWormComplianceBundle,
   buildS3ObjectLockPutParams,
   buildGcsObjectRetentionMetadata,
+  buildGcsBucketRetentionPolicy,
   verifyWormComplianceBundle,
   // JSON-LD Verifiable Credentials
   issueHitlVerifiableCredential,
@@ -84,6 +87,17 @@ describe('Real-time STIX 2.1 & OpenDXL threat intelligence feeds', () => {
 
   it('returns null OpenDXL message for allowed/benign events', () => {
     expect(formatOpenDxlThreatMessage(makeAllowedEvent('evt-2'))).toBeNull();
+  });
+
+  it('emits STIX 2.1 bundles that pass RFC 4122 + patterning conformance', () => {
+    const bundle = formatStixTaxiiIndicator(makeBlockedEvent('evt-stix'));
+    expect(bundle).not.toBeNull();
+    expect(bundle!.id).toMatch(/^bundle--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(bundle!.objects[0].id).toMatch(/^indicator--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    // Pattern is a single observation expression (no cross-SCO AND).
+    const pattern = (bundle!.objects[0] as { pattern: string }).pattern;
+    expect(pattern).toBe("[process:name = 'execute_sql']");
+    expect(validateStixBundle(bundle!).valid).toBe(true);
   });
 
   it('streams deterministic STIX 2.1 + OpenDXL updates to subscribers in real time', () => {
@@ -169,7 +183,7 @@ describe('WORM (Write-Once Read-Many) S3 / GCS Object Lock compliance bundle', (
     expect(params.Body).toBeInstanceOf(Buffer);
   });
 
-  it('emits GCS retention metadata with Locked mode for COMPLIANCE', () => {
+  it('emits GCS object retention metadata with Locked mode for COMPLIANCE', () => {
     const bundle = buildWormComplianceBundle(
       dossier,
       { html: renderComplianceHTML, pdf: renderCompliancePDF },
@@ -184,6 +198,21 @@ describe('WORM (Write-Once Read-Many) S3 / GCS Object Lock compliance bundle', (
     expect(meta.retention?.retainUntilTime).toBe('2033-08-16T00:00:00.000Z');
     expect(meta.temporaryHold).toBe(true);
     expect(meta.metadata['aegis-sha256']).toBe(bundle.files[0].sha256);
+  });
+
+  it('emits the GCS bucket-level retentionPolicy (Object-Lock analog) with correct JSON API shape', () => {
+    const policy = buildGcsBucketRetentionPolicy(
+      { mode: 'COMPLIANCE', retainUntil: '2033-08-16T00:00:00.000Z' },
+      '2026-08-16T00:00:00.000Z'
+    );
+    expect(policy.retentionPolicy.retentionPeriod).toMatch(/^\d+s$/);
+    expect(policy.retentionPolicy.isLocked).toBe(true);
+
+    const gov = buildGcsBucketRetentionPolicy(
+      { mode: 'GOVERNANCE', retainUntil: '2033-08-16T00:00:00.000Z' },
+      '2026-08-16T00:00:00.000Z'
+    );
+    expect(gov.retentionPolicy.isLocked).toBe(false);
   });
 
   it('verifies an intact WORM bundle (all findings PASS)', () => {
@@ -317,12 +346,16 @@ describe('End-to-end compliance dossier pipeline for Big 4 auditors', () => {
     const dossier = generateComplianceDossier(events, [], '0'.repeat(64), {
       signKey: privateKey,
       signAlgorithm: 'ed25519',
+      publicKeyPem: publicKey,
       includeEvents: true,
     });
 
     // Merkle root recomputes from embedded events.
     const expectedRoot = computeEventChainMerkleRoot(events, '0'.repeat(64));
     expect(dossier.merkleRootHash).toBe(expectedRoot);
+
+    // The verification public key is embedded for self-contained audit.
+    expect(dossier.publicKeyPem).toBe(publicKey);
 
     // Dossier cryptographic proof verifies (Merkle + Ed25519 + control mapping).
     const verification = verifyDossierProof(dossier, publicKey);
@@ -331,6 +364,10 @@ describe('End-to-end compliance dossier pipeline for Big 4 auditors', () => {
     expect(verification.signatureValid).toBe(true);
     expect(verification.controlCrosswalkValid).toBe(true);
     expect(verification.eventsAudited).toBe(3);
+
+    // An auditor can verify using the embedded key alone (no external key).
+    const selfContained = verifyDossierProof(dossier, dossier.publicKeyPem!);
+    expect(selfContained.signatureValid).toBe(true);
 
     // WORM bundle round-trips and verifies.
     const bundle = buildWormComplianceBundle(

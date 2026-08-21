@@ -272,6 +272,32 @@ export function buildGcsObjectRetentionMetadata(
 }
 
 /**
+ * Builds a Google Cloud Storage *bucket-level* retention policy (the direct
+ * analog of S3 Object Lock). The policy enforces a minimum retention duration
+ * (in seconds) for all objects based on their creation time, and `isLocked`
+ * models S3 COMPLIANCE mode (irreversible once locked) vs GOVERNANCE.
+ *
+ * This complements `buildGcsObjectRetentionMetadata` (per-object
+ * `retention` + `temporaryHold`), which requires the bucket to have
+ * per-object retention enabled.
+ */
+export function buildGcsBucketRetentionPolicy(
+  retention: WormRetentionPolicy,
+  nowIso: string = new Date().toISOString()
+): { retentionPolicy: { retentionPeriod: string; effectiveTime?: string; isLocked: boolean } } {
+  const retainUntilMs = new Date(retention.retainUntil).getTime();
+  const nowMs = new Date(nowIso).getTime();
+  const seconds = Math.max(1, Math.floor((retainUntilMs - nowMs) / 1000));
+
+  return {
+    retentionPolicy: {
+      retentionPeriod: `${seconds}s`,
+      isLocked: retention.mode === 'COMPLIANCE',
+    },
+  };
+}
+
+/**
  * Verifies a WORM bundle: re-hashes every file, validates the chain-of-custody
  * hashes, the retention policy, and the manifest structure. Returns PASS/FAIL
  * findings suitable for an auditor working paper.
