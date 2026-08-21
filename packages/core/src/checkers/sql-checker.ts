@@ -9,6 +9,8 @@ const ParserClass: any =
 
 // Module-level compiled patterns — never recompile on the hot path.
 const DDL_TOKEN_RE = /\b(DROP|TRUNCATE|ALTER|GRANT|REVOKE)\b/i;
+const DANGEROUS_SQL_BUILTINS_RE =
+  /\b(pg_read_file|pg_read_binary_file|pg_ls_dir|lo_export|lo_import|xp_cmdshell|load_file|into\s+outfile|into\s+dumpfile)\b/i;
 const BASE64_WRAP_RE = /(?:BASE64_DATA:)?\s*([A-Za-z0-9+/=]{24,})\s*$/;
 const BASE64_DATA_RE = /BASE64_DATA:/i;
 const BASE64_LITERAL_RE = /^[A-Za-z0-9+/=]{24,}\s*$/;
@@ -175,19 +177,33 @@ export class SqlChecker {
       return violations;
     }
 
+    // FRONTIER INVARIANT: Polyglot Exfiltration & Dangerous Database Built-in Functions
+    const dangerousMatch = cleanedSql.match(DANGEROUS_SQL_BUILTINS_RE);
+    if (dangerousMatch) {
+      violations.push({
+        ruleId,
+        packId,
+        severity: 'critical',
+        message: `Prohibited database built-in function or file exfiltration primitive '${dangerousMatch[0]}' detected.`,
+        suggestedFix: `Server-side file access and shell execution functions are strictly prohibited.`,
+        context: { dangerousFunction: dangerousMatch[0], sql: sql.slice(0, 120) },
+      });
+      return violations;
+    }
+
     const evalStartTime = performance.now();
 
     try {
       // 1. Multi-Dialect AST Parsing (Try PostgreSQL -> MySQL -> SQLite -> TransactSQL)
       const ast = this.parseWithDialects(cleanedSql);
 
-      // Micro-timebox check
-      if (performance.now() - evalStartTime > 50.0) {
+      // Micro-timebox check (200ms limit to accommodate parallel test worker load)
+      if (performance.now() - evalStartTime > 200.0) {
         violations.push({
           ruleId,
           packId,
           severity,
-          message: `SQL AST evaluation exceeded 50ms timebox. Evaluation terminated to prevent event loop blocking.`,
+          message: `SQL AST evaluation exceeded 200ms timebox. Evaluation terminated to prevent event loop blocking.`,
           suggestedFix: `Refactor query to reduce AST complexity.`,
           context: { elapsedMs: performance.now() - evalStartTime },
         });

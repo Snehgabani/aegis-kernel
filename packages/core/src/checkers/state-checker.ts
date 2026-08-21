@@ -16,9 +16,61 @@ export interface StateInvariantCondition {
 
 export class StateChecker {
   private dslEvaluator: CustomChecker;
+  private static atomicStores = new Map<string, number>();
 
   constructor() {
     this.dslEvaluator = new CustomChecker();
+  }
+
+  /**
+   * Retrieves current atomic balance for a given key.
+   */
+  public static getAtomicBalance(key: string, initialDefault = 0): number {
+    if (!this.atomicStores.has(key)) {
+      this.atomicStores.set(key, initialDefault);
+    }
+    return this.atomicStores.get(key)!;
+  }
+
+  /**
+   * Sets the atomic balance for a given key.
+   */
+  public static setAtomicBalance(key: string, value: number): void {
+    this.atomicStores.set(key, value);
+  }
+
+  /**
+   * Performs an atomic Compare-and-Swap decrement on a shared state counter
+   * to eliminate multi-agent swarm race conditions.
+   */
+  public static atomicDecrementBalance(
+    key: string,
+    amount: number,
+    floor = 0
+  ): { success: boolean; previous: number; remaining: number; error?: string } {
+    const current = this.getAtomicBalance(key);
+    if (current - amount < floor) {
+      return {
+        success: false,
+        previous: current,
+        remaining: current,
+        error: `Insufficient atomic balance: requested ${amount} exceeds available balance ${current} (floor: ${floor})`,
+      };
+    }
+    const remaining = current - amount;
+    this.atomicStores.set(key, remaining);
+    return {
+      success: true,
+      previous: current,
+      remaining,
+    };
+  }
+
+  /**
+   * Clears the atomic store.
+   */
+  public static resetAtomicStore(): void {
+    this.atomicStores.clear();
   }
 
   public evaluate(
