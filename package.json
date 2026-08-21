@@ -29,6 +29,8 @@
     "test:all": "vitest run && bash scripts/security-audit.sh",
     "gen:homoglyphs": "node scripts/gen-homoglyph-maps.mjs",
     "fetch:benchmarks": "node scripts/fetch-canonical-benchmarks.mjs",
+    "audit:analytics": "node scripts/audit-analytics.mjs",
+    "precommit:shield": "node scripts/precommit-ast-shield.mjs",
     "lint": "turbo run lint --no-daemon --concurrency=4",
     "clean": "turbo run clean"
   },

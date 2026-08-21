@@ -46,7 +46,7 @@ updates:
       - "dependencies"
       - "go"
 
-  # 4. Python SDK Package
+  # 4. Python SDK Packages
   - package-ecosystem: "pip"
     directory: "/packages/python"
     schedule:
@@ -57,6 +57,46 @@ updates:
     labels:
       - "dependencies"
       - "python"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/packages/crewai"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "python"
+      - "crewai"
+
+  - package-ecosystem: "pip"
+    directory: "/packages/autogen"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "python"
+      - "autogen"
+
+  - package-ecosystem: "pip"
+    directory: "/packages/browser-guard"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "python"
+      - "browser-use"
 
   # 5. Root Docker Containers
   - package-ecosystem: "docker"
