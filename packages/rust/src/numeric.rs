@@ -259,7 +259,11 @@ impl NumericChecker {
                     }
                 }
 
-                // Sliding window rate limit
+                // Sliding window rate limit. Bounded window: the retained
+                // history is capped at max_per_minute so per-call work stays
+                // O(max_per_minute) regardless of call volume (the historical
+                // implementation kept EVERY timestamp in the window, making
+                // each evaluate() O(total calls)).
                 if let Some(rate_limit) = &params.rate_limit {
                     let now = SystemTime::now()
                         .duration_since(UNIX_EPOCH)
@@ -267,19 +271,31 @@ impl NumericChecker {
                         .as_millis();
                     let window_ms = 60 * 1000;
                     let key = format!("{}:{}:{}", pack_id, rule_id, call.name);
+                    let max = rate_limit.max_per_minute;
 
                     let mut windows = self.rate_limit_windows.lock().unwrap();
                     let timestamps = windows.entry(key).or_default();
-                    timestamps.retain(|&t| now.saturating_sub(t) < window_ms);
+                    let first_live = timestamps
+                        .iter()
+                        .position(|&t| now.saturating_sub(t) < window_ms)
+                        .unwrap_or(timestamps.len());
+                    if first_live > 0 {
+                        timestamps.drain(..first_live);
+                    }
+                    // At capacity before this call ⇒ the call exceeds the ceiling.
+                    let exceeded = timestamps.len() >= max;
                     timestamps.push(now);
-                    let count = timestamps.len();
+                    if timestamps.len() > max {
+                        let excess = timestamps.len() - max;
+                        timestamps.drain(..excess);
+                    }
 
-                    if count > rate_limit.max_per_minute {
+                    if exceeded {
                         violations.push(AegisViolation {
                             rule_id: rule_id.to_string(),
                             pack_id: pack_id.to_string(),
                             severity,
-                            message: format!("Rate limit ceiling reached: Tool '{}' invoked {} times in past minute (max: {}).", call.name, count, rate_limit.max_per_minute),
+                            message: format!("Rate limit ceiling reached: Tool '{}' invoked {} times in past minute (max: {}).", call.name, max, rate_limit.max_per_minute),
                             suggested_fix: Some("Throttle tool invocation frequency or batch operations.".to_string()),
                             context: None,
                         });

@@ -54,6 +54,13 @@ export class LearningLedgerManager {
       this.ledger.totalAllowed += 1;
     }
 
+    // Reuse the event timestamp (already rendered ISO string) — the ledger
+    // update is logically the same instant; avoids a second toISOString() on
+    // every hot-path evaluation.
+    if (event.timestamp) {
+      this.ledger.lastUpdated = event.timestamp;
+    }
+
     if (event.userOverride) {
       this.ledger.totalOverrides += 1;
     }
@@ -102,7 +109,6 @@ export class LearningLedgerManager {
         (this.ledger.uncoveredTools[event.toolName] ?? 0) + 1;
     }
 
-    this.ledger.lastUpdated = new Date().toISOString();
     this.isDirty = true;
     this.schedulePersist();
   }

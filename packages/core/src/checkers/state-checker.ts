@@ -1,4 +1,4 @@
-import type { AegisViolation, ToolCall } from '../types.js';
+import type { AegisViolation, EvaluationScratch, ToolCall } from '../types.js';
 import { CustomChecker } from './custom-checker.js';
 
 export interface StateInvariantConditionParams {
@@ -27,13 +27,31 @@ export class StateChecker {
     params: StateInvariantConditionParams,
     toolCall: ToolCall,
     stateContext?: Record<string, unknown>,
-    severity: import("../types.js").AegisSeverity = "critical"
+    severity: import("../types.js").AegisSeverity = "critical",
+    scratch?: EvaluationScratch
   ): AegisViolation[] {
     const violations: AegisViolation[] = [];
 
-    // If this state rule targets a specific field (e.g. 'amount') and the tool call doesn't have it, skip
-    if (params.target_field && !(params.target_field in toolCall.params) && this.findNestedValue(toolCall.params, params.target_field) === undefined) {
-      return violations;
+    // If this state rule targets a specific field (e.g. 'amount') and the tool
+    // call doesn't have it, skip. The nested tree walk is memoized per
+    // evaluate() call so repeated probes across state rules short-circuit.
+    if (params.target_field && !(params.target_field in toolCall.params)) {
+      const probed = scratch?.stateProbed.get(toolCall.params);
+      if (probed?.has(params.target_field)) {
+        return violations;
+      }
+      const found = this.findNestedValue(toolCall.params, params.target_field);
+      if (found === undefined) {
+        if (scratch) {
+          let set = scratch.stateProbed.get(toolCall.params);
+          if (!set) {
+            set = new Set<string>();
+            scratch.stateProbed.set(toolCall.params, set);
+          }
+          set.add(params.target_field);
+        }
+        return violations;
+      }
     }
 
     // Tenant isolation verification: parameters must match the authenticated tenant in state
