@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.8.0...core@vv1.9.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **security:** eliminate 7 catastrophic failure modes with AST recursion limit, ZK replay defense, NFKD vault, and crescendo drift tracker ([7f04613](https://github.com/Snehgabani/aegis-kernel/commit/7f0461374bb2af3a95833ee06e9ad6865967b548))
+
 ## [1.8.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.7.0...core@vv1.8.0) (2026-08-21)
 
 
