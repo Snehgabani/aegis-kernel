@@ -53,6 +53,20 @@ for (const pkgName of packages) {
   }
 }
 
+// Check Python packages
+const pyPackages = ['python', 'crewai', 'autogen', 'browser-guard'];
+for (const pyPkg of pyPackages) {
+  const pyDir = path.join(PACKAGES_DIR, pyPkg);
+  const pyProject = path.join(pyDir, 'pyproject.toml');
+  if (fs.existsSync(pyProject)) {
+    console.log(`\n🐍 Auditing Python Package: aegis-kernel-${pyPkg}`);
+    const content = fs.readFileSync(pyProject, 'utf8');
+    assert(content.includes('name ='), `aegis-kernel-${pyPkg} has name in pyproject.toml`);
+    assert(content.includes('version ='), `aegis-kernel-${pyPkg} has version in pyproject.toml`);
+    assert(content.includes('license =') || content.includes('MIT'), `aegis-kernel-${pyPkg} has license in pyproject.toml`);
+  }
+}
+
 console.log('\n═══════════════════════════════════════════════════════════════');
 console.log(`  🎯 PRE-PUBLISH SCORECARD: ${passCount} PASSED / ${failCount} FAILED`);
 if (failCount === 0) {
