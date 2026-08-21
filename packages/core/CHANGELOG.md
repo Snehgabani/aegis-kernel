@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.2.1...core@vv1.3.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **synthesizer:** add SchemaInvariantSynthesizer for dynamic OpenAPI and MCP invariant rule generation ([a2eef8f](https://github.com/Snehgabani/aegis-kernel/commit/a2eef8f5ce4540e367ffb94e41f3c160c1d2be10))
+
 ## [1.2.1](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.2.0...core@vv1.2.1) (2026-08-21)
 
 
