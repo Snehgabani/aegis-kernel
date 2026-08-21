@@ -2,14 +2,32 @@
 set -e
 
 echo "═══════════════════════════════════════════════════════════"
-echo "  🐍 Aegis Python SDK — Automated PyPI Release"
+echo "  🐍 Aegis Python SDK & Middleware — Automated PyPI Release"
 echo "═══════════════════════════════════════════════════════════"
 
-cd packages/python
-echo "Installing/verifying twine..."
-python3 -m pip install --quiet twine
+PYTHON_PACKAGES=(
+  "packages/python"
+  "packages/crewai"
+  "packages/autogen"
+  "packages/browser-guard"
+)
 
-echo "Uploading wheel and sdist to PyPI..."
-python3 -m twine upload dist/*
+echo "Installing/verifying build and twine..."
+python3 -m pip install --quiet build twine
 
-echo "✅ aegis-kernel published to PyPI successfully!"
+for PKG in "${PYTHON_PACKAGES[@]}"; do
+  echo ""
+  echo "📦 Building & Publishing $PKG..."
+  (
+    cd "$PKG"
+    rm -rf dist build *.egg-info
+    python3 -m build
+    python3 -m twine upload --skip-existing dist/*
+  )
+  echo "   ✅ $PKG published successfully!"
+done
+
+echo ""
+echo "═══════════════════════════════════════════════════════════"
+echo "  🎉 All 4 Aegis Python packages published to PyPI successfully!"
+echo "═══════════════════════════════════════════════════════════"

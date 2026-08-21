@@ -42,6 +42,7 @@ for (const pkgName of packages) {
   assert(Boolean(pkgJson.version), `${pkgName} has version (${pkgJson.version})`);
   assert(Boolean(pkgJson.license), `${pkgName} has license (${pkgJson.license})`);
   assert(Boolean(pkgJson.description), `${pkgName} has description`);
+  assert(Boolean(pkgJson.repository && pkgJson.repository.url), `${pkgName} has repository metadata for Sigstore provenance`);
 
   // Check dist directory
   const distDir = path.join(pkgDir, 'dist');

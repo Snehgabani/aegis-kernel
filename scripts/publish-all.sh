@@ -18,9 +18,11 @@ echo ""
 
 PACKAGES=(
   "packages/core"
-  "packages/langchain"
+  "packages/diagnostics"
+  "packages/evals"
   "packages/mcp"
   "packages/cli"
+  "packages/langchain"
   "packages/vercel-ai"
   "packages/openai"
   "packages/anthropic"

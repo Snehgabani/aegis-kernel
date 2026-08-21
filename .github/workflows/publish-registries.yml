@@ -82,7 +82,10 @@ jobs:
 
       - name: Run Python SDK Tests
         run: |
-          pytest packages/python/tests/
+          PYTHONPATH=packages/python pytest packages/python/tests/
+          PYTHONPATH=packages/crewai:packages/python pytest packages/crewai/tests/
+          PYTHONPATH=packages/autogen:packages/python pytest packages/autogen/tests/
+          PYTHONPATH=packages/browser-guard:packages/python pytest packages/browser-guard/tests/
 
       - name: Build & Publish All 4 Python Packages to PyPI
         env:

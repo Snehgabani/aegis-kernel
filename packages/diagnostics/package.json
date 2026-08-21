@@ -37,5 +37,17 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git",
+    "directory": "packages/diagnostics"
+  },
+  "homepage": "https://snehgabani.github.io/aegis-kernel/",
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

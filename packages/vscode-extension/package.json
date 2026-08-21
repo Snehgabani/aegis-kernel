@@ -50,7 +50,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Snehgabani/aegis-kernel"
+    "url": "git+https://github.com/Snehgabani/aegis-kernel.git",
+    "directory": "packages/vscode-extension"
   },
   "scripts": {
     "build": "tsup",
@@ -61,5 +62,12 @@
     "tsup": "^8.3.6",
     "typescript": "^5.7.3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://snehgabani.github.io/aegis-kernel/",
+  "bugs": {
+    "url": "https://github.com/Snehgabani/aegis-kernel/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
