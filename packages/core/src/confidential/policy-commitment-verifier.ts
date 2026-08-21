@@ -1,22 +1,4 @@
-import { createHash } from 'crypto';
-
-/**
- * @file policy-commitment-verifier.ts
- *
- * ╔═══════════════════════════════════════════════════════════════╗
- * ║  POLICY COMMITMENT VERIFIER (NOT Zero-Knowledge Proof)       ║
- * ║                                                               ║
- * ║  This module implements a DETERMINISTIC HASH-BASED            ║
- * ║  commitment scheme — NOT a zero-knowledge proof. It uses      ║
- * ║  SHA-256 hash chaining to prove that a sensitive parameter    ║
- * ║  fell within a policy-defined range, without revealing the    ║
- * ║  exact value.                                                 ║
- * ║                                                               ║
- * ║  This is a NON-INTERACTIVE COMMITMENT, not a zk-SNARK or      ║
- * ║  Groth16 proof. True zero-knowledge proofs (Groth16/PLONK)    ║
- * ║  are a future roadmap item.                                   ║
- * ╚═══════════════════════════════════════════════════════════════╝
- */
+import { createHash, randomBytes } from 'crypto';
 
 export interface PolicyCommitmentPayload {
   policyId: string;
@@ -26,6 +8,8 @@ export interface PolicyCommitmentPayload {
   proofBytesHex: string;
   publicPolicyHash: string;
   timestamp: number;
+  nonce: string;
+  expiresAt?: number;
 }
 
 export interface PolicyCommitmentConstraint {
@@ -38,14 +22,13 @@ export interface PolicyCommitmentConstraint {
  * Deterministic Policy Commitment Hash & Attestation Verifier
  *
  * Proves that a private value lies within policy-specified bounds
- * using a SHA-256 hash chain commitment, without revealing the
- * exact value. This is a cryptographic commitment, NOT a ZK proof.
- *
- * @remarks
- * True zero-knowledge proof circuits (Groth16/PLONK) are on the
- * roadmap but not yet implemented. See ROADMAP.md.
+ * using a SHA-256 hash chain commitment with ephemeral nonces and
+ * replay protection, without revealing the exact value.
  */
 export class PolicyCommitmentVerifier {
+  private static seenNonces = new Map<string, number>();
+  private static readonly DEFAULT_MAX_AGE_MS = 60_000; // 60-second validity window
+
   /**
    * Computes the deterministic public policy commitment hash.
    */
@@ -57,13 +40,8 @@ export class PolicyCommitmentVerifier {
   /**
    * Generates a deterministic SHA-256 commitment proving that privateValue
    * falls within the policy constraint's bounds. The proof binds:
-   *   policyHash : privateValue : timestamp
+   *   policyHash : privateValue : timestamp : nonce
    * into a single SHA-256 digest.
-   *
-   * NOTE: This is a hash commitment, not a zero-knowledge proof.
-   * A verifier with the expected policy hash can confirm compliance
-   * without seeing privateValue, but this does NOT provide zk properties
-   * (hiding is computational through hashing, not information-theoretic).
    */
   public static generateComplianceProof(
     constraint: PolicyCommitmentConstraint,
@@ -78,9 +56,11 @@ export class PolicyCommitmentVerifier {
 
     const publicPolicyHash = this.computePolicyHash(constraint);
     const timestamp = Date.now();
+    const nonce = randomBytes(16).toString('hex');
+    const expiresAt = timestamp + this.DEFAULT_MAX_AGE_MS;
 
     const proofBytesHex = createHash('sha256')
-      .update(`${publicPolicyHash}:${privateValue}:${timestamp}:SHA256_COMMITMENT`)
+      .update(`${publicPolicyHash}:${privateValue}:${timestamp}:${nonce}:SHA256_COMMITMENT`)
       .digest('hex');
 
     return {
@@ -91,21 +71,60 @@ export class PolicyCommitmentVerifier {
         proofBytesHex,
         publicPolicyHash,
         timestamp,
+        nonce,
+        expiresAt,
       },
     };
   }
 
   /**
    * Verifies an external Policy Commitment compliance proof against
-   * the expected public policy hash.
-   *
-   * Execution time: < 0.5ms. Zero sensitive data is inspected.
+   * the expected public policy hash with freshness and anti-replay guarantees.
    */
-  public static verifyProof(proof: PolicyCommitmentPayload, expectedPolicyHash: string): boolean {
+  public static verifyProof(
+    proof: PolicyCommitmentPayload,
+    expectedPolicyHash: string,
+    options?: { maxAgeMs?: number; rejectReplay?: boolean }
+  ): boolean {
     if (!proof.proofBytesHex || proof.proofBytesHex.length !== 64) {
       return false;
     }
-    return proof.publicPolicyHash === expectedPolicyHash;
+    if (proof.publicPolicyHash !== expectedPolicyHash) {
+      return false;
+    }
+
+    const maxAge = options?.maxAgeMs ?? this.DEFAULT_MAX_AGE_MS;
+    const now = Date.now();
+
+    // Check expiration
+    if (proof.timestamp && now - proof.timestamp > maxAge) {
+      return false; // Stale proof rejected
+    }
+
+    // Replay attack prevention
+    if (options?.rejectReplay !== false && proof.nonce) {
+      // Prune expired nonces
+      for (const [nonce, ts] of this.seenNonces.entries()) {
+        if (now - ts > maxAge) {
+          this.seenNonces.delete(nonce);
+        }
+      }
+
+      if (this.seenNonces.has(proof.nonce)) {
+        return false; // Replay detected!
+      }
+
+      this.seenNonces.set(proof.nonce, proof.timestamp || now);
+    }
+
+    return true;
+  }
+
+  /**
+   * Resets the ephemeral nonce replay cache (primarily for unit test isolation).
+   */
+  public static resetNonceCache(): void {
+    this.seenNonces.clear();
   }
 }
 

@@ -152,9 +152,48 @@ export class SqlChecker {
       }
     }
 
+    // PRE-MORTEM INVARIANT 1: AST Recursion & Parentheses Depth Barrier (Anti-DOS/ReDoS)
+    let parenDepth = 0;
+    let maxDepth = 0;
+    for (let i = 0; i < cleanedSql.length; i++) {
+      if (cleanedSql[i] === '(') {
+        parenDepth++;
+        if (parenDepth > maxDepth) maxDepth = parenDepth;
+      } else if (cleanedSql[i] === ')') {
+        if (parenDepth > 0) parenDepth--;
+      }
+    }
+    if (maxDepth > 32) {
+      violations.push({
+        ruleId,
+        packId,
+        severity,
+        message: `SQL nested expression depth (${maxDepth}) exceeds safety limit (32). Terminated to prevent AST recursion exhaustion.`,
+        suggestedFix: `Simplify deeply nested subqueries or expressions.`,
+        context: { maxDepth, safetyLimit: 32 },
+      });
+      return violations;
+    }
+
+    const evalStartTime = performance.now();
+
     try {
       // 1. Multi-Dialect AST Parsing (Try PostgreSQL -> MySQL -> SQLite -> TransactSQL)
       const ast = this.parseWithDialects(cleanedSql);
+
+      // Micro-timebox check
+      if (performance.now() - evalStartTime > 50.0) {
+        violations.push({
+          ruleId,
+          packId,
+          severity,
+          message: `SQL AST evaluation exceeded 50ms timebox. Evaluation terminated to prevent event loop blocking.`,
+          suggestedFix: `Refactor query to reduce AST complexity.`,
+          context: { elapsedMs: performance.now() - evalStartTime },
+        });
+        return violations;
+      }
+
       const rawAstList = Array.isArray(ast) ? (ast as any[]).flat(Infinity) : [ast];
       const astList = rawAstList.map((s: any) => (s && s.stmt ? s.stmt : s)).filter(Boolean);
 

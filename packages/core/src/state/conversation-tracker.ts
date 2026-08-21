@@ -54,9 +54,26 @@ export class ConversationTracker {
     let action: DriftVerdict['action'] = 'CONTINUE';
     let reason: string | undefined = undefined;
 
+    // PRE-MORTEM INVARIANT: Monotonic Crescendo Escalation Tracker
+    let isEscalating = false;
+    if (this.turns.length >= 4) {
+      const recent = this.turns.slice(-4);
+      if (
+        recent[0].riskContribution > 0.05 &&
+        recent[1].riskContribution > recent[0].riskContribution &&
+        recent[2].riskContribution > recent[1].riskContribution &&
+        recent[3].riskContribution > recent[2].riskContribution
+      ) {
+        isEscalating = true;
+      }
+    }
+
     if (this.turns.length > this.config.maxSessionTurns) {
       action = 'QUARANTINE';
       reason = 'Max session turns exceeded';
+    } else if (isEscalating) {
+      action = 'QUARANTINE';
+      reason = 'Monotonic risk escalation detected (Crescendo Escalation Vector)';
     } else if (this.cumulativeRisk >= this.config.driftThreshold || intentDrift >= this.config.driftThreshold) {
       action = 'QUARANTINE';
       reason = 'Risk or intent drift threshold exceeded (Crescendo Attack Detected)';

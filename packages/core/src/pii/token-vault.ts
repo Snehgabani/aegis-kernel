@@ -40,7 +40,9 @@ export class PiiTokenVault {
       return { sanitized: text, tokensCreated: 0, tokenTypes: {} };
     }
 
-    let sanitized = text;
+    // PRE-MORTEM INVARIANT: Strict Unicode NFKD Normalization & Zero-Width Stripping
+    const normalized = text.normalize('NFKD').replace(/[\u200B-\u200D\uFEFF\u202A-\u202E]/g, '');
+    let sanitized = normalized;
     let tokensCreated = 0;
     const tokenTypes: Record<string, number> = {};
 
