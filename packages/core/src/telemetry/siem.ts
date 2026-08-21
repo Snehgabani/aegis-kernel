@@ -218,8 +218,8 @@ export function formatStixTaxiiIndicator(
     // STIX patterning grammar (§9): a single observation expression `[...]`
     // must not mix multiple SCO types. The observable that signals the misuse
     // is the invoked tool (process); the Merkle proof hash is carried as an
-    // external reference rather than a fabricated `file:hashes` entry.
-    const pattern = `[process:name = '${event.toolName.replace(/'/g, "\\'")}']`;
+    const sanitizedToolName = event.toolName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const pattern = `[process:name = '${sanitizedToolName}']`;
     return {
       type: 'indicator',
       spec_version: '2.1',

@@ -1172,18 +1172,26 @@ export class Z3SymbolicChecker {
       if (typeof value === 'number') return ctx.Int.val(value);
     }
 
-    const addMatch = trimmed.match(/^(.+)\s*\+\s*(.+)$/);
-    if (addMatch) {
-      const left = this.resolveExpression(ctx, addMatch[1], stateVariables, step, params);
-      const right = this.resolveExpression(ctx, addMatch[2], stateVariables, step, params);
-      if (left && right) return left.add(right);
+    const plusIdx = trimmed.lastIndexOf('+');
+    if (plusIdx > 0 && plusIdx < trimmed.length - 1) {
+      const leftStr = trimmed.slice(0, plusIdx).trim();
+      const rightStr = trimmed.slice(plusIdx + 1).trim();
+      if (leftStr.length > 0 && rightStr.length > 0) {
+        const left = this.resolveExpression(ctx, leftStr, stateVariables, step, params);
+        const right = this.resolveExpression(ctx, rightStr, stateVariables, step, params);
+        if (left && right) return left.add(right);
+      }
     }
 
-    const subMatch = trimmed.match(/^(.+)\s*-\s*(.+)$/);
-    if (subMatch) {
-      const left = this.resolveExpression(ctx, subMatch[1], stateVariables, step, params);
-      const right = this.resolveExpression(ctx, subMatch[2], stateVariables, step, params);
-      if (left && right) return left.sub(right);
+    const minusIdx = trimmed.lastIndexOf('-');
+    if (minusIdx > 0 && minusIdx < trimmed.length - 1) {
+      const leftStr = trimmed.slice(0, minusIdx).trim();
+      const rightStr = trimmed.slice(minusIdx + 1).trim();
+      if (leftStr.length > 0 && rightStr.length > 0) {
+        const left = this.resolveExpression(ctx, leftStr, stateVariables, step, params);
+        const right = this.resolveExpression(ctx, rightStr, stateVariables, step, params);
+        if (left && right) return left.sub(right);
+      }
     }
 
     return null;

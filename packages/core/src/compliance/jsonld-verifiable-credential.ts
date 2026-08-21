@@ -348,7 +348,11 @@ export function verifyHitlVerifiableCredential(
 ): VcVerificationResult {
   const contextValid =
     Array.isArray(credential['@context']) &&
-    credential['@context'].includes('https://www.w3.org/2018/credentials/v1');
+    credential['@context'].some(
+      (ctx: unknown) =>
+        typeof ctx === 'string' &&
+        (ctx === 'https://www.w3.org/2018/credentials/v1' || ctx === 'https://www.w3.org/ns/credentials/v2')
+    );
 
   const typeValid =
     Array.isArray(credential.type) &&
