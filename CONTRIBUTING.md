@@ -119,3 +119,34 @@ Aegis uses a plugin architecture where security invariants are defined as **Rule
 2. Add your pack to `community-packs/`
 3. Include tests in `community-packs/__tests__/`
 4. Open a PR with the `rule-pack` label
+
+---
+
+## 📦 Pull Requests & Conventional Commits
+
+Aegis uses **Google Release-Please** for automated semantic versioning and changelog generation across TypeScript, Rust, Python, and Go packages.
+
+All Pull Request titles and commit messages must adhere to the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+```
+<type>(<optional scope>): <description>
+```
+
+### Allowed Types
+
+| Type | Purpose | SemVer Bump |
+| :--- | :--- | :---: |
+| `feat` | A new feature, detector, or verification engine | `minor` |
+| `fix` | A bug fix or invariant patch | `patch` |
+| `perf` | AST or performance optimization | `patch` |
+| `refactor` | Code refactoring without behavioral change | `patch` |
+| `docs` | Documentation or compliance reports | `patch` |
+| `test` | Invariant tests or fuzzing suites | None |
+| `ci` | CI/CD workflow updates | None |
+| `chore` | Maintenance tasks | None |
+
+> [!TIP]
+> To indicate a **Breaking Change**, append `!` after the type/scope (e.g., `feat(sql)!: migrate to typed AST visitor`) or add `BREAKING CHANGE:` in the PR footer. This automatically triggers a `major` version bump.
+
+### Instant PR Previews (`pkg.pr.new`)
+Every opened PR automatically publishes an ephemeral preview package via `pkg.pr.new` (commented on the PR) allowing you to test modifications in real-time before merge.

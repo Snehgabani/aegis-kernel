@@ -1,0 +1,14 @@
+{
+  "packages/core": "1.0.1",
+  "packages/cli": "1.0.1",
+  "packages/mcp": "1.0.1",
+  "packages/langchain": "1.0.1",
+  "packages/openai": "1.0.1",
+  "packages/anthropic": "1.0.1",
+  "packages/vercel-ai": "1.0.1",
+  "packages/diagnostics": "1.0.1",
+  "packages/evals": "1.0.1",
+  "packages/rust": "1.0.1",
+  "packages/python": "1.0.1",
+  "packages/go": "1.0.1"
+}

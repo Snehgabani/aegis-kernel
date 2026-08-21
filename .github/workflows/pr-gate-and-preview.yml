@@ -1,0 +1,66 @@
+name: PR Semantic Title & Continuous Previews
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+  statuses: write
+
+jobs:
+  validate-pr-title:
+    name: Validate Conventional PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint Semantic PR Title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            docs
+            test
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: The subject of your PR title must start with a lowercase letter.
+
+  continuous-preview:
+    name: Publish Instant Continuous PR Preview
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build Core & CLI Packages
+        run: npm run build
+
+      - name: Publish Ephemeral PR Package via pkg.pr.new
+        run: |
+          npx -y pkg-pr-new publish \
+            ./packages/core \
+            ./packages/cli \
+            ./packages/mcp \
+            ./packages/langchain \
+            ./packages/openai \
+            ./packages/anthropic \
+            ./packages/vercel-ai \
+            ./packages/diagnostics \
+            ./packages/evals || echo "pkg.pr.new continuous preview skipped (offline/rate-limit)."

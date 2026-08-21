@@ -1,0 +1,31 @@
+name: Community Release Broadcast
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  discussions: write
+
+jobs:
+  broadcast-release:
+    name: Syndicate Release Announcement
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Release Announcement
+        run: |
+          echo "📢 New Aegis Release Published!"
+          echo "Tag: ${{ github.event.release.tag_name }}"
+          echo "Title: ${{ github.event.release.name }}"
+          echo "URL: ${{ github.event.release.html_url }}"
+
+      - name: Broadcast to Discord Announcements (if webhook configured)
+        if: env.DISCORD_WEBHOOK != ''
+        run: |
+          curl -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"content\": \"🚀 **Aegis Invariant Kernel ${{ github.event.release.tag_name }} Published!**\n\nRead the full release notes: ${{ github.event.release.html_url }}\"}" \
+            "${DISCORD_WEBHOOK}" || echo "Discord broadcast notification skipped."
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_ANNOUNCEMENTS_WEBHOOK }}
