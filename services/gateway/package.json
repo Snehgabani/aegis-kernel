@@ -51,11 +51,11 @@
   },
   "dependencies": {
     "@aegis-kernel/core": "*",
-    "hono": "^4.6.14"
+    "hono": "^4.13.3"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
     "tsup": "^8.3.6",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
