@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.1.0...cli@vv1.2.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **core:** z3 symbolic verification and enterprise GRC compliance exporters ([#48](https://github.com/Snehgabani/aegis-kernel/issues/48)) ([0527c89](https://github.com/Snehgabani/aegis-kernel/commit/0527c89f210378aef1c80cdad1cb117d7c0f89ce))
+
 ## [1.1.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.0.1...cli@vv1.1.0) (2026-08-21)
 
 

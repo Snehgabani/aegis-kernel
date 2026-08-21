@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Snehgabani/aegis-kernel/compare/aegis-kernel-go@vv1.1.0...aegis-kernel-go@vv1.1.1) (2026-08-21)
+
+
+### ⚡ Performance & AST Optimizations
+
+* **hot-path:** sub-50µs P99 evaluation pipeline across TS/Rust/Go ([#49](https://github.com/Snehgabani/aegis-kernel/issues/49)) ([ff24c81](https://github.com/Snehgabani/aegis-kernel/commit/ff24c81554809e06fe3a71e3d423665ee7fec10c))
+
 ## [1.1.0](https://github.com/Snehgabani/aegis-kernel/compare/aegis-kernel-go@vv1.0.1...aegis-kernel-go@vv1.1.0) (2026-08-21)
 
 

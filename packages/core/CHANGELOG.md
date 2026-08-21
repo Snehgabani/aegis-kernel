@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.1.0...core@vv1.2.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **core:** z3 symbolic verification and enterprise GRC compliance exporters ([#48](https://github.com/Snehgabani/aegis-kernel/issues/48)) ([0527c89](https://github.com/Snehgabani/aegis-kernel/commit/0527c89f210378aef1c80cdad1cb117d7c0f89ce))
+
+
+### ⚡ Performance & AST Optimizations
+
+* **hot-path:** sub-50µs P99 evaluation pipeline across TS/Rust/Go ([#49](https://github.com/Snehgabani/aegis-kernel/issues/49)) ([ff24c81](https://github.com/Snehgabani/aegis-kernel/commit/ff24c81554809e06fe3a71e3d423665ee7fec10c))
+
 ## [1.1.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.0.1...core@vv1.1.0) (2026-08-21)
 
 
