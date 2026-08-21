@@ -25,15 +25,29 @@ from aegis_kernel.types import AegisVerdict, AegisViolation
 from .policy import BrowserPolicy, DANGEROUS_SCHEMES
 
 ZERO_WIDTH_RE = re.compile("[\u200b\u200c\u200d\u2060\u00ad\ufeff\u180e]")
+HIDDEN_CSS_INJECTION_RE = re.compile(
+    r'(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0|font-size\s*:\s*0(?:px)?|position\s*:\s*absolute\s*;\s*left\s*:\s*-[0-9]{3,5}px)[^>]*>(?:[^<]*(?:ignore\s+(?:previous|all)\s+instructions|system\s+prompt|admin\s+override|exfil|password|bearer|secret))',
+    re.IGNORECASE,
+)
+ZERO_PIXEL_BEACON_RE = re.compile(
+    r'<(?:img|iframe|embed)\b[^>]*(?:width\s*=\s*["\']?0["\']?|height\s*=\s*["\']?0["\']?|style\s*=\s*["\'][^"\']*(?:width\s*:\s*0(?:px)?|height\s*:\s*0(?:px)?)[^"\']*)[^>]*>',
+    re.IGNORECASE,
+)
+DOM_SCRIPT_TAG_RE = re.compile(
+    r'<(?:script|svg\s+onload|img\s+onerror)\b|<a\s+href\s*=\s*["\']javascript:',
+    re.IGNORECASE,
+)
 
 NAVIGATION_ACTIONS = ("go_to_url", "navigate", "open_tab", "open_url", "goto", "search", "visit")
 INPUT_ACTIONS = ("input_text", "input", "type", "fill", "send_keys", "keyboard", "write")
 DOWNLOAD_ACTIONS = ("download", "save_file")
 UPLOAD_ACTIONS = ("upload", "attach_file")
+DOM_ACTIONS = ("parse_dom", "read_dom", "extract_html", "get_html", "scrape", "dom")
 
 _URL_PARAM_KEYS = ("url", "uri", "link", "href", "target_url", "page_url")
 _TEXT_PARAM_KEYS = ("text", "value", "input", "keys", "content", "query")
 _PATH_PARAM_KEYS = ("path", "file_path", "filepath", "file", "source", "local_path")
+_DOM_PARAM_KEYS = ("html", "dom", "content", "page_source", "body")
 
 
 class BrowserActionBlockedError(Exception):
@@ -224,10 +238,45 @@ class AegisBrowserGuard:
             violations.extend(core.violations)
         return violations
 
+    # ---------------------------------------------------------------- DOM & Content
+
+    def _check_dom(self, html: str) -> List[AegisViolation]:
+        violations: List[AegisViolation] = []
+        p = self.policy
+
+        if not p.scan_dom_content or not html:
+            return violations
+
+        if p.block_hidden_injections and HIDDEN_CSS_INJECTION_RE.search(html):
+            violations.append(_violation(
+                "BROWSER-012",
+                "DOM contains hidden CSS text element with prompt-injection override instructions.",
+                "Sanitize or remove CSS-hidden adversarial text nodes before feeding DOM to the model.",
+            ))
+
+        if p.block_zero_pixel_beacons and ZERO_PIXEL_BEACON_RE.search(html):
+            violations.append(_violation(
+                "BROWSER-013",
+                "DOM contains 0-pixel tracking or exfiltration beacon (img/iframe).",
+                "Strip tracking and zero-pixel exfiltration tags from DOM.",
+            ))
+
+        if p.block_dom_script_tags and DOM_SCRIPT_TAG_RE.search(html):
+            violations.append(_violation(
+                "BROWSER-014",
+                "DOM contains executable script tags or javascript: URI handlers.",
+                "Sanitize executable scripts from DOM before agent consumption.",
+            ))
+
+        return violations
+
     # ------------------------------------------------------------- verdicts
 
     def evaluate_url(self, url: str) -> AegisVerdict:
         return self._verdict("navigate", {"url": url}, self._check_url(url))
+
+    def evaluate_dom(self, html: str) -> AegisVerdict:
+        return self._verdict("parse_dom", {"html_length": len(html)}, self._check_dom(html))
 
     def evaluate_action(self, action: str, params: Optional[Dict[str, Any]] = None) -> AegisVerdict:
         """Main entrypoint: clear a named browser action with its parameters."""
@@ -239,6 +288,7 @@ class AegisBrowserGuard:
         url = next((str(params[k]) for k in _URL_PARAM_KEYS if params.get(k)), None)
         text = next((str(params[k]) for k in _TEXT_PARAM_KEYS if params.get(k) is not None), None)
         path = next((str(params[k]) for k in _PATH_PARAM_KEYS if params.get(k)), None)
+        html = next((str(params[k]) for k in _DOM_PARAM_KEYS if params.get(k)), None)
 
         if any(a in action_l for a in DOWNLOAD_ACTIONS):
             if url:
@@ -254,12 +304,17 @@ class AegisBrowserGuard:
         elif any(a in action_l for a in INPUT_ACTIONS):
             if text is not None:
                 violations.extend(self._check_typed_text(text))
+        elif any(a in action_l for a in DOM_ACTIONS):
+            if html is not None:
+                violations.extend(self._check_dom(html))
         else:
             # Generic clearance: run every string param through the core engine.
             core = self.engine.evaluate(ToolCall(tool=f"browser_{action_l or 'action'}", params=params))
             violations.extend(core.violations)
             if url:
                 violations.extend(self._check_url(url))
+            if html is not None:
+                violations.extend(self._check_dom(html))
 
         return self._verdict(action, params, violations, start)
 

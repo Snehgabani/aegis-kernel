@@ -41,6 +41,10 @@ class BrowserPolicy:
     block_zero_width: bool = True
     scan_typed_text: bool = True
     scan_upload_paths: bool = True
+    scan_dom_content: bool = True
+    block_hidden_injections: bool = True
+    block_zero_pixel_beacons: bool = True
+    block_dom_script_tags: bool = True
     blocked_download_extensions: List[str] = field(
         default_factory=lambda: list(DEFAULT_BLOCKED_DOWNLOAD_EXTENSIONS)
     )
@@ -60,9 +64,14 @@ class BrowserPolicy:
                 "block_zero_width": self.block_zero_width,
                 "scan_typed_text": self.scan_typed_text,
                 "scan_upload_paths": self.scan_upload_paths,
+                "scan_dom_content": self.scan_dom_content,
+                "block_hidden_injections": self.block_hidden_injections,
+                "block_zero_pixel_beacons": self.block_zero_pixel_beacons,
+                "block_dom_script_tags": self.block_dom_script_tags,
                 "blocked_download_extensions": sorted(self.blocked_download_extensions),
                 "max_typed_text_length": self.max_typed_text_length,
             },
             sort_keys=True,
         )
         return hashlib.sha256(payload.encode()).hexdigest()
+
