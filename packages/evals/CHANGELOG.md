@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.2.0...evals@vv1.3.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **ci:** automated bot autopilot, launchd daemon, dependabot auto-rebase, and mistake immunity logging ([5f73078](https://github.com/Snehgabani/aegis-kernel/commit/5f7307824c6262117446c7e8ce44aed0a6fadaa0))
+
 ## [1.2.0](https://github.com/Snehgabani/aegis-kernel/compare/evals@vv1.1.0...evals@vv1.2.0) (2026-08-21)
 
 
