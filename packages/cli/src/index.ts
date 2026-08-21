@@ -23,6 +23,7 @@ import { runToolCoverage } from './tools-coverage-cmd.js';
 import { runDiagnose } from './diagnose-cmd.js';
 import { runSynthesize } from './synthesize-cli.js';
 import { runDagTrace } from './dag-trace-cli.js';
+import { runPolicyProve, runPolicyVerify } from './commitment-cli.js';
 
 const program = new Command();
 
@@ -30,6 +31,21 @@ program
   .name('aegis')
   .description('Aegis Invariant Kernel: Deterministic Tool-Call Safety Clearance Gateway for AI Agents')
   .version('1.0.1');
+
+program
+  .command('policy-prove <policyId> <min> <max> <privateValue>')
+  .description('Generate cryptographic hash commitment proving private value is within policy bounds')
+  .option('-o, --output <path>', 'Output JSON file path for generated proof artifact')
+  .action((policyId: string, min: string, max: string, privateValue: string, opts: { output?: string }) => {
+    runPolicyProve(policyId, parseFloat(min), parseFloat(max), parseFloat(privateValue), opts);
+  });
+
+program
+  .command('policy-verify <proofPath> <min> <max>')
+  .description('External auditor verification of a cryptographic policy commitment proof artifact')
+  .action((proofPath: string, min: string, max: string) => {
+    runPolicyVerify(proofPath, parseFloat(min), parseFloat(max));
+  });
 
 program
   .command('synthesize <schemaPath>')

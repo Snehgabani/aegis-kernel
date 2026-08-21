@@ -4,8 +4,9 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { runSynthesize } from '../src/synthesize-cli.js';
 import { runDagTrace } from '../src/dag-trace-cli.js';
+import { runPolicyProve, runPolicyVerify } from '../src/commitment-cli.js';
 
-describe('Aegis CLI Synthesize & DAG Trace Suite', () => {
+describe('Aegis CLI Synthesize, DAG Trace & Policy Commitment Suite', () => {
   let tmpDir: string;
 
   beforeEach(() => {
@@ -67,5 +68,20 @@ describe('Aegis CLI Synthesize & DAG Trace Suite', () => {
     const content = fs.readFileSync(outFile, 'utf8');
     expect(content).toContain('flowchart TD');
     expect(content).toContain('read_db (1) [SECRET]');
+  });
+
+  it('generates and verifies cryptographic policy commitment proof artifacts', () => {
+    const proofFile = path.join(tmpDir, 'proof.json');
+
+    // Generate proof: policyId='WIRE_TRANSFER_MAX_5000', min=1, max=5000, value=2500
+    runPolicyProve('WIRE_TRANSFER_MAX_5000', 1, 5000, 2500, { output: proofFile });
+    expect(fs.existsSync(proofFile)).toBe(true);
+
+    const proof = JSON.parse(fs.readFileSync(proofFile, 'utf8'));
+    expect(proof.policyId).toBe('WIRE_TRANSFER_MAX_5000');
+    expect(proof.proofBytesHex).toBeDefined();
+
+    // Verify proof
+    expect(() => runPolicyVerify(proofFile, 1, 5000)).not.toThrow();
   });
 });

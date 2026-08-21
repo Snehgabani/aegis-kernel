@@ -41,10 +41,23 @@ const benignParamsArb = fc.dictionary(benignStringArb, fc.oneof(
   fc.boolean()
 )).map((d) => d as Record<string, unknown>);
 
-const benignToolCallArb: fc.Arbitrary<ToolCall> = fc.record({
-  tool: fc.constantFrom('sql_query', 'send_email', 'fetch_url', 'create_record'),
+const benignSqlToolCallArb: fc.Arbitrary<ToolCall> = fc.record({
+  tool: fc.constant('sql_query'),
+  params: fc.record({
+    query: fc.constantFrom(
+      'SELECT id, name FROM users WHERE id = 1',
+      'SELECT * FROM products WHERE price > 100 AND price < 500',
+      'SELECT count(*) FROM orders WHERE status = "complete"'
+    ),
+  }),
+});
+
+const benignGenericToolCallArb: fc.Arbitrary<ToolCall> = fc.record({
+  tool: fc.constantFrom('send_email', 'fetch_url', 'create_record'),
   params: benignParamsArb,
 });
+
+const benignToolCallArb: fc.Arbitrary<ToolCall> = fc.oneof(benignSqlToolCallArb, benignGenericToolCallArb);
 
 const attackToolCallArb = fc.constantFrom(
   { tool: 'sql_query', params: { query: "SELECT * FROM users WHERE name='a' OR '1'='1'" } },
