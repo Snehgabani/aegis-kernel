@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.7.0...core@vv1.8.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **evals:** add SecLists / Exploit-DB real-world CVE evaluation adapter and cloud SSRF invariants ([46b9e02](https://github.com/Snehgabani/aegis-kernel/commit/46b9e027714d404e838b1270aca135a7c81cdda4))
+
 ## [1.7.0](https://github.com/Snehgabani/aegis-kernel/compare/core@vv1.6.0...core@vv1.7.0) (2026-08-21)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.4.0...cli@vv1.5.0) (2026-08-21)
+
+
+### 🚀 Features & Verification Engines
+
+* **cli:** add jailbreakbench and seclists subcommands to aegis eval and update public evaluation harness ([b28e9f9](https://github.com/Snehgabani/aegis-kernel/commit/b28e9f9e742713018a228dd302bb1dcffb755504))
+
 ## [1.4.0](https://github.com/Snehgabani/aegis-kernel/compare/cli@vv1.3.0...cli@vv1.4.0) (2026-08-21)
 
 
