@@ -66,4 +66,75 @@ describe('ExecutionDAG', () => {
     const radius = dag.computeBlastRadius('a1');
     expect(radius).toEqual(expect.arrayContaining(['a1', 'a2', 'a3']));
   });
+
+  it('enforces FIDES dual-lattice information flow control (confidentiality & integrity)', () => {
+    // 1. Secret database read
+    dag.addAction({
+      id: 'node_db',
+      agentId: 'analyst_01',
+      actionType: 'query_db',
+      timestamp: 1,
+      securityLabel: {
+        integrity: 'trusted',
+        confidentiality: 'secret',
+      },
+    });
+
+    // 2. Untrusted web scraping
+    dag.addAction({
+      id: 'node_web',
+      agentId: 'analyst_01',
+      actionType: 'web_scrape',
+      timestamp: 2,
+      securityLabel: {
+        integrity: 'untrusted',
+        confidentiality: 'public',
+      },
+    });
+
+    // 3. Downstream aggregation transformer
+    dag.addAction({
+      id: 'node_summary',
+      agentId: 'analyst_01',
+      actionType: 'summarize_data',
+      timestamp: 3,
+    });
+
+    // 4. Public web search egress sink
+    dag.addAction({
+      id: 'node_search',
+      agentId: 'analyst_01',
+      actionType: 'web_search',
+      timestamp: 4,
+    });
+
+    // 5. Mutating database exec sink
+    dag.addAction({
+      id: 'node_mutate',
+      agentId: 'analyst_01',
+      actionType: 'database_exec',
+      timestamp: 5,
+    });
+
+    // Wire data flows
+    dag.addEdge({ sourceId: 'node_db', targetId: 'node_summary', type: 'data_flow' });
+    dag.addEdge({ sourceId: 'node_web', targetId: 'node_summary', type: 'data_flow' });
+    dag.addEdge({ sourceId: 'node_summary', targetId: 'node_search', type: 'data_flow' });
+    dag.addEdge({ sourceId: 'node_summary', targetId: 'node_mutate', type: 'data_flow' });
+
+    // Verify labels propagated correctly on summary node
+    const summaryNode = dag.getAction('node_summary');
+    expect(summaryNode?.securityLabel?.confidentiality).toBe('secret');
+    expect(summaryNode?.securityLabel?.integrity).toBe('untrusted');
+
+    // Run FIDES policy verification
+    const violations = dag.verifyInformationFlow();
+    expect(violations.length).toBeGreaterThanOrEqual(2);
+
+    const confViolation = violations.find((v) => v.reason.includes('Confidentiality breach'));
+    expect(confViolation).toBeDefined();
+
+    const intViolation = violations.find((v) => v.reason.includes('Integrity breach'));
+    expect(intViolation).toBeDefined();
+  });
 });

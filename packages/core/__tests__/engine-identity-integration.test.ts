@@ -81,4 +81,28 @@ describe('AegisEngine with AgentIdentityManager Integration', () => {
     expect(verdict.allowed).toBe(false);
     expect(verdict.violations[0].message).toMatch(/not registered/i);
   });
+
+  it('enforces Google DeepMind CaMeL quarantined worker isolation from mutating tools', () => {
+    identityManager.registerAgent({
+      agentId: 'quarantined-scraper-01',
+      role: 'web-scraper',
+      allowedTools: ['*'],
+      executionRole: 'quarantined_worker',
+    });
+
+    // 1. Quarantined agent can invoke read-only tool
+    const readVerdict = engine.evaluate(
+      { tool: 'read_doc', params: { url: 'https://example.com' } },
+      { callerId: 'quarantined-scraper-01' }
+    );
+    expect(readVerdict.allowed).toBe(true);
+
+    // 2. Quarantined agent is BLOCKED from invoking mutating tool
+    const mutateVerdict = engine.evaluate(
+      { tool: 'database_exec', params: { query: 'SELECT 1' } },
+      { callerId: 'quarantined-scraper-01' }
+    );
+    expect(mutateVerdict.allowed).toBe(false);
+    expect(mutateVerdict.violations[0].message).toMatch(/CaMeL Invariant: Quarantined worker agent/);
+  });
 });

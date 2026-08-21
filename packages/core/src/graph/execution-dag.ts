@@ -1,3 +1,19 @@
+/**
+ * @file packages/core/src/graph/execution-dag.ts
+ * @description Causal Execution DAG with Microsoft FIDES Dual-Lattice Information Flow Control (IFC)
+ * and Google DeepMind CaMeL structural taint propagation.
+ */
+
+export type IntegrityLevel = 'untrusted' | 'sanitized' | 'trusted';
+export type ConfidentialityLevel = 'public' | 'internal' | 'confidential' | 'secret';
+
+export interface SecurityLabel {
+  integrity: IntegrityLevel;
+  confidentiality: ConfidentialityLevel;
+  originTool?: string;
+  taintSources?: string[];
+}
+
 export interface AgentAction {
   id: string;
   agentId: string;
@@ -5,18 +21,19 @@ export interface AgentAction {
   resource?: string;
   timestamp: number;
   metadata?: Record<string, any>;
-  privilegeLevel?: number; // lower is more privileged or vice versa, lets say higher is more privileged
+  privilegeLevel?: number;
+  securityLabel?: SecurityLabel;
 }
 
 export interface DAGEdge {
   sourceId: string;
   targetId: string;
-  type: string; // e.g. 'data_flow', 'delegation'
+  type: 'data_flow' | 'delegation' | string;
 }
 
 export interface AnomalyResult {
   detected: boolean;
-  type: string;
+  type: 'DataExfiltration' | 'CircularDelegation' | 'PrivilegeEscalation' | 'InformationFlowViolation' | string;
   reason: string;
   involvedNodes: string[];
 }
@@ -27,14 +44,43 @@ export interface ExfiltrationPattern {
   sinks: string[];
 }
 
+export interface DAGInformationFlowPolicy {
+  blockedEgressLevels?: ConfidentialityLevel[];
+  blockedMutationIntegrities?: IntegrityLevel[];
+  egressSinks?: string[];
+  mutationSinks?: string[];
+  deidentificationTransformers?: string[];
+}
+
+const INTEGRITY_ORDER: Record<IntegrityLevel, number> = {
+  untrusted: 0,
+  sanitized: 1,
+  trusted: 2,
+};
+
+const CONFIDENTIALITY_ORDER: Record<ConfidentialityLevel, number> = {
+  public: 0,
+  internal: 1,
+  confidential: 2,
+  secret: 3,
+};
+
 export class ExecutionDAG {
   private nodes: Map<string, AgentAction> = new Map();
   private edges: DAGEdge[] = [];
-  private adjList: Map<string, string[]> = new Map(); // targetId -> array of sourceIds? No, sourceId -> array of targetIds
+  private adjList: Map<string, string[]> = new Map();
 
   addAction(action: AgentAction): void {
     if (!this.nodes.has(action.id)) {
-      this.nodes.set(action.id, action);
+      const normalizedAction: AgentAction = {
+        ...action,
+        securityLabel: action.securityLabel ?? {
+          integrity: 'trusted',
+          confidentiality: 'internal',
+          taintSources: [],
+        },
+      };
+      this.nodes.set(action.id, normalizedAction);
       this.adjList.set(action.id, []);
     }
   }
@@ -47,14 +93,97 @@ export class ExecutionDAG {
     const neighbors = this.adjList.get(edge.sourceId) || [];
     neighbors.push(edge.targetId);
     this.adjList.set(edge.sourceId, neighbors);
+
+    // Propagate FIDES dual-lattice labels on data flow
+    if (edge.type === 'data_flow') {
+      this.propagateLabel(edge.sourceId, edge.targetId);
+    }
   }
 
   getActions(): AgentAction[] {
     return Array.from(this.nodes.values());
   }
 
+  getAction(id: string): AgentAction | undefined {
+    return this.nodes.get(id);
+  }
+
   getEdges(): DAGEdge[] {
     return this.edges;
+  }
+
+  /**
+   * Propagate FIDES dual-lattice security tags across a data flow edge:
+   * Target Integrity = min(Source Integrity, Target Integrity)
+   * Target Confidentiality = max(Source Confidentiality, Target Confidentiality)
+   */
+  private propagateLabel(sourceId: string, targetId: string): void {
+    const source = this.nodes.get(sourceId);
+    const target = this.nodes.get(targetId);
+    if (!source?.securityLabel || !target?.securityLabel) return;
+
+    const sourceInt = source.securityLabel.integrity;
+    const targetInt = target.securityLabel.integrity;
+    const effectiveIntegrity =
+      INTEGRITY_ORDER[sourceInt] < INTEGRITY_ORDER[targetInt] ? sourceInt : targetInt;
+
+    const sourceConf = source.securityLabel.confidentiality;
+    const targetConf = target.securityLabel.confidentiality;
+    const effectiveConfidentiality =
+      CONFIDENTIALITY_ORDER[sourceConf] > CONFIDENTIALITY_ORDER[targetConf] ? sourceConf : targetConf;
+
+    const combinedTaints = Array.from(
+      new Set([
+        ...(source.securityLabel.taintSources ?? []),
+        ...(target.securityLabel.taintSources ?? []),
+        source.actionType,
+      ])
+    );
+
+    target.securityLabel = {
+      integrity: effectiveIntegrity,
+      confidentiality: effectiveConfidentiality,
+      originTool: source.securityLabel.originTool ?? source.actionType,
+      taintSources: combinedTaints,
+    };
+  }
+
+  /**
+   * Verify Microsoft FIDES Information Flow Policies across the entire DAG.
+   */
+  verifyInformationFlow(policy: DAGInformationFlowPolicy = {}): AnomalyResult[] {
+    const anomalies: AnomalyResult[] = [];
+    const egressSinks = new Set(policy.egressSinks ?? ['http_post', 'send_email', 'web_search', 'webhook_dispatch']);
+    const mutationSinks = new Set(policy.mutationSinks ?? ['execute_sql', 'database_exec', 'filesystem_write', 'execute_bash']);
+    const blockedConf = new Set(policy.blockedEgressLevels ?? ['confidential', 'secret']);
+    const blockedInt = new Set(policy.blockedMutationIntegrities ?? ['untrusted']);
+
+    for (const action of this.nodes.values()) {
+      const label = action.securityLabel;
+      if (!label) continue;
+
+      // 1. Data Exfiltration via High-Confidentiality Egress Sink
+      if (egressSinks.has(action.actionType) && blockedConf.has(label.confidentiality)) {
+        anomalies.push({
+          detected: true,
+          type: 'InformationFlowViolation',
+          reason: `Confidentiality breach: Data tagged '${label.confidentiality}' reached public egress sink '${action.actionType}'`,
+          involvedNodes: [action.id],
+        });
+      }
+
+      // 2. Untrusted Taint flowing into Mutating System Sink
+      if (mutationSinks.has(action.actionType) && blockedInt.has(label.integrity)) {
+        anomalies.push({
+          detected: true,
+          type: 'InformationFlowViolation',
+          reason: `Integrity breach: Untrusted data flow from tainted sources reached mutating sink '${action.actionType}'`,
+          involvedNodes: [action.id],
+        });
+      }
+    }
+
+    return anomalies;
   }
 
   // Anomaly 1: Data exfiltration chain detection
@@ -99,7 +228,6 @@ export class ExecutionDAG {
     const neighbors = this.adjList.get(currentId) || [];
     for (const neighborId of neighbors) {
       if (!visited.has(neighborId)) {
-        // Find if edge is data flow
         const edge = this.edges.find(e => e.sourceId === currentId && e.targetId === neighborId && e.type === 'data_flow');
         if (edge) {
           const result = this.dfsExfiltration(neighborId, pattern, new Set(visited), [...path], hasTrans);
@@ -125,14 +253,12 @@ export class ExecutionDAG {
 
       const neighbors = this.adjList.get(nodeId) || [];
       for (const neighborId of neighbors) {
-        // only care about delegation
         const isDelegation = this.edges.find(e => e.sourceId === nodeId && e.targetId === neighborId && e.type === 'delegation');
         if (!isDelegation) continue;
 
         if (!visited.has(neighborId)) {
           dfs(neighborId);
         } else if (recStack.has(neighborId)) {
-          // cycle detected
           const cycleStartIdx = path.indexOf(neighborId);
           const cycleNodes = path.slice(cycleStartIdx);
           anomalies.push({
