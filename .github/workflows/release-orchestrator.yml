@@ -21,6 +21,7 @@ jobs:
       - name: Run Google Release-Please
         uses: googleapis/release-please-action@v4
         id: release
+        continue-on-error: true
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: .github/release-please-config.json
