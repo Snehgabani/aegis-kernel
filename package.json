@@ -29,6 +29,7 @@
     "test:all": "vitest run && bash scripts/security-audit.sh",
     "gen:homoglyphs": "node scripts/gen-homoglyph-maps.mjs",
     "fetch:benchmarks": "node scripts/fetch-canonical-benchmarks.mjs",
+    "fetch:atlas": "node scripts/fetch-mitre-atlas-feed.mjs",
     "benchmark:1000": "node scripts/benchmark-1000.mjs",
     "audit:analytics": "node scripts/audit-analytics.mjs",
     "precommit:shield": "node scripts/precommit-ast-shield.mjs",
